@@ -162,3 +162,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Merged pull request #4 (landing redesign, Privacy & Terms, onboarding, social kit). All live.
 - **2026-11-13** — Owner set up a free business Gmail and the `coatwright` GitHub organization. Moved the website, app, tracker and marketing to coatwright.github.io.
 - **2026-11-13** — Owner created coatwrightapp@gmail.com. Added it as the support email on the site, legal pages and app.
+- **2026-11-13** — Rewrote the social media kit as screen-by-screen signup answers per platform, with direct image/video download links and 2FA steps.
