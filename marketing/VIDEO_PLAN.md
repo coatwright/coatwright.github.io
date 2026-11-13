@@ -6,6 +6,39 @@
 
 ---
 
+## 0. The explainer video (start here)
+
+`marketing/videos/coatwright-explainer.mp4`: **~51 seconds, vertical 1080×1920, with voiceover and captions.**
+It walks a new user through the whole app in 7 scenes: hook → set up once → quote any job → send a pro quote →
+win it, track it, get paid → know what you really make → "Start free today".
+
+- **Use it as:** your pinned post on every platform, the first video on YouTube Shorts, and the video you send to painters you know.
+- **Caption:**
+
+```
+New to Coatwright? Here's the whole app in under a minute. 🎨
+Set up once → quote any job → send a pro quote → get paid → see what you really made.
+Free. No signup. Works on any phone. Link in bio.
+#painter #paintingcontractor #paintingbusiness #estimating #contractor #smallbusiness
+```
+
+- **Voice credit (required by the voice's license, CC BY 4.0):** it's already on the last frame of the video. If you post it
+  somewhere the frame might be cropped, add this line to the description: `Voice: Piper text-to-speech, LibriTTS voice (CC BY 4.0).`
+- The voice is computer-generated. Most platforms ask you to label AI-generated *realistic* content; a text-to-speech
+  narrator over a real app recording usually doesn't need it, but turning the label on is the safe choice.
+- Want it in your own voice? Mute the track in CapCut and record the script below over it. It sounds more personal.
+
+**Script (if you record your own voice):**
+1. "Painters! Still pricing jobs on a napkin? Meet Coatwright, the free app that prices any paint job in minutes."
+2. "Set it up once. Add your business name, your logo, and your rates. Pick a starting point, and you're ready to go."
+3. "Start a quote. Pick the property, enter the square footage, or go room by room. Add exterior, cabinets, or a garage floor. The price updates with every tap."
+4. "Your customer gets a clean, itemized quote with your logo. Email it, text it, or save a PDF, before you even leave the driveway."
+5. "Won the job? Log the deposit and payments, and turn it into an invoice with one tap."
+6. "Then see what you really made this year. Your profit, your real hourly rate, and the money still owed to you."
+7. "Coatwright. Free, no sign up, and it works on any phone. Send your first quote today."
+
+---
+
 ## 1. The game plan
 
 | Item | Plan |
@@ -187,6 +220,7 @@ Saved in `marketing/videos/`. Recorded straight from the live app (sample busine
 |---|---|---|
 | `coatwright-demo-quote.mp4` | ~21 s | Scripts 1, 4, 11, 12, 18 |
 | `coatwright-demo-stats.mp4` | ~15 s | Scripts 2, 9, 13, 19, 20 |
+| `coatwright-explainer.mp4` | ~51 s, with voiceover | Pinned post, onboarding new users (see §0) |
 
 More can be recorded on request (cabinets, exterior, invoice, schedule, commercial).
 

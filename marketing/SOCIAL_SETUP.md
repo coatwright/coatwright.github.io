@@ -28,6 +28,7 @@ Open each link on your phone, **press and hold the image → Save to Photos** (i
 | First post | https://coatwright.github.io/marketing/social/first-post.png | Instagram & Facebook |
 | Demo video 1 | https://coatwright.github.io/marketing/videos/coatwright-demo-quote.mp4 | Posts on every platform |
 | Demo video 2 | https://coatwright.github.io/marketing/videos/coatwright-demo-stats.mp4 | Posts on every platform |
+| **Explainer (with voiceover)** | https://coatwright.github.io/marketing/videos/coatwright-explainer.mp4 | **Pinned post on every platform** |
 
 Also have your **password manager** ready (iPhone Passwords app or Google Password Manager) to save each new password.
 
@@ -244,7 +245,7 @@ Your real profit, real hourly rate and win rate, all from the jobs you already q
 #painter #paintingbusiness #smallbusiness #contractor #painterlife
 ```
 
-**Pin Post 2** on Instagram and TikTok. Then follow the 30-day schedule in `marketing/VIDEO_PLAN.md`.
+**Post the explainer video too and pin it** on Instagram, TikTok and Facebook (caption in `marketing/VIDEO_PLAN.md` §0). Then follow the 30-day schedule in `marketing/VIDEO_PLAN.md`.
 
 ---
 
