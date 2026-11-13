@@ -1167,6 +1167,9 @@
       '<label class="btn">⬆️ Restore<input type="file" accept=".json,application/json" id="restore-input" hidden></label></div>' +
       '<p class="muted small">' + jobs.length + ' jobs · ' + expenses.length + ' expenses saved.</p></section>' +
       '<button class="link danger center" data-action="reset-settings">Reset prices to defaults</button>' +
+      '<section class="card"><h2 class="card-title">💬 Help & feedback</h2>' +
+      '<p class="muted small" style="margin-top:0">Questions, a bug, or a feature you want? We read every message.</p>' +
+      '<a class="btn btn-ghost full" href="mailto:coatwrightapp@gmail.com?subject=Coatwright%20feedback">✉️ Email coatwrightapp@gmail.com</a></section>' +
       '<p class="center-text muted small"><a href="#/welcome/1">Run setup again</a> · <a href="../privacy.html">Privacy Policy</a> · <a href="../terms.html">Terms</a></p>';
 
     var input = document.getElementById('logo-input');

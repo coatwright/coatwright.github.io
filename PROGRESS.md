@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Moved to the free Coatwright address: website https://coatwright.github.io/ · app https://coatwright.github.io/app/ (onboarding, quoting, business tools, invoices, schedule, customers, Privacy & Terms). **Next (owner): send the new business email for the site, create social accounts, test with 5–10 painters.**
+**Where we are now:** Live at https://coatwright.github.io/ (app at /app/) with onboarding, quoting, business tools, invoices, schedule, customers, Privacy & Terms, and support email coatwrightapp@gmail.com. **Next (owner): create social accounts with the kit, test with 5–10 painters.**
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -85,7 +85,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Landing page redesigned to look professional (menu, trust strip, feature sections, comparison table, Starter/Pro pricing, FAQ, footer, share image)
 - ✅ Privacy Policy (`privacy.html`) and Terms of Service (`terms.html`), accurate to how the app stores data
 - ✅ First-run onboarding in the app: welcome → business info & logo → rate presets (starting out / established / premium) → first quote or sample quote, with install-to-home-screen help
-- ⬜ Add a support email to the site and legal pages (owner to provide)
+- ✅ Support email **coatwrightapp@gmail.com** on the website (footer + FAQ), Privacy, Terms and the app's Settings (Help & feedback)
 - ✅ First landing page at https://nbarmash.github.io/Nbarmash/ (root `index.html`, screenshots in `landing/`); the app stays at `/coatwright/`
 
 ## Phase 5 — Grow 🔄
@@ -161,3 +161,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Added first-run onboarding (business info, rate presets, sample quote, install help). 29 tests passing; full walkthroughs pass.
 - **2026-11-13** — Merged pull request #4 (landing redesign, Privacy & Terms, onboarding, social kit). All live.
 - **2026-11-13** — Owner set up a free business Gmail and the `coatwright` GitHub organization. Moved the website, app, tracker and marketing to coatwright.github.io.
+- **2026-11-13** — Owner created coatwrightapp@gmail.com. Added it as the support email on the site, legal pages and app.

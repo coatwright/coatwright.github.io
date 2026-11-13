@@ -20,8 +20,7 @@ Everything needed to set up each account in about 5 minutes. Accounts must be cr
 
 ## Step 0 — Before you start (5 min)
 
-1. **Make one email just for Coatwright**, e.g. a free Gmail such as `coatwright.app@gmail.com`
-   (try variations if it's taken). Use it for every account below, so the business stays separate from your personal accounts.
+1. **Coatwright email:** `coatwrightapp@gmail.com`. Use it for every account below, so the business stays separate from your personal accounts.
 2. **Use a password manager** (Google Password Manager, iCloud Keychain or Bitwarden) and a different password per account.
 3. **Turn on two-factor login** on every account after you create it. Losing a brand account is painful.
 4. **Username to try everywhere, in this order:**
@@ -153,7 +152,8 @@ Then follow the 30-day schedule in `marketing/VIDEO_PLAN.md`.
 
 ## Checklist
 
-- [ ] Coatwright email created, password manager set up
+- [x] Coatwright email created (coatwrightapp@gmail.com)
+- [ ] Password manager set up
 - [ ] Instagram: business account, bio, link, photo, first post
 - [ ] Facebook Page: cover, bio, username, button, Instagram connected
 - [ ] TikTok: business account, bio, photo, link (when available)
