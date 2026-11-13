@@ -100,6 +100,8 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ⬜ Post in painter Facebook groups and subreddits
 - ✅ Video plan: 25 scripts with hooks, captions, hashtags, AI prompts and a 30-day schedule (`marketing/VIDEO_PLAN.md`)
 - ✅ First 2 real app demo videos recorded (`marketing/videos/`: quick quote, business stats); more on request
+- ✅ Video closing card no longer shows the github address ("Start your free trial" instead)
+- ✅ Phone install: proper app icons (iPhone + Android), install screen in the app, home-screen reminder, Settings card, website "Get the app" section with QR code, and help for links opened inside Instagram/Facebook/TikTok
 - ✅ Explainer video added to the landing page (How it works section; hero button "Watch the 1-min demo")
 - ✅ Explainer video with voiceover and captions (~51 s, `marketing/videos/coatwright-explainer.mp4`): whole app in 7 scenes, for pinned posts and onboarding
 - ⬜ AI-generated videos (job-site scenes, voiceover): prompts ready in the plan; owner generates them in an AI video tool
@@ -178,3 +180,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Made the explainer video: real app recordings, captions, phone frame and computer voiceover (voice chosen by measured pitch and pace; 2 alternative voices offered).
 - **2026-11-13** — Added the explainer video to the landing page.
 - **2026-11-13** — Owner chose paid plans ($24/mo or $199/yr after a 14-day trial, founding $14/mo, Lemon Squeezy) and a more human female voice. Built the paywall (off until payments exist), updated site/legal/marketing, re-voiced the explainer.
+- **2026-11-13** — Removed the web address from the video; built the phone install experience (icons, install screens, QR code); Chrome reports the app as installable.

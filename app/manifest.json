@@ -1,13 +1,23 @@
 {
-  "name": "Coatwright",
+  "id": "/app/",
+  "name": "Coatwright: Paint Quotes",
   "short_name": "Coatwright",
-  "description": "Price a paint job in minutes and email the customer an itemized quote.",
+  "description": "Price any paint job in minutes, send professional quotes and invoices, and know what you really make.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f4f6fb",
   "theme_color": "#1f5eff",
+  "categories": ["business", "productivity"],
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "screenshots": [
+    { "src": "icons/screen-quote.png", "sizes": "1170x2532", "type": "image/png", "form_factor": "narrow", "label": "Quote any paint job in minutes" },
+    { "src": "icons/screen-stats.png", "sizes": "1170x2532", "type": "image/png", "form_factor": "narrow", "label": "See what you really make" }
   ]
 }

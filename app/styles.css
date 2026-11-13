@@ -384,6 +384,19 @@ body[data-view="welcome"] .top-actions { display: none; }
 .ticks-app { list-style: none; padding: 0; margin: 4px 4px 16px; display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
 .ticks-app li::before { content: '✓ '; color: var(--good); font-weight: 800; }
 
+/* Install */
+.install-banner { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; padding: 6px 6px 6px 14px; border-radius: var(--radius);
+  background: var(--card); box-shadow: var(--shadow); }
+.install-banner a { display: flex; align-items: center; gap: 12px; flex: 1; color: var(--text); text-decoration: none; padding: 6px 0; }
+.install-banner a > span { font-size: 24px; }
+.inst-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin-bottom: 12px; border: 2px solid transparent; }
+.inst-card.on { border-color: var(--brand); }
+.inst-card h3 { margin: 0 0 8px; font-size: 18px; }
+.inst-card ol { margin: 8px 0 0; padding-left: 22px; display: grid; gap: 6px; }
+.kbd { display: inline-block; padding: 0 6px; border: 1px solid var(--line); border-radius: 6px; background: #f7f8fb; }
+.inst-warn { background: #fff4e0; border: 1px solid #f2cf86; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+.inst-done { background: #dcf3e2; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+
 /* Toast */
 #toast {
   position: fixed; left: 50%; bottom: 110px; transform: translateX(-50%) translateY(20px);

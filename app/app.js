@@ -24,6 +24,7 @@
   var expenses = load('pq.expenses', []);
   if (!settings.onboarded && (jobs.length || settings.businessName)) { settings.onboarded = true; save('pq.settings', settings); }
   if (!settings.trialStart) { settings.trialStart = Date.now(); save('pq.settings', settings); }
+  var wantsInstall = /[?&]install=1/.test(location.search);
   function access() { return BL.accessState(settings, Date.now(), BC); }
   var installPrompt = null;
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installPrompt = e; });
@@ -117,6 +118,7 @@
     else if (view === 'customers') renderCustomers();
     else if (view === 'customer') renderCustomer(decodeURIComponent(id || ''));
     else if (view === 'upgrade') renderUpgrade();
+    else if (view === 'install') renderInstall();
     else if (view === 'new' && !access().canCreate) { location.hash = '#/upgrade'; return; }
     else if (view === 'new') renderNewJob(P.JOB_TYPES[id] ? id : null);
     else if (view === 'settings') renderSettings();
@@ -124,6 +126,7 @@
     else if (view === 'welcome' && !id && settings.onboarded) { location.hash = '#/'; return; }
     else if (view === 'welcome') renderWelcome(+id || 0);
     else if (!settings.onboarded) { location.hash = '#/welcome'; return; }
+    else if (wantsInstall && !isInstalled()) { wantsInstall = false; location.hash = '#/install'; return; }
     else renderHome();
   }
   window.addEventListener('hashchange', function () { route(); window.scrollTo(0, 0); });
@@ -143,6 +146,40 @@
 
   function isIOS() { return /iphone|ipad|ipod/i.test(navigator.userAgent); }
   function isInstalled() { return window.matchMedia && window.matchMedia('(display-mode: standalone)').matches || navigator.standalone; }
+  function isAndroid() { return /android/i.test(navigator.userAgent); }
+  function isMobile() { return isIOS() || isAndroid() || /mobile/i.test(navigator.userAgent); }
+  /** Instagram, Facebook, TikTok, Snapchat etc. open links in their own browser, which can't install apps. */
+  function inAppBrowser() { return /Instagram|FBAN|FBAV|FB_IAB|BytedanceWebview|musical_ly|TikTok|Snapchat|Line\//i.test(navigator.userAgent); }
+
+  function installSteps() {
+    if (isInstalled()) return '<div class="inst-done">✅ Coatwright is installed on this device. Open it from your home screen anytime.</div>';
+    if (inAppBrowser()) {
+      return '<div class="inst-warn"><b>First, open this page in your phone\'s browser.</b><br>You\'re inside another app\'s browser, which can\'t install apps. ' +
+        'Tap the <b>⋯</b> or <b>⋮</b> menu at the top or bottom, then <b>Open in ' + (isIOS() ? 'Safari' : 'Chrome') + '</b> (or "Open in browser").</div>';
+    }
+    var ios = '<div class="inst-card' + (isIOS() ? ' on' : '') + '"><h3>📱 iPhone &amp; iPad</h3><ol>' +
+      '<li>Open <b>coatwright.github.io/app</b> in <b>Safari</b></li>' +
+      '<li>Tap the <b>Share</b> button <span class="kbd">⬆︎</span> (bottom of the screen; top-right on iPad)</li>' +
+      '<li>Scroll down and tap <b>Add to Home Screen</b></li><li>Tap <b>Add</b>. The Coatwright icon appears on your home screen.</li></ol></div>';
+    var android = '<div class="inst-card' + (isAndroid() ? ' on' : '') + '"><h3>🤖 Android</h3>' +
+      (installPrompt ? '<button class="btn btn-primary full" data-action="install">📲 Install Coatwright</button><p class="muted small">Or use the steps below.</p>' : '') +
+      '<ol><li>Open <b>coatwright.github.io/app</b> in <b>Chrome</b></li>' +
+      '<li>Tap <b>Install</b> when it pops up, or tap the <b>⋮</b> menu → <b>Install app</b> / <b>Add to Home screen</b></li>' +
+      '<li>Tap <b>Install</b>. Coatwright appears with your other apps.</li></ol></div>';
+    return isAndroid() ? android + ios : ios + android;
+  }
+
+  function renderInstall() {
+    app.innerHTML = '<div class="page-head"><a href="#/" class="back">‹ Jobs</a><span class="muted small">Install</span></div>' +
+      '<h1 class="ask">Put Coatwright on your phone</h1>' +
+      '<p class="muted">No app store needed. It installs in seconds and works like any other app: its own icon, full screen, and it opens even without signal.</p>' +
+      installSteps() +
+      '<section class="card"><h2 class="card-title">Good to know</h2><ul class="ticks-app" style="margin:0">' +
+      '<li>Your jobs and quotes stay on this phone. Back up anytime in ⚙️ Settings</li>' +
+      '<li>Updates install automatically. Nothing to download</li>' +
+      '<li>Using a computer too? Open coatwright.github.io/app there as well</li></ul></section>' +
+      '<p class="center-text"><a href="#/">Continue in the browser</a></p>';
+  }
 
   function renderWelcome(step) {
     var body;
@@ -178,7 +215,7 @@
         '<p class="muted small" style="margin:0">Paint prices, tax and how fast you work are in Settings too.</p></section>' +
         '<div class="wz-nav"><a class="btn" href="#/welcome/1">Back</a><button class="btn btn-primary" data-action="wz-next" data-v="3">Continue</button></div>';
     } else {
-      var install = isInstalled() ? '' : installPrompt
+      var install = isInstalled() ? '' : inAppBrowser() ? '<a class="btn full" href="#/install">📲 How to install Coatwright</a>' : installPrompt
         ? '<button class="btn full" data-action="install">📲 Install Coatwright on this phone</button>'
         : isIOS() ? '<p class="wz-tip">📲 <b>Tip:</b> tap the Share button, then <b>Add to Home Screen</b>, to open Coatwright like an app.</p>'
           : '<p class="wz-tip">📲 <b>Tip:</b> use your browser menu → <b>Install app</b> or <b>Add to Home screen</b> to open Coatwright like an app.</p>';
@@ -332,7 +369,11 @@
       counts[f[0]] = f[2] ? jobs.filter(function (j) { return f[2].indexOf(S.statusOf(j)) !== -1; }).length : jobs.length;
     });
 
+    var showInstall = settings.onboarded && !isInstalled() && isMobile() && !settings.installHintDismissed;
     app.innerHTML = planBanner() +
+      (showInstall ? '<div class="install-banner"><a href="#/install"><span>📲</span><div><strong>Add Coatwright to your home screen</strong>' +
+        '<div class="small">Open it like a regular app, even with no signal.</div></div></a>' +
+        '<button class="icon-btn sm" data-action="install-dismiss" aria-label="Dismiss">✕</button></div>' : '') +
       (needsSetup ? '<a class="setup-banner" href="#/settings"><span>👋</span><div><strong>Start here: add your business info</strong>' +
         '<div class="small">Your name, logo and rates go on every quote. Takes 1 minute.</div></div><span>›</span></a>' : '') +
       (jobs.length ? '<a class="year-card" href="#/stats"><div><div class="muted small">' + y.year + ' collected</div><div class="year-big">' + money0(y.collected) + '</div></div>' +
@@ -1238,6 +1279,9 @@
       '<section class="card"><h2 class="card-title">Invoices</h2>' +
       setField('invoiceDueDays', 'Payment due', { type: 'number', unit: 'days', hint: '0 = due on receipt' }) +
       setField('paymentInstructions', 'How customers can pay you', { textarea: true }) + '</section>' +
+      (!isInstalled() ? '<section class="card"><h2 class="card-title">📲 Install on your phone</h2>' +
+        '<p class="muted small" style="margin-top:0">Add Coatwright to your home screen so it opens like a regular app.</p>' +
+        '<a class="btn btn-ghost full" href="#/install">Show me how</a></section>' : '') +
       (BC.enabled ? '<section class="card"><h2 class="card-title">⭐ Subscription</h2>' + (function () {
         var a = access();
         return '<p class="small" style="margin-top:0">' + (a.mode === 'active' ? 'Coatwright Pro · ' + esc(a.plan) + ' ✓'
@@ -1413,7 +1457,14 @@
         return;
       }
       case 'install':
-        if (installPrompt) { installPrompt.prompt(); installPrompt = null; renderWelcome(3); }
+        if (installPrompt) {
+          installPrompt.prompt();
+          installPrompt.userChoice.then(function (c) { if (c && c.outcome === 'accepted') toast('Installed! Find Coatwright on your home screen'); }).catch(function () {});
+          installPrompt = null; route();
+        }
+        return;
+      case 'install-dismiss':
+        settings.installHintDismissed = true; saveSettings(); renderHome();
         return;
       case 'wz-finish':
         settings.onboarded = true; saveSettings();

@@ -160,6 +160,22 @@ details p { margin: 12px 0 0; color: var(--body); }
 .demo-video { width: 100%; max-width: 340px; aspect-ratio: 9 / 16; border-radius: 28px; background: #0d1326;
   box-shadow: 0 30px 70px rgba(13, 19, 38, .25); border: 8px solid #0d1326; }
 
+.install-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.install-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+.install-card.on { border: 2px solid var(--brand); box-shadow: 0 16px 40px rgba(31, 94, 255, .12); }
+.install-card[hidden] { display: none; }
+.ic-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.ic-emoji { font-size: 26px; }
+.install-card h3 { font-size: 19px; }
+.install-card ol { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 8px; font-size: 15px; }
+.kbd { display: inline-block; padding: 0 6px; border: 1px solid var(--line); border-radius: 6px; background: #f7f8fb; }
+.qr-card { display: flex; gap: 18px; align-items: center; }
+.qr-box { flex: none; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 6px; line-height: 0; }
+.qr-card p { margin: 6px 0 0; font-size: 15px; color: var(--muted); }
+.inapp-note { max-width: 760px; margin: 0 auto 20px; background: #fff4e0; border: 1px solid #f2cf86; border-radius: 14px; padding: 14px 18px; font-size: 15px; }
+.inapp-note[hidden] { display: none; }
+.install-cta { text-align: center; margin-top: 28px; }
+
 /* Legal pages */
 .legal { max-width: 760px; margin: 0 auto; padding: 56px 20px 80px; }
 .legal h1 { font-size: 40px; }
@@ -177,6 +193,8 @@ details p { margin: 12px 0 0; color: var(--body); }
   .row { gap: 32px; margin-bottom: 64px; }
   .row.flip .row-visual { order: 0; }
   .feature-grid, .steps { grid-template-columns: 1fr 1fr; }
+  .install-grid { grid-template-columns: 1fr 1fr; }
+  .qr-card { grid-column: 1 / -1; }
   .plans, .plans.three { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; }
   .ticks.cols { grid-template-columns: 1fr 1fr; }
   .privacy-card { padding: 36px 28px; }
@@ -196,6 +214,7 @@ details p { margin: 12px 0 0; color: var(--body); }
   .fc-num { font-size: 20px; }
   .cta-row .btn { width: 100%; }
   .feature-grid, .steps { grid-template-columns: 1fr; }
+  .install-grid { grid-template-columns: 1fr; }
   .row-visual { padding: 28px 12px; }
   .row-visual .device { width: 230px; }
   .plan { padding: 26px 22px; }
