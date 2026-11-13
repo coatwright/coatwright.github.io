@@ -95,6 +95,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ⬜ Post in painter Facebook groups and subreddits
 - ✅ Video plan: 25 scripts with hooks, captions, hashtags, AI prompts and a 30-day schedule (`marketing/VIDEO_PLAN.md`)
 - ✅ First 2 real app demo videos recorded (`marketing/videos/`: quick quote, business stats); more on request
+- ✅ Explainer video added to the landing page (How it works section; hero button "Watch the 1-min demo")
 - ✅ Explainer video with voiceover and captions (~51 s, `marketing/videos/coatwright-explainer.mp4`): whole app in 7 scenes, for pinned posts and onboarding
 - ⬜ AI-generated videos (job-site scenes, voiceover): prompts ready in the plan; owner generates them in an AI video tool
 - ⬜ Posting schedule: 1–3 videos a day, track which ones bring sign-ups
@@ -166,3 +167,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Owner created coatwrightapp@gmail.com. Added it as the support email on the site, legal pages and app.
 - **2026-11-13** — Rewrote the social media kit as screen-by-screen signup answers per platform, with direct image/video download links and 2FA steps.
 - **2026-11-13** — Made the explainer video: real app recordings, captions, phone frame and computer voiceover (voice chosen by measured pitch and pace; 2 alternative voices offered).
+- **2026-11-13** — Added the explainer video to the landing page.
