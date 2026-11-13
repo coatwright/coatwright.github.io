@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Coatwright</title>
+  <meta name="description" content="Price a paint job in minutes and email the customer an itemized quote.">
+  <meta name="theme-color" content="#1f5eff">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar no-print">
+    <a href="#/" class="brand"><img src="icon.svg" alt="" width="28" height="28"> Coatwright</a>
+    <nav class="top-actions">
+      <a href="#/schedule" class="icon-btn" aria-label="Schedule">📅</a>
+      <a href="#/customers" class="icon-btn" aria-label="Customers">👥</a>
+      <a href="#/stats" class="icon-btn" aria-label="Business stats">📊</a>
+      <a href="#/settings" class="icon-btn" aria-label="Settings">⚙️</a>
+    </nav>
+  </header>
+  <main id="app"></main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="pricing.js"></script>
+  <script src="stats.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
+  </script>
+</body>
+</html>
