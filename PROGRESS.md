@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/** (app at /app/) with quoting, business tools, invoices, schedule, customers, install help and paid plans built (billing switched off). **Next (owner): confirm the HTTPS padlock, set up Lemon Squeezy (BILLING_SETUP.md), create social accounts with the kit.**
+**Where we are now:** Live at **https://getcoatwright.com/** (app at /app/). Paid plans built (billing off). Planned next: sign-up before the trial (Google one-tap or email code, one trial per email, on Supabase). **Next (owner): create the Supabase project and send the URL + public key; confirm the HTTPS padlock; Lemon Squeezy; social accounts.**
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -82,6 +82,8 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 
 - ✅ 14-day trial + subscription paywall built in the app (plans screen, license keys, view-only after trial); **switched off until payments are set up**
 - ✅ Website, Terms, Privacy, social kit and explainer video updated for paid plans
+- ⬜ **Accounts before the trial** (owner request): one-tap **Continue with Google** + "use email instead" (6-digit code), no password or card; 14-day trial stored online, one per email (Gmail dot/+ aliases treated as the same); jobs stay on the phone. Built on free **Supabase** (+ daily keep-awake ping). Waiting on owner: create the Supabase project and send the Project URL + public (anon/publishable) key; then Google sign-in setup steps
+- ⬜ Link Lemon Squeezy subscriptions to accounts (instead of license keys) once accounts exist
 - ⬜ Owner sets up Lemon Squeezy (see `BILLING_SETUP.md`) and sends the 3 checkout links
 - ⬜ Claude switches billing on (`app/billing.js`: enabled, startDate, checkout links) and tests a real purchase together with the owner
 
@@ -144,6 +146,8 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-13 | After the trial: view, back up and export always work; only new quotes/invoices need a subscription | Never hold a painter's data hostage; keeps trust |
 | 2026-11-13 | Dates: moments stored as universal timestamps, calendar dates as plain YYYY-MM-DD; dates shown in the phone's own format | Correct in any time zone and across daylight saving; familiar date order for each country |
 | 2026-11-13 | Domain: **getcoatwright.com** (Porkbun, ~$10–12/yr) | Removes "github" from the address; Porkbun keeps renewals cheap and includes privacy |
+| 2026-11-13 | Require sign-up before the trial: Google one-tap or email code; trial tied to the email | Owner wants one trial per email; matches Jobber/Housecall Pro (sign up, no card) with less friction |
+| 2026-11-13 | Accounts on Supabase (free tier) rather than Firebase | Firebase's free plan sends only 5 sign-in emails/day; Supabase free covers 50k users/month |
 | 2026-11-12 | Name: **BidBrush** (replaced) | Says what it does (bids) and who it's for (painters); short and works as a social handle |
 
 ## Log
@@ -190,3 +194,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Time zone review: fixed the trial countdown (off by a day around daylight-saving changes, and in London in winter); local date formats; new 13-zone test.
 - **2026-11-13** — Owner bought getcoatwright.com. Prepared the switch: CNAME file, every link, QR code and docs now use the new domain (not merged until DNS is set).
 - **2026-11-13** — getcoatwright.com live: owner added DNS records and verified the domain. Header logo is now built into the pages (it showed as broken right after the switch).
+- **2026-11-13** — Owner wants a real sign-up so the trial is one per email. Researched competitors (Jobber, Housecall Pro: sign up, no card) and free account services; plan agreed in principle: Google one-tap + email code on Supabase. Paused here.
