@@ -69,13 +69,13 @@ Also have your **password manager** ready (iPhone Passwords app or Google Passwo
 | Field | Enter |
 |---|---|
 | Bio | Copy the bio below |
-| Links → Add external link | URL `https://coatwright.github.io/` · Title `Start free` |
+| Links → Add external link | URL `https://coatwright.github.io/` · Title `Try it free` |
 
 ```
-🎨 Free quoting & business app for painters
+🎨 Quoting & business app for painters
 ⚡ Itemized quotes in minutes
 🧾 Invoices · 📊 your real profit
-👇 Start free, no signup
+👇 Try it free for 14 days
 ```
 
 **First post:** + → Post → choose **first post** image → paste the "Post 1" caption from the bottom of this guide → Share.
@@ -92,7 +92,7 @@ Your personal name is not shown on it.
 | Start | In the Facebook app: **☰ Menu → Pages → + Create** (computer: facebook.com/pages/create) → **Get started** |
 | "Page name" | `Coatwright` |
 | "Category" | Type **App Page** and select it (or "Software") |
-| "Bio" (optional, 101 characters) | `Free app for painters: itemized quotes in minutes, invoices and your real profit. Start free 👇` |
+| "Bio" (optional, 101 characters) | `Quoting app for painters: itemized quotes in minutes, invoices and your real profit. Try it free 👇` |
 | **Create Page** | Tap it |
 | "Contact info: Website" | `https://coatwright.github.io/` |
 | "Contact info: Email" | `coatwrightapp@gmail.com` |
@@ -135,7 +135,7 @@ category: pick the closest to software/apps (or "Services") → email `coatwrigh
 |---|---|
 | Photo | **profile picture** |
 | Name | `Coatwright` |
-| Bio (80 characters) | `Paint quotes in minutes. Know what you really made. Free app for painters 👇` |
+| Bio (80 characters) | `Paint quotes in minutes. Know what you really made. Try it free for 14 days 👇` |
 | Website | `https://coatwright.github.io/` (if the field isn't there yet, TikTok shows it once the account qualifies; until then add "link on our IG" to the bio) |
 
 **First post:** + → Upload → **Demo video 1** → add text "I priced this whole house before I left the driveway." → caption "Post 2" below → Post. Then pin it: on the video → **⋯ → Pin**.
@@ -161,17 +161,17 @@ Easiest on a computer at **studio.youtube.com**; the app works too.
 | Branding → Picture | **profile picture** |
 | Branding → Banner image | **YouTube banner** |
 | Basic info → Description | Copy the description below |
-| Basic info → Links | Title `Start free` · URL `https://coatwright.github.io/` |
+| Basic info → Links | Title `Try it free` · URL `https://coatwright.github.io/` |
 | Basic info → Contact info | `coatwrightapp@gmail.com` |
 | **Publish** | Tap it |
 
 ```
-Coatwright is the free quoting and business app for painters.
+Coatwright is the quoting and business app for painters.
 
 Price any interior, exterior, cabinet or garage-floor job in minutes, send a professional itemized quote with your logo, turn won jobs into invoices, and see what you really made this year: profit, real hourly rate, win rate and money owed.
 
-No signup, no download. Works on any phone.
-Start free: https://coatwright.github.io/
+Try it free for 14 days, no credit card needed. Then $24/month or $199/year. Works on any phone.
+Start your free trial: https://coatwright.github.io/
 ```
 
 **First Short:** + → **Create a Short** / **Upload a video** → **Demo video 1** → title "I priced this whole house in under a minute #painter" → Upload.
@@ -197,7 +197,7 @@ Start free: https://coatwright.github.io/
 **Edit profile:** header **X header** · Website `https://coatwright.github.io/`.
 
 ```
-The free quoting & business app for painters. Itemized quotes in minutes, invoices, and your real profit. No signup. 🎨
+The quoting & business app for painters. Itemized quotes in minutes, invoices, and your real profit. Try it free for 14 days. 🎨
 ```
 
 ---
@@ -225,7 +225,7 @@ Coatwright prices any paint job in minutes (interior, exterior, cabinets, garage
 
 Then it tracks every job, payment and dollar of profit, so you finally know what you really made this year.
 
-Free. No signup. Works on any phone.
+Try it free for 14 days. No credit card needed.
 👉 Link in bio
 
 #painter #paintingcontractor #housepainter #paintingbusiness #smallbusiness #contractor #painterlife
@@ -234,14 +234,14 @@ Free. No signup. Works on any phone.
 **Post 2, every platform (Demo video 1).** On-screen text: "I priced this whole house before I left the driveway."
 
 ```
-Walkthrough → itemized quote in under a minute. Your rates, your logo. Free, link in bio. 🎨
+Walkthrough → itemized quote in under a minute. Your rates, your logo. Try it free, link in bio. 🎨
 #painter #paintingcontractor #estimating #paintingbusiness #contractor
 ```
 
 **Post 3, every platform (Demo video 2).** On-screen text: "Most painters have no idea what they made last year."
 
 ```
-Your real profit, real hourly rate and win rate, all from the jobs you already quote. Free, link in bio. 📊
+Your real profit, real hourly rate and win rate, all from the jobs you already quote. Try it free, link in bio. 📊
 #painter #paintingbusiness #smallbusiness #contractor #painterlife
 ```
 
