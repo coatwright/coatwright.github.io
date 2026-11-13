@@ -22,10 +22,8 @@ Try it free for 14 days. No credit card. Link in bio.
 #painter #paintingcontractor #paintingbusiness #estimating #contractor #smallbusiness
 ```
 
-- **Voice credit (required by the voice's license, CC BY 4.0):** it's already on the last frame of the video. If you post it
-  somewhere the frame might be cropped, add this line to the description: `Voice: Piper text-to-speech, LibriTTS voice (CC BY 4.0).`
-- The voice is computer-generated. Most platforms ask you to label AI-generated *realistic* content; a text-to-speech
-  narrator over a real app recording usually doesn't need it, but turning the label on is the safe choice.
+- **Voice:** a natural-sounding computer voice (Kokoro text-to-speech, "Heart" voice, Apache 2.0 license, which allows business use;
+  no credit line required). Most platforms ask you to label *realistic* AI content; turning that label on for this video is the safe choice.
 - Want it in your own voice? Mute the track in CapCut and record the script below over it. It sounds more personal.
 
 **Script (if you record your own voice):**

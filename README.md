@@ -15,6 +15,8 @@ and know what you really made.
 | `app/pricing.js`, `app/stats.js` | Pricing engine and business math (pure functions, tested) |
 | `app/tests/` | Unit tests |
 | `marketing/` | Video plan, demo videos, social media kit |
+| `BILLING_SETUP.md` | How to connect Lemon Squeezy payments (owner steps) |
+| `app/billing.js` | Trial and subscription settings; billing switch and checkout links |
 | `PROGRESS.md` | Step-by-step project tracker |
 
 ## How it works (for painters)

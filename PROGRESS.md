@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at https://coatwright.github.io/ (app at /app/) with onboarding, quoting, business tools, invoices, schedule, customers, Privacy & Terms, and support email coatwrightapp@gmail.com. **Next (owner): create social accounts with the kit, test with 5–10 painters.**
+**Where we are now:** Live at https://coatwright.github.io/ (app at /app/). Paid plans are built (14-day trial, $24/mo, $199/yr, founding $14/mo) but billing is switched off. **Next (owner): set up Lemon Squeezy using BILLING_SETUP.md and send the checkout links; create social accounts.**
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -75,7 +75,12 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Cabinets (kitchen & vanity: doors, drawers, boxes, spray vs brush, insides) and add-ons: wallpaper removal, popcorn ceiling removal (optional asbestos test), drywall repair
 - ⬜ Fixes from painter feedback
 
-## Phase 4 — Start making money ⬜
+## Phase 4 — Start making money 🔄
+
+- ✅ 14-day trial + subscription paywall built in the app (plans screen, license keys, view-only after trial); **switched off until payments are set up**
+- ✅ Website, Terms, Privacy, social kit and explainer video updated for paid plans
+- ⬜ Owner sets up Lemon Squeezy (see `BILLING_SETUP.md`) and sends the 3 checkout links
+- ⬜ Claude switches billing on (`app/billing.js`: enabled, startDate, checkout links) and tests a real purchase together with the owner
 
 - ⬜ Accounts and cloud sync (quotes on any device)
 - ⬜ Customer "Accept quote" link with e-signature
@@ -126,7 +131,11 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-13 | Pricing shows Starter $0 now, Pro "coming soon" with no price | Honest: nothing to sell yet; signals a free core plus paid extras |
 | 2026-11-13 | Free `coatwright.github.io` address instead of buying a domain now | No cost, branded, separate from the owner's personal GitHub; easy to move to coatwright.com later |
 | 2026-11-13 | Project files moved to the `coatwright/coatwright.github.io` repository | The organization is the business's home; the personal profile repo only forwards |
+| 2026-11-13 | Explainer re-voiced with a more natural female voice (Kokoro "Heart", Apache 2.0) | Owner found the first voice too computerized; Kokoro allows commercial use with no credit needed |
 | 2026-11-13 | Explainer narrated with a free offline text-to-speech voice (Piper, LibriTTS, CC BY 4.0) with credit on the end card | Commercial use allowed with attribution; other free voices had non-commercial or unclear licenses |
+| 2026-11-13 | Paid plans: 14-day free trial (no card), then $24/mo or $199/yr; founding members $14/mo for life (first 100) | Owner wants subscription income; trial gets painters invested before paying; yearly brings cash up front |
+| 2026-11-13 | Payments through Lemon Squeezy (seller of record, license keys) | Handles sales tax; license keys can be checked by the app without running our own server |
+| 2026-11-13 | After the trial: view, back up and export always work; only new quotes/invoices need a subscription | Never hold a painter's data hostage; keeps trust |
 | 2026-11-12 | Name: **BidBrush** (replaced) | Says what it does (bids) and who it's for (painters); short and works as a social handle |
 
 ## Log
@@ -168,3 +177,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Rewrote the social media kit as screen-by-screen signup answers per platform, with direct image/video download links and 2FA steps.
 - **2026-11-13** — Made the explainer video: real app recordings, captions, phone frame and computer voiceover (voice chosen by measured pitch and pace; 2 alternative voices offered).
 - **2026-11-13** — Added the explainer video to the landing page.
+- **2026-11-13** — Owner chose paid plans ($24/mo or $199/yr after a 14-day trial, founding $14/mo, Lemon Squeezy) and a more human female voice. Built the paywall (off until payments exist), updated site/legal/marketing, re-voiced the explainer.
