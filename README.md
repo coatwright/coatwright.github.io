@@ -15,6 +15,8 @@ and know what you really made.
 | `app/pricing.js`, `app/stats.js` | Pricing engine and business math (pure functions, tested) |
 | `app/tests/` | Unit tests |
 | `marketing/` | Video plan, demo videos, social media kit |
+| `BILLING_SETUP.md` | How to connect Lemon Squeezy payments (owner steps) |
+| `app/billing.js` | Trial and subscription settings; billing switch and checkout links |
 | `PROGRESS.md` | Step-by-step project tracker |
 
 ## How it works (for painters)
@@ -51,7 +53,7 @@ All of this lives in `pricing.js`. Every rate is adjustable in Settings.
 
 ```bash
 python3 -m http.server 8000   # website at http://localhost:8000, app at http://localhost:8000/app/
-node --test app/tests/pricing.test.js app/tests/stats.test.js
+node --test app/tests/pricing.test.js app/tests/stats.test.js app/tests/billing.test.js
 ```
 
 ## Publishing

@@ -4,6 +4,7 @@
 
   var P = window.Pricing;
   var S = window.Stats;
+  var BL = window.Billing, BC = BL.BILLING;
   var app = document.getElementById('app');
 
   // ---------- Storage ----------
@@ -22,6 +23,8 @@
   var jobs = load('pq.jobs', []);
   var expenses = load('pq.expenses', []);
   if (!settings.onboarded && (jobs.length || settings.businessName)) { settings.onboarded = true; save('pq.settings', settings); }
+  if (!settings.trialStart) { settings.trialStart = Date.now(); save('pq.settings', settings); }
+  function access() { return BL.accessState(settings, Date.now(), BC); }
   var installPrompt = null;
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installPrompt = e; });
   var homeFilter = 'all', homeSearch = '', customerSearch = '', pendingCustomer = null;
@@ -108,10 +111,13 @@
     if ((view === 'job' || view === 'quote' || view === 'invoice') && !job) { location.hash = '#/'; return; }
     if (view === 'job') renderJob(job);
     else if (view === 'quote') renderQuote(job);
+    else if (view === 'invoice' && !job.invoiceDate && !access().canCreate) { location.hash = '#/upgrade'; return; }
     else if (view === 'invoice') renderInvoice(job);
     else if (view === 'schedule') renderSchedule();
     else if (view === 'customers') renderCustomers();
     else if (view === 'customer') renderCustomer(decodeURIComponent(id || ''));
+    else if (view === 'upgrade') renderUpgrade();
+    else if (view === 'new' && !access().canCreate) { location.hash = '#/upgrade'; return; }
     else if (view === 'new') renderNewJob(P.JOB_TYPES[id] ? id : null);
     else if (view === 'settings') renderSettings();
     else if (view === 'stats') renderStats(+id || new Date().getFullYear());
@@ -177,7 +183,7 @@
         : isIOS() ? '<p class="wz-tip">📲 <b>Tip:</b> tap the Share button, then <b>Add to Home Screen</b>, to open Coatwright like an app.</p>'
           : '<p class="wz-tip">📲 <b>Tip:</b> use your browser menu → <b>Install app</b> or <b>Add to Home screen</b> to open Coatwright like an app.</p>';
       body = welcomeSteps(3) + '<div class="wz-hero"><div class="wz-check">✓</div><h1>You\'re all set' + (settings.ownerName ? ', ' + esc(settings.ownerName.split(' ')[0]) : '') + '!</h1>' +
-        '<p class="muted">Your business details and prices are saved on this phone.</p></div>' +
+        '<p class="muted">Your business details and prices are saved on this phone.' + (access().mode === 'trial' ? ' Your <b>' + BC.trialDays + '-day free trial</b> has started. No card needed.' : '') + '</p></div>' +
         '<button class="btn btn-primary btn-xl" data-action="wz-finish" data-v="quote">＋ Create my first quote</button>' +
         '<button class="btn full" data-action="wz-finish" data-v="sample">👀 Explore with a sample quote</button>' + install +
         '<p class="center-text muted small">Your data stays private on this device. <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a></p>';
@@ -196,6 +202,79 @@
     job.notes = 'This is a sample quote. Edit anything, or delete it from the bottom of the job screen.';
     saveJobs();
     return job;
+  }
+
+  // ---------- Subscription ----------
+  function planBanner() {
+    var a = access();
+    if (a.mode === 'trial') {
+      return '<a class="plan-banner' + (a.daysLeft <= 3 ? ' urgent' : '') + '" href="#/upgrade"><span>⏳</span><div><strong>Free trial: ' +
+        a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left</strong><div class="small">Keep every feature for $' + BC.prices.monthly + '/mo or $' +
+        BC.prices.annual + '/yr.</div></div><span class="pb-cta">Upgrade</span></a>';
+    }
+    if (a.mode === 'expired' || a.mode === 'recheck') {
+      return '<a class="plan-banner urgent" href="#/upgrade"><span>🔒</span><div><strong>' +
+        (a.mode === 'recheck' ? 'Confirm your subscription' : 'Your free trial has ended') + '</strong><div class="small">' +
+        (a.mode === 'recheck' ? 'Connect to the internet so Coatwright can check your subscription.' : 'Your jobs are safe. Upgrade to keep quoting and invoicing.') +
+        '</div></div><span class="pb-cta">' + (a.mode === 'recheck' ? 'Check' : 'Upgrade') + '</span></a>';
+    }
+    return '';
+  }
+
+  function planCard(id, title, price, unit, note, badge, featured) {
+    var url = BC.checkout[id];
+    return '<div class="plan-card' + (featured ? ' featured' : '') + '">' + (badge ? '<div class="plan-badge">' + badge + '</div>' : '') +
+      '<h3>' + title + '</h3><div class="plan-price">$' + price + '<span>' + unit + '</span></div><p class="muted small">' + note + '</p>' +
+      (url ? '<a class="btn ' + (featured ? 'btn-primary' : '') + ' full" href="' + esc(url) + '" target="_blank" rel="noopener">Choose ' + title + '</a>'
+        : '<span class="btn full disabled">Available soon</span>') + '</div>';
+  }
+
+  function renderUpgrade() {
+    var a = access(), deal = BL.annualDeal(BC);
+    var head = a.mode === 'active' ? '<h1 class="ask">You\'re on Coatwright Pro ✓</h1><p class="muted">Plan: ' + esc(a.plan) + '. Thank you for supporting Coatwright!</p>'
+      : a.mode === 'expired' ? '<h1 class="ask">Your free trial has ended</h1><p class="muted">Your jobs, customers and numbers are all still here. Pick a plan to keep quoting and invoicing.</p>'
+      : a.mode === 'recheck' ? '<h1 class="ask">Confirm your subscription</h1><p class="muted">Connect to the internet and tap Check below.</p>'
+      : a.mode === 'trial' ? '<h1 class="ask">Keep Coatwright after your trial</h1><p class="muted">' + a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left in your free trial. Every plan includes everything.</p>'
+      : '<h1 class="ask">Coatwright Pro</h1><p class="muted">Plans are coming soon. Everything is free while we get ready.</p>';
+    var lic = settings.license;
+    app.innerHTML =
+      '<div class="page-head"><a href="#/" class="back">‹ Jobs</a><span class="muted small">Plans</span></div>' + head +
+      (a.mode !== 'active' ? '<div class="plans-app">' +
+        (BC.checkout.founder ? planCard('founder', 'Founding member', BC.prices.founder, '/mo', 'First ' + BC.founderSpots + ' customers only. Your price is locked in for life.', '🔥 Limited', false) : '') +
+        planCard('annual', 'Yearly', BC.prices.annual, '/yr', 'Just $' + deal.perMonth.toFixed(2) + '/mo. Save ' + deal.savePct + '% vs monthly.', 'Best value', true) +
+        planCard('monthly', 'Monthly', BC.prices.monthly, '/mo', 'Cancel anytime.', '', false) + '</div>' +
+        '<ul class="ticks-app"><li>Unlimited quotes and invoices</li><li>Interior, exterior, cabinets, floors and commercial</li>' +
+        '<li>Job tracking, schedule, customers and profit stats</li><li>Your data stays private on your device</li></ul>' : '') +
+      '<section class="card"><h2 class="card-title">' + (a.mode === 'active' ? 'Your license' : 'Already subscribed?') + '</h2>' +
+      (lic && lic.key ? '<p class="small">License: <b>' + esc(lic.key.slice(0, 8)) + '…</b> · ' + esc(lic.status) +
+        (lic.checkedAt ? ' · checked ' + esc(fmtDate(lic.checkedAt)) : '') + '</p>' : '<p class="muted small" style="margin-top:0">Enter the license key from your purchase email.</p>') +
+      (lic && lic.error ? '<p class="small" style="color:var(--danger)">' + esc(lic.error) + '</p>' : '') +
+      (lic && lic.key ? '<div class="row2"><button class="btn" data-action="lic-check">🔄 Check now</button><button class="btn" data-action="lic-remove">Remove from this device</button></div>'
+        : '<label class="field"><span>License key</span><input id="lic-key" autocomplete="off" autocapitalize="characters" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"></label>' +
+          '<button class="btn btn-primary full" data-action="lic-activate"' + (BC.enabled ? '' : ' disabled') + '>Activate</button>') +
+      (lic && lic.key ? '<a class="btn btn-ghost full" style="margin-top:10px" href="' + esc(BC.portal) + '" target="_blank" rel="noopener">Manage or cancel subscription</a>' : '') +
+      '</section>' +
+      '<p class="center-text muted small">Questions? <a href="mailto:coatwrightapp@gmail.com?subject=Coatwright%20subscription">coatwrightapp@gmail.com</a></p>';
+  }
+
+  function licenseCall(endpoint, params) {
+    var body = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+    return fetch(BC.api + endpoint, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
+      .then(function (r) { return r.json().catch(function () { return { error: 'Unexpected response (' + r.status + ')' }; }); });
+  }
+
+  function checkLicense(quiet) {
+    var lic = settings.license;
+    if (!lic || !lic.key || !BC.enabled) return Promise.resolve();
+    return licenseCall('validate', lic.instanceId ? { license_key: lic.key, instance_id: lic.instanceId } : { license_key: lic.key })
+      .then(function (json) {
+        var next = BL.licenseFromResponse(json, lic.key, Date.now(), BC);
+        next.instanceId = next.instanceId || lic.instanceId;
+        settings.license = next; saveSettings();
+        if (!quiet) toast(next.status === 'active' ? 'Subscription confirmed ✓' : 'Subscription not active');
+      })
+      .catch(function () { if (!quiet) toast('Could not reach the license server. Check your connection.'); })
+      .then(function () { var v = location.hash.split('/')[1] || ''; if (v === 'upgrade' || v === '' || v === 'settings') route(); });
   }
 
   // ---------- Home: all jobs ----------
@@ -253,7 +332,7 @@
       counts[f[0]] = f[2] ? jobs.filter(function (j) { return f[2].indexOf(S.statusOf(j)) !== -1; }).length : jobs.length;
     });
 
-    app.innerHTML =
+    app.innerHTML = planBanner() +
       (needsSetup ? '<a class="setup-banner" href="#/settings"><span>👋</span><div><strong>Start here: add your business info</strong>' +
         '<div class="small">Your name, logo and rates go on every quote. Takes 1 minute.</div></div><span>›</span></a>' : '') +
       (jobs.length ? '<a class="year-card" href="#/stats"><div><div class="muted small">' + y.year + ' collected</div><div class="year-big">' + money0(y.collected) + '</div></div>' +
@@ -1159,8 +1238,14 @@
       '<section class="card"><h2 class="card-title">Invoices</h2>' +
       setField('invoiceDueDays', 'Payment due', { type: 'number', unit: 'days', hint: '0 = due on receipt' }) +
       setField('paymentInstructions', 'How customers can pay you', { textarea: true }) + '</section>' +
+      (BC.enabled ? '<section class="card"><h2 class="card-title">⭐ Subscription</h2>' + (function () {
+        var a = access();
+        return '<p class="small" style="margin-top:0">' + (a.mode === 'active' ? 'Coatwright Pro · ' + esc(a.plan) + ' ✓'
+          : a.mode === 'trial' ? 'Free trial · ' + a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left'
+            : a.mode === 'recheck' ? 'Pro · needs a quick online check' : 'Free trial ended · view and export only') + '</p>';
+      })() + '<a class="btn ' + (access().mode === 'active' ? '' : 'btn-primary') + ' full" href="#/upgrade">' + (access().mode === 'active' ? 'View plan' : 'See plans') + '</a></section>' : '') +
       '<section class="card"><h2 class="card-title">🔒 Your data</h2>' +
-      '<p class="muted small" style="margin-top:0">Your jobs, customers and money stay private on this device. Nothing is sent anywhere. ' +
+      '<p class="muted small" style="margin-top:0">Your jobs, customers and money stay private on this device and are never uploaded' + (BC.enabled ? ' (only your license key is checked with our payment provider)' : '') + '. ' +
       'Make a backup now and then (and before switching phones) so your history is never lost.' +
       (settings.lastBackup ? ' Last backup: <b>' + esc(fmtDate(settings.lastBackup)) + '</b>.' : ' <b>No backup yet.</b>') + '</p>' +
       '<div class="actions"><button class="btn btn-primary" data-action="backup">⬇️ Back up now</button>' +
@@ -1332,7 +1417,7 @@
         return;
       case 'wz-finish':
         settings.onboarded = true; saveSettings();
-        if (el.dataset.v === 'sample') { location.hash = '#/quote/' + createSampleJob().id; toast('Here\'s a sample. Tap ‹ Edit to change it'); }
+        if (el.dataset.v === 'sample' && access().canCreate) { location.hash = '#/quote/' + createSampleJob().id; toast('Here\'s a sample. Tap ‹ Edit to change it'); }
         else location.hash = '#/new';
         return;
       case 'filter':
@@ -1393,9 +1478,33 @@
         toast('Backup saved — keep it somewhere safe (email it to yourself)');
         return;
       case 'new-job':
-        location.hash = '#/new';
+        location.hash = access().canCreate ? '#/new' : '#/upgrade';
         return;
+      case 'lic-activate': {
+        var key = (document.getElementById('lic-key').value || '').trim();
+        if (!key) { toast('Paste your license key first'); return; }
+        el.disabled = true; el.textContent = 'Checking…';
+        licenseCall('activate', { license_key: key, instance_name: 'Coatwright on ' + (navigator.platform || 'device') })
+          .then(function (json) {
+            settings.license = BL.licenseFromResponse(json, key, Date.now(), BC); saveSettings();
+            toast(settings.license.status === 'active' ? '🎉 Welcome to Coatwright Pro!' : (settings.license.error || 'That key did not work'));
+          })
+          .catch(function () { toast('Could not reach the license server. Check your connection.'); })
+          .then(function () { renderUpgrade(); });
+        return;
+      }
+      case 'lic-check':
+        checkLicense(false);
+        return;
+      case 'lic-remove': {
+        if (!confirm('Remove the license from this device? You can add it again anytime.')) return;
+        var old = settings.license;
+        if (old && old.instanceId && BC.enabled) licenseCall('deactivate', { license_key: old.key, instance_id: old.instanceId }).catch(function () {});
+        delete settings.license; saveSettings(); renderUpgrade();
+        return;
+      }
       case 'quote-for': {
+        if (!access().canCreate) { location.hash = '#/upgrade'; return; }
         var cust = S.customersFrom(jobs, settings).find(function (x) { return x.key === el.dataset.key; });
         if (cust) pendingCustomer = { name: cust.name, phone: cust.phone, email: cust.email, address: cust.address };
         location.hash = '#/new';
@@ -1592,4 +1701,6 @@
   }
 
   route();
+  if (settings.license && settings.license.key && navigator.onLine !== false &&
+      Date.now() - (Number(settings.license.checkedAt) || 0) > 864e5) checkLicense(true);
 })();

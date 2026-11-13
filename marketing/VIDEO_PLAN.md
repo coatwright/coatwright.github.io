@@ -10,7 +10,7 @@
 
 `marketing/videos/coatwright-explainer.mp4`: **~51 seconds, vertical 1080×1920, with voiceover and captions.**
 It walks a new user through the whole app in 7 scenes: hook → set up once → quote any job → send a pro quote →
-win it, track it, get paid → know what you really make → "Start free today".
+win it, track it, get paid → know what you really make → "Try it free for 14 days".
 
 - **Use it as:** your pinned post on every platform, the first video on YouTube Shorts, and the video you send to painters you know.
 - **Caption:**
@@ -18,24 +18,22 @@ win it, track it, get paid → know what you really make → "Start free today".
 ```
 New to Coatwright? Here's the whole app in under a minute. 🎨
 Set up once → quote any job → send a pro quote → get paid → see what you really made.
-Free. No signup. Works on any phone. Link in bio.
+Try it free for 14 days. No credit card. Link in bio.
 #painter #paintingcontractor #paintingbusiness #estimating #contractor #smallbusiness
 ```
 
-- **Voice credit (required by the voice's license, CC BY 4.0):** it's already on the last frame of the video. If you post it
-  somewhere the frame might be cropped, add this line to the description: `Voice: Piper text-to-speech, LibriTTS voice (CC BY 4.0).`
-- The voice is computer-generated. Most platforms ask you to label AI-generated *realistic* content; a text-to-speech
-  narrator over a real app recording usually doesn't need it, but turning the label on is the safe choice.
+- **Voice:** a natural-sounding computer voice (Kokoro text-to-speech, "Heart" voice, Apache 2.0 license, which allows business use;
+  no credit line required). Most platforms ask you to label *realistic* AI content; turning that label on for this video is the safe choice.
 - Want it in your own voice? Mute the track in CapCut and record the script below over it. It sounds more personal.
 
 **Script (if you record your own voice):**
-1. "Painters! Still pricing jobs on a napkin? Meet Coatwright, the free app that prices any paint job in minutes."
+1. "Painters! Still pricing jobs on a napkin? Meet Coatwright, the app that prices any paint job in minutes."
 2. "Set it up once. Add your business name, your logo, and your rates. Pick a starting point, and you're ready to go."
 3. "Start a quote. Pick the property, enter the square footage, or go room by room. Add exterior, cabinets, or a garage floor. The price updates with every tap."
 4. "Your customer gets a clean, itemized quote with your logo. Email it, text it, or save a PDF, before you even leave the driveway."
 5. "Won the job? Log the deposit and payments, and turn it into an invoice with one tap."
 6. "Then see what you really made this year. Your profit, your real hourly rate, and the money still owed to you."
-7. "Coatwright. Free, no sign up, and it works on any phone. Send your first quote today."
+7. "Coatwright. Try it free for fourteen days, no credit card needed. Send your first quote today."
 
 ---
 
@@ -77,7 +75,7 @@ Each script: **Hook** (first 2 sec, on screen + said) → **Body** → **CTA**. 
 **1. Quote a house in 60 seconds** *(recorded: `coatwright-demo-quote.mp4`)*
 - Hook: "I priced this whole house before I left the driveway."
 - Body: Type the square footage → tap ceilings → add a 3-car epoxy flake garage floor → itemized quote with logo.
-- CTA: "Free. No signup. Link in bio."
+- CTA: "Try it free for 14 days. Link in bio."
 - Caption: Walkthrough → quote in under a minute. Your rates, your logo. 🎨
 
 **2. What you actually made this year** *(recorded: `coatwright-demo-stats.mp4`)*
@@ -113,7 +111,7 @@ Each script: **Hook** (first 2 sec, on screen + said) → **Body** → **CTA**. 
 **8. Commercial job? Covered.**
 - Hook: "Quoting a restaurant? Most apps can't."
 - Body: Commercial → Restaurant → dining area, kitchen, restrooms.
-- CTA: "Residential and commercial. Free."
+- CTA: "Residential and commercial. Try it free."
 
 **9. Win rate reality check**
 - Hook: "If you win 90% of your quotes, you're too cheap."
@@ -123,7 +121,7 @@ Each script: **Hook** (first 2 sec, on screen + said) → **Body** → **CTA**. 
 **10. Schedule without a whiteboard**
 - Hook: "My whole month of jobs, on my phone."
 - Body: Schedule screen → upcoming jobs with days each.
-- CTA: "Free for painters."
+- CTA: "Built for painters. Try it free."
 
 ### Painter pain (talking head or POV + app)
 
@@ -172,7 +170,7 @@ Each script: **Hook** (first 2 sec, on screen + said) → **Body** → **CTA**. 
 **19. 3 numbers every painter should know**
 - Hook: "3 numbers every painter must know."
 - Body: Real hourly rate, win rate, average job. Show each in the app.
-- CTA: "Free app. Link in bio."
+- CTA: "14-day free trial. Link in bio."
 
 **20. Your estimates vs reality**
 - Hook: "My jobs took 12% longer than I quoted."
