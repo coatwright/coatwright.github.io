@@ -8,7 +8,7 @@ looks a little different, pick the option closest to what's written here.
 | **Email** | `coatwrightapp@gmail.com` |
 | **Name** | `Coatwright` |
 | **Username** (try in order) | `coatwright` → `coatwrightapp` → `getcoatwright` |
-| **Website link** | `https://coatwright.github.io/` |
+| **Website link** | `https://getcoatwright.com/` |
 | **Birthday** | Your real birthday: platforms require it. It is never shown on the business profile. |
 
 Try to get the **same username** on every platform. If `coatwright` is taken anywhere, consider using `coatwrightapp` everywhere.
@@ -21,14 +21,14 @@ Open each link on your phone, **press and hold the image → Save to Photos** (i
 
 | Image | Link | Used for |
 |---|---|---|
-| Profile picture | https://coatwright.github.io/marketing/social/profile-picture.png | Every platform |
-| Facebook cover | https://coatwright.github.io/marketing/social/facebook-cover.png | Facebook Page |
-| YouTube banner | https://coatwright.github.io/marketing/social/youtube-banner.png | YouTube |
-| X header | https://coatwright.github.io/marketing/social/x-header.png | X (Twitter) |
-| First post | https://coatwright.github.io/marketing/social/first-post.png | Instagram & Facebook |
-| Demo video 1 | https://coatwright.github.io/marketing/videos/coatwright-demo-quote.mp4 | Posts on every platform |
-| Demo video 2 | https://coatwright.github.io/marketing/videos/coatwright-demo-stats.mp4 | Posts on every platform |
-| **Explainer (with voiceover)** | https://coatwright.github.io/marketing/videos/coatwright-explainer.mp4 | **Pinned post on every platform** |
+| Profile picture | https://getcoatwright.com/marketing/social/profile-picture.png | Every platform |
+| Facebook cover | https://getcoatwright.com/marketing/social/facebook-cover.png | Facebook Page |
+| YouTube banner | https://getcoatwright.com/marketing/social/youtube-banner.png | YouTube |
+| X header | https://getcoatwright.com/marketing/social/x-header.png | X (Twitter) |
+| First post | https://getcoatwright.com/marketing/social/first-post.png | Instagram & Facebook |
+| Demo video 1 | https://getcoatwright.com/marketing/videos/coatwright-demo-quote.mp4 | Posts on every platform |
+| Demo video 2 | https://getcoatwright.com/marketing/videos/coatwright-demo-stats.mp4 | Posts on every platform |
+| **Explainer (with voiceover)** | https://getcoatwright.com/marketing/videos/coatwright-explainer.mp4 | **Pinned post on every platform** |
 
 Also have your **password manager** ready (iPhone Passwords app or Google Password Manager) to save each new password.
 
@@ -69,7 +69,7 @@ Also have your **password manager** ready (iPhone Passwords app or Google Passwo
 | Field | Enter |
 |---|---|
 | Bio | Copy the bio below |
-| Links → Add external link | URL `https://coatwright.github.io/` · Title `Try it free` |
+| Links → Add external link | URL `https://getcoatwright.com/` · Title `Try it free` |
 
 ```
 🎨 Quoting & business app for painters
@@ -94,7 +94,7 @@ Your personal name is not shown on it.
 | "Category" | Type **App Page** and select it (or "Software") |
 | "Bio" (optional, 101 characters) | `Quoting app for painters: itemized quotes in minutes, invoices and your real profit. Try it free 👇` |
 | **Create Page** | Tap it |
-| "Contact info: Website" | `https://coatwright.github.io/` |
+| "Contact info: Website" | `https://getcoatwright.com/` |
 | "Contact info: Email" | `coatwrightapp@gmail.com` |
 | "Phone / Address / Hours" | Leave empty, or choose **No hours available** |
 | "Add profile picture" | **profile picture** |
@@ -106,7 +106,7 @@ Your personal name is not shown on it.
 **Then, on the Page:**
 
 1. **Username:** Page → **⋯** → **Settings** → **Username** (or Page info) → `coatwright`. Your Page link becomes facebook.com/coatwright.
-2. **Button:** on the Page, tap **+ Add action button** → **Learn more** (or **Sign up**) → Website → `https://coatwright.github.io/` → Save.
+2. **Button:** on the Page, tap **+ Add action button** → **Learn more** (or **Sign up**) → Website → `https://getcoatwright.com/` → Save.
 3. **Connect Instagram:** Page → **Settings → Linked accounts** (or **Professional dashboard → Linked accounts**) → **Instagram → Connect account** → log in with the Coatwright Instagram. Now you can post to both at once.
 4. **First post:** same image and caption as Instagram (or tick "Share to Facebook" when posting on Instagram).
 
@@ -136,7 +136,7 @@ category: pick the closest to software/apps (or "Services") → email `coatwrigh
 | Photo | **profile picture** |
 | Name | `Coatwright` |
 | Bio (80 characters) | `Paint quotes in minutes. Know what you really made. Try it free for 14 days 👇` |
-| Website | `https://coatwright.github.io/` (if the field isn't there yet, TikTok shows it once the account qualifies; until then add "link on our IG" to the bio) |
+| Website | `https://getcoatwright.com/` (if the field isn't there yet, TikTok shows it once the account qualifies; until then add "link on our IG" to the bio) |
 
 **First post:** + → Upload → **Demo video 1** → add text "I priced this whole house before I left the driveway." → caption "Post 2" below → Post. Then pin it: on the video → **⋯ → Pin**.
 
@@ -161,7 +161,7 @@ Easiest on a computer at **studio.youtube.com**; the app works too.
 | Branding → Picture | **profile picture** |
 | Branding → Banner image | **YouTube banner** |
 | Basic info → Description | Copy the description below |
-| Basic info → Links | Title `Try it free` · URL `https://coatwright.github.io/` |
+| Basic info → Links | Title `Try it free` · URL `https://getcoatwright.com/` |
 | Basic info → Contact info | `coatwrightapp@gmail.com` |
 | **Publish** | Tap it |
 
@@ -171,7 +171,7 @@ Coatwright is the quoting and business app for painters.
 Price any interior, exterior, cabinet or garage-floor job in minutes, send a professional itemized quote with your logo, turn won jobs into invoices, and see what you really made this year: profit, real hourly rate, win rate and money owed.
 
 Try it free for 14 days, no credit card needed. Then $24/month or $199/year. Works on any phone.
-Start your free trial: https://coatwright.github.io/
+Start your free trial: https://getcoatwright.com/
 ```
 
 **First Short:** + → **Create a Short** / **Upload a video** → **Demo video 1** → title "I priced this whole house in under a minute #painter" → Upload.
@@ -194,7 +194,7 @@ Start your free trial: https://coatwright.github.io/
 | "What should we call you?" (username) | `coatwright`; if it doesn't ask, change later in **Settings → Your account → Account information → Username** |
 | Notifications / interests / who to follow | **Skip** |
 
-**Edit profile:** header **X header** · Website `https://coatwright.github.io/`.
+**Edit profile:** header **X header** · Website `https://getcoatwright.com/`.
 
 ```
 The quoting & business app for painters. Itemized quotes in minutes, invoices, and your real profit. Try it free for 14 days. 🎨

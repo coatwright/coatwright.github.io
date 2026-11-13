@@ -158,12 +158,12 @@
         'Tap the <b>⋯</b> or <b>⋮</b> menu at the top or bottom, then <b>Open in ' + (isIOS() ? 'Safari' : 'Chrome') + '</b> (or "Open in browser").</div>';
     }
     var ios = '<div class="inst-card' + (isIOS() ? ' on' : '') + '"><h3>📱 iPhone &amp; iPad</h3><ol>' +
-      '<li>Open <b>coatwright.github.io/app</b> in <b>Safari</b></li>' +
+      '<li>Open <b>getcoatwright.com/app</b> in <b>Safari</b></li>' +
       '<li>Tap the <b>Share</b> button <span class="kbd">⬆︎</span> (bottom of the screen; top-right on iPad)</li>' +
       '<li>Scroll down and tap <b>Add to Home Screen</b></li><li>Tap <b>Add</b>. The Coatwright icon appears on your home screen.</li></ol></div>';
     var android = '<div class="inst-card' + (isAndroid() ? ' on' : '') + '"><h3>🤖 Android</h3>' +
       (installPrompt ? '<button class="btn btn-primary full" data-action="install">📲 Install Coatwright</button><p class="muted small">Or use the steps below.</p>' : '') +
-      '<ol><li>Open <b>coatwright.github.io/app</b> in <b>Chrome</b></li>' +
+      '<ol><li>Open <b>getcoatwright.com/app</b> in <b>Chrome</b></li>' +
       '<li>Tap <b>Install</b> when it pops up, or tap the <b>⋮</b> menu → <b>Install app</b> / <b>Add to Home screen</b></li>' +
       '<li>Tap <b>Install</b>. Coatwright appears with your other apps.</li></ol></div>';
     return isAndroid() ? android + ios : ios + android;
@@ -177,7 +177,7 @@
       '<section class="card"><h2 class="card-title">Good to know</h2><ul class="ticks-app" style="margin:0">' +
       '<li>Your jobs and quotes stay on this phone. Back up anytime in ⚙️ Settings</li>' +
       '<li>Updates install automatically. Nothing to download</li>' +
-      '<li>Using a computer too? Open coatwright.github.io/app there as well</li></ul></section>' +
+      '<li>Using a computer too? Open getcoatwright.com/app there as well</li></ul></section>' +
       '<p class="center-text"><a href="#/">Continue in the browser</a></p>';
   }
 

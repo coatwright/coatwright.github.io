@@ -1,6 +1,6 @@
 # Notes for Claude
 
-This is the home of **Coatwright**, published at https://coatwright.github.io/ by GitHub Pages
+This is the home of **Coatwright**, published at https://getcoatwright.com/ (custom domain, set by the `CNAME` file) by GitHub Pages
 from `main` (anything merged into `main` goes live).
 
 - Website: root `index.html`, `privacy.html`, `terms.html`, images and styles in `landing/`
