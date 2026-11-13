@@ -51,7 +51,7 @@
     return (v < 0 ? '−$' : '$') + Math.abs(v).toLocaleString('en-US');
   }
   function fmtDate(ts) {
-    return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
@@ -358,7 +358,7 @@
 
   function fmtShort(iso) {
     var d = new Date(iso + 'T12:00:00');
-    return isNaN(d) ? iso : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return isNaN(d) ? iso : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
   function renderHome() {
@@ -951,6 +951,10 @@
   function fmtRange(a, b) {
     return a === b ? fmtShort(a) : fmtShort(a) + ' – ' + fmtShort(b);
   }
+  function badgeMonth(iso) {
+    var d = new Date(iso + 'T12:00:00');
+    return isNaN(d) ? '' : d.toLocaleDateString(undefined, { month: 'short' }).replace('.', '');
+  }
   function renderSchedule() {
     var t = today();
     var sch = S.schedule(jobs, settings, t);
@@ -961,8 +965,8 @@
       ['Later', function (x) { return x.start > weekIso; }]];
     var card = function (x) {
       var j = x.job, cu = j.customer;
-      return '<a class="job-card sched" href="#/job/' + j.id + '"><div class="sched-date"><b>' + esc(fmtShort(x.start).split(' ')[0]) + '</b>' +
-        '<span>' + esc(fmtShort(x.start).split(' ')[1] || '') + '</span></div>' +
+      return '<a class="job-card sched" href="#/job/' + j.id + '"><div class="sched-date"><b>' + esc(badgeMonth(x.start)) + '</b>' +
+        '<span>' + esc(String(new Date(x.start + 'T12:00:00').getDate())) + '</span></div>' +
         '<div class="job-main"><strong>' + esc(cu.name || 'Customer') + '</strong>' +
         '<div class="muted small">' + esc(fmtRange(x.start, x.end)) + ' · ' + x.days + (x.days === 1 ? ' day' : ' days') + (cu.address ? ' · ' + esc(cu.address) : '') + '</div>' +
         '<div class="job-tags">' + statusPill(j) + (x.late ? '<span class="pill late">⚠️ Past end date</span>' : '') + '</div></div>' +

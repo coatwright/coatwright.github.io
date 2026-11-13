@@ -53,7 +53,7 @@ All of this lives in `pricing.js`. Every rate is adjustable in Settings.
 
 ```bash
 python3 -m http.server 8000   # website at http://localhost:8000, app at http://localhost:8000/app/
-node --test app/tests/pricing.test.js app/tests/stats.test.js app/tests/billing.test.js
+node --test app/tests/pricing.test.js app/tests/stats.test.js app/tests/billing.test.js app/tests/timezone.test.js
 ```
 
 ## Publishing

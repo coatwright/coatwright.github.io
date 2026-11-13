@@ -62,7 +62,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ⬜ Check the default prices against real local numbers
 - ✅ Pick a final name: **Coatwright** (first pick BidBrush was taken)
 - ✅ Rename the app to Coatwright (folder is now `coatwright/`)
-- ⬜ Buy coatwright.com later (optional, ~$10–15/yr); not needed while the free address works
+- ⬜ Buy coatwright.com (about $10–15/yr): the only way to remove "github" from the address; owner wants a professional address
 - 🔄 Name check: web search found no company, website or app using Coatwright (only a *cancelled* "COATRIGHT" trademark). Owner still to buy the domain, grab @coatwright handles and confirm at tmsearch.uspto.gov
 - ⬜ Give it free to 5–10 local painters
 - ⬜ Collect feedback: what's confusing, what's missing, what they'd pay
@@ -102,6 +102,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ First 2 real app demo videos recorded (`marketing/videos/`: quick quote, business stats); more on request
 - ✅ Video closing card no longer shows the github address ("Start your free trial" instead)
 - ✅ Phone install: proper app icons (iPhone + Android), install screen in the app, home-screen reminder, Settings card, website "Get the app" section with QR code, and help for links opened inside Instagram/Facebook/TikTok
+- ✅ Works in every time zone: dates stored as local calendar days, trial counted in calendar days, dates shown in the phone's local format; tested in 13 zones (UTC−11 to UTC+14) incl. daylight-saving days
 - ✅ Explainer video added to the landing page (How it works section; hero button "Watch the 1-min demo")
 - ✅ Explainer video with voiceover and captions (~51 s, `marketing/videos/coatwright-explainer.mp4`): whole app in 7 scenes, for pinned posts and onboarding
 - ⬜ AI-generated videos (job-site scenes, voiceover): prompts ready in the plan; owner generates them in an AI video tool
@@ -138,6 +139,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-13 | Paid plans: 14-day free trial (no card), then $24/mo or $199/yr; founding members $14/mo for life (first 100) | Owner wants subscription income; trial gets painters invested before paying; yearly brings cash up front |
 | 2026-11-13 | Payments through Lemon Squeezy (seller of record, license keys) | Handles sales tax; license keys can be checked by the app without running our own server |
 | 2026-11-13 | After the trial: view, back up and export always work; only new quotes/invoices need a subscription | Never hold a painter's data hostage; keeps trust |
+| 2026-11-13 | Dates: moments stored as universal timestamps, calendar dates as plain YYYY-MM-DD; dates shown in the phone's own format | Correct in any time zone and across daylight saving; familiar date order for each country |
 | 2026-11-12 | Name: **BidBrush** (replaced) | Says what it does (bids) and who it's for (painters); short and works as a social handle |
 
 ## Log
@@ -181,3 +183,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Added the explainer video to the landing page.
 - **2026-11-13** — Owner chose paid plans ($24/mo or $199/yr after a 14-day trial, founding $14/mo, Lemon Squeezy) and a more human female voice. Built the paywall (off until payments exist), updated site/legal/marketing, re-voiced the explainer.
 - **2026-11-13** — Removed the web address from the video; built the phone install experience (icons, install screens, QR code); Chrome reports the app as installable.
+- **2026-11-13** — Time zone review: fixed the trial countdown (off by a day around daylight-saving changes, and in London in winter); local date formats; new 13-zone test.

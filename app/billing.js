@@ -34,11 +34,22 @@
     return isFinite(t) ? t : 0;
   }
 
-  /** When the free trial ends: trialDays after the later of the user's start and the billing start date. */
+  /**
+   * When the free trial ends: trialDays calendar days after the later of the user's start and the
+   * billing start date, at the same local clock time (so daylight-saving changes don't shift it).
+   */
   function trialEnds(settings, cfg) {
     cfg = cfg || BILLING;
     var start = Math.max(Number(settings && settings.trialStart) || 0, dateTs(cfg.startDate));
-    return start + (Number(cfg.trialDays) || 14) * DAY;
+    var d = new Date(start);
+    d.setDate(d.getDate() + (Number(cfg.trialDays) || 14));
+    return d.getTime();
+  }
+
+  /** Whole local calendar days between two moments (independent of DST and time zone). */
+  function dayIndex(ts) {
+    var d = new Date(ts);
+    return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY;
   }
 
   /**
@@ -60,7 +71,7 @@
         : { mode: 'recheck', canCreate: false, plan: lic.plan || 'Pro' };
     }
     var end = trialEnds(settings, cfg);
-    if (now < end) return { mode: 'trial', canCreate: true, daysLeft: Math.max(1, Math.ceil((end - now) / DAY)), ends: end };
+    if (now < end) return { mode: 'trial', canCreate: true, daysLeft: Math.max(1, dayIndex(end) - dayIndex(now)), ends: end };
     return { mode: 'expired', canCreate: false, ended: end, licenseProblem: lic && lic.status ? lic.status : null };
   }
 

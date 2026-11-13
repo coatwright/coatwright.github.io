@@ -16,6 +16,6 @@ session. Whenever work is finished or a decision is made, update it in the same 
 - add any decision to "Decisions made"
 - add a dated entry to the "Log"
 
-Tests: `node --test app/tests/pricing.test.js app/tests/stats.test.js app/tests/billing.test.js`
+Tests: `node --test app/tests/pricing.test.js app/tests/stats.test.js app/tests/billing.test.js app/tests/timezone.test.js`
 
 The project started in the owner's `Nbarmash/Nbarmash` repository; that address now forwards here.
