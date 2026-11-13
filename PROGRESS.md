@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at https://coatwright.github.io/ and moving to **https://getcoatwright.com/** (domain bought; site side ready). Paid plans built but billing switched off. **Next (owner): add the DNS records in Porkbun; then Lemon Squeezy setup and social accounts.**
+**Where we are now:** Live at **https://getcoatwright.com/** (app at /app/) with quoting, business tools, invoices, schedule, customers, install help and paid plans built (billing switched off). **Next (owner): confirm the HTTPS padlock, set up Lemon Squeezy (BILLING_SETUP.md), create social accounts with the kit.**
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -63,7 +63,9 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Pick a final name: **Coatwright** (first pick BidBrush was taken)
 - ✅ Rename the app to Coatwright (folder is now `coatwright/`)
 - ✅ Owner bought **getcoatwright.com** (Porkbun)
-- 🔄 Connect getcoatwright.com: site side ready (CNAME file, all links, QR code); waiting on the owner's DNS records, then merge and turn on HTTPS
+- ✅ getcoatwright.com connected: DNS at Porkbun (4 A + www CNAME), domain verified on the GitHub organization, DNS check successful; coatwright.github.io and the old personal address forward to it
+- ⬜ Confirm **Enforce HTTPS** is ticked (repo Settings → Pages) and the padlock shows
+- ⬜ Optional: free email forwarding hello@getcoatwright.com → coatwrightapp@gmail.com (Porkbun Email Forwarding)
 - 🔄 Name check: web search found no company, website or app using Coatwright (only a *cancelled* "COATRIGHT" trademark). Owner still to buy the domain, grab @coatwright handles and confirm at tmsearch.uspto.gov
 - ⬜ Give it free to 5–10 local painters
 - ⬜ Collect feedback: what's confusing, what's missing, what they'd pay
@@ -187,3 +189,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Removed the web address from the video; built the phone install experience (icons, install screens, QR code); Chrome reports the app as installable.
 - **2026-11-13** — Time zone review: fixed the trial countdown (off by a day around daylight-saving changes, and in London in winter); local date formats; new 13-zone test.
 - **2026-11-13** — Owner bought getcoatwright.com. Prepared the switch: CNAME file, every link, QR code and docs now use the new domain (not merged until DNS is set).
+- **2026-11-13** — getcoatwright.com live: owner added DNS records and verified the domain. Header logo is now built into the pages (it showed as broken right after the switch).
