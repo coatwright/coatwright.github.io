@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at https://coatwright.github.io/ (app at /app/). Paid plans are built (14-day trial, $24/mo, $199/yr, founding $14/mo) but billing is switched off. **Next (owner): set up Lemon Squeezy using BILLING_SETUP.md and send the checkout links; create social accounts.**
+**Where we are now:** Live at https://coatwright.github.io/ and moving to **https://getcoatwright.com/** (domain bought; site side ready). Paid plans built but billing switched off. **Next (owner): add the DNS records in Porkbun; then Lemon Squeezy setup and social accounts.**
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -62,7 +62,8 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ⬜ Check the default prices against real local numbers
 - ✅ Pick a final name: **Coatwright** (first pick BidBrush was taken)
 - ✅ Rename the app to Coatwright (folder is now `coatwright/`)
-- ⬜ Buy coatwright.com (about $10–15/yr): the only way to remove "github" from the address; owner wants a professional address
+- ✅ Owner bought **getcoatwright.com** (Porkbun)
+- 🔄 Connect getcoatwright.com: site side ready (CNAME file, all links, QR code); waiting on the owner's DNS records, then merge and turn on HTTPS
 - 🔄 Name check: web search found no company, website or app using Coatwright (only a *cancelled* "COATRIGHT" trademark). Owner still to buy the domain, grab @coatwright handles and confirm at tmsearch.uspto.gov
 - ⬜ Give it free to 5–10 local painters
 - ⬜ Collect feedback: what's confusing, what's missing, what they'd pay
@@ -140,6 +141,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-13 | Payments through Lemon Squeezy (seller of record, license keys) | Handles sales tax; license keys can be checked by the app without running our own server |
 | 2026-11-13 | After the trial: view, back up and export always work; only new quotes/invoices need a subscription | Never hold a painter's data hostage; keeps trust |
 | 2026-11-13 | Dates: moments stored as universal timestamps, calendar dates as plain YYYY-MM-DD; dates shown in the phone's own format | Correct in any time zone and across daylight saving; familiar date order for each country |
+| 2026-11-13 | Domain: **getcoatwright.com** (Porkbun, ~$10–12/yr) | Removes "github" from the address; Porkbun keeps renewals cheap and includes privacy |
 | 2026-11-12 | Name: **BidBrush** (replaced) | Says what it does (bids) and who it's for (painters); short and works as a social handle |
 
 ## Log
@@ -184,3 +186,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Owner chose paid plans ($24/mo or $199/yr after a 14-day trial, founding $14/mo, Lemon Squeezy) and a more human female voice. Built the paywall (off until payments exist), updated site/legal/marketing, re-voiced the explainer.
 - **2026-11-13** — Removed the web address from the video; built the phone install experience (icons, install screens, QR code); Chrome reports the app as installable.
 - **2026-11-13** — Time zone review: fixed the trial countdown (off by a day around daylight-saving changes, and in London in winter); local date formats; new 13-zone test.
+- **2026-11-13** — Owner bought getcoatwright.com. Prepared the switch: CNAME file, every link, QR code and docs now use the new domain (not merged until DNS is set).

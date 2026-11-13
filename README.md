@@ -3,8 +3,8 @@
 Quoting and business software for painters. Price any paint job in minutes, send a professional itemized quote,
 and know what you really made.
 
-- **Website:** https://coatwright.github.io/
-- **App:** https://coatwright.github.io/app/
+- **Website:** https://getcoatwright.com/
+- **App:** https://getcoatwright.com/app/
 
 ## What's where
 
@@ -59,4 +59,4 @@ node --test app/tests/pricing.test.js app/tests/stats.test.js app/tests/billing.
 ## Publishing
 
 This repository is the `coatwright` organization's GitHub Pages site: anything merged into `main`
-is published to https://coatwright.github.io/ automatically within a minute or two.
+is published to https://getcoatwright.com/ automatically within a minute or two.

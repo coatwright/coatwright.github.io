@@ -28,7 +28,7 @@ Turn on **two-factor authentication** in account settings.
 In **Settings → Payouts** (or the onboarding checklist):
 - Add how you get paid: **bank account** (or PayPal).
 - Complete **identity verification** (photo ID). Lemon Squeezy reviews new stores before they can take live payments; this can take a few days.
-- Describe the business: *"Coatwright is a subscription app for painting contractors to create quotes and invoices and track their jobs."* Website: `https://coatwright.github.io/`
+- Describe the business: *"Coatwright is a subscription app for painting contractors to create quotes and invoices and track their jobs."* Website: `https://getcoatwright.com/`
 
 > If your store isn't approved, tell Claude: Paddle or Stripe are alternatives, and the app can be adapted.
 
@@ -67,7 +67,7 @@ Lemon Squeezy emails the license key to the customer after purchase. Customers p
 
 **After-purchase button** (in the product's confirmation settings, if offered):
 - Button text: `Activate in Coatwright`
-- Link: `https://coatwright.github.io/app/#/upgrade`
+- Link: `https://getcoatwright.com/app/#/upgrade`
 
 **Publish** the product.
 
