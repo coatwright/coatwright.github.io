@@ -152,6 +152,10 @@ details p { margin: 12px 0 0; color: var(--body); }
 .foot-cols a:hover { color: var(--text); }
 .foot-bottom { border-top: 1px solid var(--line); padding: 20px; color: var(--muted); font-size: 14px; }
 
+.demo { display: flex; justify-content: center; margin: -16px 0 48px; }
+.demo-video { width: 100%; max-width: 340px; aspect-ratio: 9 / 16; border-radius: 28px; background: #0d1326;
+  box-shadow: 0 30px 70px rgba(13, 19, 38, .25); border: 8px solid #0d1326; }
+
 /* Legal pages */
 .legal { max-width: 760px; margin: 0 auto; padding: 56px 20px 80px; }
 .legal h1 { font-size: 40px; }
