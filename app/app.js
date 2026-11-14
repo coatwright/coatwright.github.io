@@ -5,6 +5,7 @@
   var P = window.Pricing;
   var S = window.Stats;
   var BL = window.Billing, BC = BL.BILLING;
+  var AC = window.Account, CFG = window.CW_CONFIG || {};
   var app = document.getElementById('app');
 
   // ---------- Storage ----------
@@ -25,6 +26,11 @@
   if (!settings.onboarded && (jobs.length || settings.businessName)) { settings.onboarded = true; save('pq.settings', settings); }
   if (!settings.trialStart) { settings.trialStart = Date.now(); save('pq.settings', settings); }
   var wantsInstall = /[?&]install=1/.test(location.search);
+  var session = load('pq.session', null);
+  var signin = { step: 'start', email: '', busy: false, error: '' };
+  function accountsOn() { return !!(CFG.accounts && AC && CFG.supabaseUrl && CFG.supabaseKey); }
+  function signedIn() { return !!(settings.account && settings.account.id && session && session.refreshToken); }
+  function appUrl() { return location.origin + location.pathname.replace(/[^/]*$/, ''); }
   function access() { return BL.accessState(settings, Date.now(), BC); }
   var installPrompt = null;
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installPrompt = e; });
@@ -109,6 +115,8 @@
     var id = parts[1];
     var job = id ? findJob(id) : null;
     document.body.dataset.view = view;
+    if (accountsOn() && !signedIn() && view !== 'signin') { location.hash = '#/signin'; return; }
+    if (view === 'signin') { if (!accountsOn() || signedIn()) { location.hash = '#/'; return; } renderSignin(); return; }
     if ((view === 'job' || view === 'quote' || view === 'invoice') && !job) { location.hash = '#/'; return; }
     if (view === 'job') renderJob(job);
     else if (view === 'quote') renderQuote(job);
@@ -239,6 +247,91 @@
     job.notes = 'This is a sample quote. Edit anything, or delete it from the bottom of the job screen.';
     saveJobs();
     return job;
+  }
+
+  // ---------- Account / sign-in ----------
+  function renderSignin() {
+    var st = signin;
+    var head = '<div class="wz-hero"><img src="icon.svg" alt="" width="72" height="72"><h1>Start your 14-day free trial</h1>' +
+      '<p class="muted">No credit card. Already have an account? Sign in the same way.</p></div>';
+    var body;
+    if (st.step === 'code') {
+      body = '<section class="card"><h2 class="card-title">Check your email</h2>' +
+        '<p class="muted small" style="margin-top:0">We sent a 6-digit code to <b>' + esc(st.email) + '</b>. It can take a minute; check spam too.</p>' +
+        '<label class="field"><span>Code</span><input id="si-code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456" class="code-input"></label>' +
+        '<button class="btn btn-primary full" data-action="si-verify"' + (st.busy ? ' disabled' : '') + '>' + (st.busy ? 'Checking…' : 'Continue') + '</button>' +
+        '<div class="si-row"><button class="link" data-action="si-resend">Send a new code</button><button class="link" data-action="si-change">Use a different email</button></div></section>';
+    } else {
+      body = (CFG.google ? '<button class="btn google-btn full" data-action="si-google"><span class="g-logo" aria-hidden="true">G</span> Continue with Google</button>' +
+          '<div class="si-or"><span>or use your email</span></div>' : '') +
+        '<section class="card">' +
+        '<label class="field"><span>Email</span><input id="si-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="you@email.com" value="' + esc(st.email) + '"></label>' +
+        '<button class="btn ' + (CFG.google ? '' : 'btn-primary ') + 'full" data-action="si-send"' + (st.busy ? ' disabled' : '') + '>' + (st.busy ? 'Sending…' : 'Email me a code') + '</button>' +
+        '<p class="muted small" style="margin-bottom:0">No password needed. We\'ll email you a 6-digit code.</p></section>';
+    }
+    app.innerHTML = '<div class="welcome">' + head + (st.error ? '<div class="inst-warn">' + esc(st.error) + '</div>' : '') + body +
+      '<p class="center-text muted small">By continuing you agree to our <a href="../terms.html">Terms</a> and <a href="../privacy.html">Privacy Policy</a>.<br>' +
+      'Questions? <a href="mailto:coatwrightapp@gmail.com">coatwrightapp@gmail.com</a></p></div>';
+    var focus = app.querySelector('#si-code') || (!st.email && app.querySelector('#si-email'));
+    if (focus) focus.focus();
+  }
+
+  function friendlyAuthError(e) {
+    var m = String((e && e.message) || e || '');
+    if (/rate|too many|seconds/i.test(m)) return 'Too many tries. Please wait a minute and try again.';
+    if (/expired|invalid|otp|token/i.test(m)) return 'That code didn\'t work or has expired. Check it, or send a new one.';
+    if (/failed to fetch|network|load failed/i.test(m)) return 'Can\'t reach Coatwright right now. Check your internet connection.';
+    return m || 'Something went wrong. Please try again.';
+  }
+
+  /** After any sign-in: load the account and its server trial start, then continue into the app. */
+  function finishSignin(sess) {
+    session = sess; save('pq.session', session);
+    return Promise.all([sess.user ? Promise.resolve(sess.user) : AC.getUser(CFG, sess), AC.getProfile(CFG, sess)])
+      .then(function (r) {
+        var user = r[0], profile = r[1];
+        settings.account = { id: user.id, email: user.email, name: (profile && profile.full_name) || user.name || '',
+          trialStartedAt: profile && profile.trial_started_at ? Date.parse(profile.trial_started_at) : null, checkedAt: Date.now() };
+        if (settings.account.trialStartedAt) settings.trialStart = settings.account.trialStartedAt;
+        if (!settings.ownerName && settings.account.name) settings.ownerName = settings.account.name;
+        if (!settings.email && user.email) settings.email = user.email;
+        saveSettings();
+        signin = { step: 'start', email: '', busy: false, error: '' };
+        toast('Signed in as ' + user.email);
+        location.hash = settings.onboarded ? '#/' : '#/welcome';
+        route();
+      });
+  }
+
+  /** Keep the session fresh and the trial start in sync (quietly; works offline with the saved account). */
+  function syncAccount() {
+    if (!accountsOn() || !session || !session.refreshToken || navigator.onLine === false) return Promise.resolve();
+    var p = AC.needsRefresh(session) ? AC.refresh(CFG, session).then(function (s) { session = s; save('pq.session', session); }) : Promise.resolve();
+    return p.then(function () { return AC.getProfile(CFG, session); })
+      .then(function (profile) {
+        if (profile && profile.trial_started_at && settings.account) {
+          settings.account.trialStartedAt = Date.parse(profile.trial_started_at);
+          settings.trialStart = settings.account.trialStartedAt;
+          settings.account.checkedAt = Date.now(); saveSettings();
+        }
+      })
+      .catch(function (e) {
+        if (e && (e.status === 400 || e.status === 401 || e.status === 403) && /refresh|token|jwt|session/i.test(e.message)) {
+          session = null; save('pq.session', null); delete settings.account; saveSettings(); route();
+        }
+      });
+  }
+
+  /** Google sends people back with #access_token=… in the address; pick it up before routing. */
+  function handleAuthReturn() {
+    if (!accountsOn()) return false;
+    var r = AC.parseAuthFragment(location.hash);
+    if (!r) return false;
+    history.replaceState(null, '', location.pathname + location.search);
+    if (r.error) { signin.error = 'Google sign-in didn\'t finish: ' + r.error; location.hash = '#/signin'; route(); return true; }
+    app.innerHTML = '<div class="welcome"><div class="wz-hero"><img src="icon.svg" alt="" width="72" height="72"><h1>Signing you in…</h1></div></div>';
+    finishSignin(r).catch(function (e) { signin.error = friendlyAuthError(e); location.hash = '#/signin'; route(); });
+    return true;
   }
 
   // ---------- Subscription ----------
@@ -1283,6 +1376,9 @@
       '<section class="card"><h2 class="card-title">Invoices</h2>' +
       setField('invoiceDueDays', 'Payment due', { type: 'number', unit: 'days', hint: '0 = due on receipt' }) +
       setField('paymentInstructions', 'How customers can pay you', { textarea: true }) + '</section>' +
+      (accountsOn() && signedIn() ? '<section class="card"><h2 class="card-title">👤 Account</h2>' +
+        '<p class="small" style="margin-top:0">Signed in as <b>' + esc(settings.account.email) + '</b></p>' +
+        '<button class="btn full" data-action="si-signout">Sign out</button></section>' : '') +
       (!isInstalled() ? '<section class="card"><h2 class="card-title">📲 Install on your phone</h2>' +
         '<p class="muted small" style="margin-top:0">Add Coatwright to your home screen so it opens like a regular app.</p>' +
         '<a class="btn btn-ghost full" href="#/install">Show me how</a></section>' : '') +
@@ -1434,6 +1530,12 @@
     refreshTotals(job);
   });
 
+  app.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    if (e.target.id === 'si-email') { e.preventDefault(); var b1 = app.querySelector('[data-action=si-send]'); if (b1) b1.click(); }
+    if (e.target.id === 'si-code') { e.preventDefault(); var b2 = app.querySelector('[data-action=si-verify]'); if (b2) b2.click(); }
+  });
+
   app.addEventListener('click', function (e) {
     var el = e.target.closest('[data-action]');
     if (!el) return;
@@ -1442,6 +1544,44 @@
     var i = el.dataset.i != null ? +el.dataset.i : null;
 
     switch (action) {
+      case 'si-google':
+        location.href = AC.googleUrl(CFG, appUrl());
+        return;
+      case 'si-send': {
+        var em = (document.getElementById('si-email').value || '').trim();
+        if (!AC.validEmail(em)) { signin.error = 'Please enter a valid email address.'; renderSignin(); return; }
+        signin.email = em; signin.busy = true; signin.error = ''; renderSignin();
+        AC.sendCode(CFG, em, appUrl())
+          .then(function () { signin.step = 'code'; })
+          .catch(function (e) { signin.error = friendlyAuthError(e); })
+          .then(function () { signin.busy = false; renderSignin(); });
+        return;
+      }
+      case 'si-verify': {
+        var code = (document.getElementById('si-code').value || '').replace(/\D/g, '');
+        if (code.length < 6) { signin.error = 'Enter the 6-digit code from the email.'; renderSignin(); return; }
+        signin.busy = true; signin.error = ''; renderSignin();
+        AC.verifyCode(CFG, signin.email, code)
+          .then(finishSignin)
+          .catch(function (e) { signin.busy = false; signin.error = friendlyAuthError(e); renderSignin(); });
+        return;
+      }
+      case 'si-resend':
+        signin.busy = true; signin.error = ''; renderSignin();
+        AC.sendCode(CFG, signin.email, appUrl())
+          .then(function () { toast('New code sent'); })
+          .catch(function (e) { signin.error = friendlyAuthError(e); })
+          .then(function () { signin.busy = false; renderSignin(); });
+        return;
+      case 'si-change':
+        signin = { step: 'start', email: '', busy: false, error: '' }; renderSignin();
+        return;
+      case 'si-signout':
+        if (!confirm('Sign out? Your jobs and quotes stay saved on this phone.')) return;
+        AC.signOut(CFG, session);
+        session = null; save('pq.session', null); delete settings.account; saveSettings();
+        location.hash = '#/signin';
+        return;
       case 'wz-skip':
         settings.onboarded = true; saveSettings();
         location.hash = '#/';
@@ -1755,7 +1895,8 @@
     ta.remove();
   }
 
-  route();
+  if (!handleAuthReturn()) route();
+  syncAccount();
   if (settings.license && settings.license.key && navigator.onLine !== false &&
       Date.now() - (Number(settings.license.checkedAt) || 0) > 864e5) checkLicense(true);
 })();
