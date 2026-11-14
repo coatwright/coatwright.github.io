@@ -1,0 +1,28 @@
+# Keeps the free Supabase project awake: free projects pause after 7 days with no activity.
+# Runs once a day and makes two small requests with the public (publishable) key.
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: '17 9 * * *'   # every day at 09:17 UTC
+  workflow_dispatch: {}     # can also be run by hand from the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping Supabase
+        env:
+          SUPABASE_URL: https://tbgcxcocnqbnmjnvncic.supabase.co
+          SUPABASE_KEY: sb_publishable_TpdyMrMfjVOV3C3pag9GhA_zlkJxa05
+        run: |
+          set -u
+          health=$(curl -s -o /dev/null -w '%{http_code}' -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/auth/v1/health")
+          db=$(curl -s -o /dev/null -w '%{http_code}' -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/rest/v1/profiles?select=id&limit=1")
+          echo "auth health: $health, database: $db"
+          # 2xx/4xx both mean the project answered (4xx = the public key isn't allowed to read, which is expected).
+          case "$health" in 2*|4*) ;; *) echo "Supabase did not answer"; exit 1 ;; esac

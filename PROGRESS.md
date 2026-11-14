@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/** (app at /app/). Paid plans built (billing off). Planned next: sign-up before the trial (Google one-tap or email code, one trial per email, on Supabase). **Next (owner): create the Supabase project and send the URL + public key; confirm the HTTPS padlock; Lemon Squeezy; social accounts.**
+**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or email code, one trial per email) is built and switched off. **Next (owner): ACCOUNTS_SETUP.md steps 1–3 in Supabase, then tell Claude to switch it on; send the app fixes list; Lemon Squeezy; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -82,7 +82,11 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 
 - ✅ 14-day trial + subscription paywall built in the app (plans screen, license keys, view-only after trial); **switched off until payments are set up**
 - ✅ Website, Terms, Privacy, social kit and explainer video updated for paid plans
-- ⬜ **Accounts before the trial** (owner request): one-tap **Continue with Google** + "use email instead" (6-digit code), no password or card; 14-day trial stored online, one per email (Gmail dot/+ aliases treated as the same); jobs stay on the phone. Built on free **Supabase** (+ daily keep-awake ping). Waiting on owner: create the Supabase project and send the Project URL + public (anon/publishable) key; then Google sign-in setup steps
+- ✅ Supabase project created (East US); URL + publishable key in `app/config.js`
+- ✅ Accounts built: sign-in screen (Google + email code), server trial start, sign-out, offline-safe; database rules in `supabase/setup.sql` (tested on PostgreSQL: one trial per email incl. Gmail +/. variations and deleted accounts, users can't see others or change their trial); daily keep-alive workflow; Privacy/Terms/FAQ updated. **Switched off** (`accounts: false`) until setup is done
+- ⬜ Owner: ACCOUNTS_SETUP.md steps 1–3 (run SQL, URLs, email code template) → Claude switches `accounts: true` and tests on the owner's phone
+- ⬜ Owner: step 4 (Google sign-in) → Claude switches `google: true`
+- ⬜ Owner: step 5 (Resend email sending) before launch
 - ⬜ Link Lemon Squeezy subscriptions to accounts (instead of license keys) once accounts exist
 - ⬜ Owner sets up Lemon Squeezy (see `BILLING_SETUP.md`) and sends the 3 checkout links
 - ⬜ Claude switches billing on (`app/billing.js`: enabled, startDate, checkout links) and tests a real purchase together with the owner
@@ -195,3 +199,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Owner bought getcoatwright.com. Prepared the switch: CNAME file, every link, QR code and docs now use the new domain (not merged until DNS is set).
 - **2026-11-13** — getcoatwright.com live: owner added DNS records and verified the domain. Header logo is now built into the pages (it showed as broken right after the switch).
 - **2026-11-13** — Owner wants a real sign-up so the trial is one per email. Researched competitors (Jobber, Housecall Pro: sign up, no card) and free account services; plan agreed in principle: Google one-tap + email code on Supabase. Paused here.
+- **2026-11-14** — Owner created the Supabase project. Built accounts (sign-in screen, database rules tested locally, keep-alive, setup guide); switched off until the owner finishes setup.
