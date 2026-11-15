@@ -32,3 +32,27 @@ test('currency sign for input fields', () => {
   assert.strictEqual(C.symbol('CAD', 'en-CA'), '$');
   assert.strictEqual(C.symbol('CAD', 'en-US'), 'CA$');
 });
+
+test('starting prices are converted once and rounded to clean numbers', () => {
+  assert.strictEqual(C.nice(42.9), 43);
+  assert.strictEqual(C.nice(351), 350);
+  assert.strictEqual(C.nice(0.78), 0.78);
+  assert.strictEqual(C.nice(4675), 4700);
+  assert.strictEqual(C.convert(55, 'USD', 'GBP'), 43);
+  assert.strictEqual(C.convert(55, 'USD', 'USD'), 55);
+  const s = C.convertSettings({ laborRate: 55, minimumJob: 450, wallPaintPrice: 45, markup: 25, coverage: 350, epoxySqft: 1 }, 'USD', 'GBP');
+  assert.strictEqual(s.currency, 'GBP');
+  assert.strictEqual(s.laborRate, 43);
+  assert.strictEqual(s.minimumJob, 350);
+  assert.strictEqual(s.wallPaintPrice, 35);
+  assert.strictEqual(s.epoxySqft, 0.78);
+  assert.strictEqual(s.markup, 25, 'percentages are not money');
+  assert.strictEqual(s.coverage, 350, 'production rates are not money');
+  assert.strictEqual(s.costFactor, 0.78);
+  const back = C.convertSettings(s, 'GBP', 'USD');
+  assert.ok(Math.abs(back.laborRate - 55) <= 1, 'converting back lands close to the original');
+  assert.strictEqual(back.costFactor, 1);
+  const same = C.convertSettings({ laborRate: 55 }, 'USD', 'USD');
+  assert.strictEqual(same.laborRate, 55);
+  assert.strictEqual(same.costFactor, undefined, 'dollars need no factor');
+});

@@ -92,7 +92,8 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - 🔄 Owner: step 5: Resend domain verified, API key made, Supabase custom SMTP on (hello@getcoatwright.com); rate limit raised
 - ⬜ Link Lemon Squeezy subscriptions to accounts (instead of license keys) once accounts exist
 - ✅ Currency setting: quotes, invoices, stats in the painter's currency (20 choices), chosen once from the phone's region and changeable in Settings; existing users stay on $
-- ⬜ Metric units (m², litres) and country starting rates, when non-US painters sign up
+- ✅ Local starting prices: new painters abroad get the US starting prices converted once at a built-in approximate rate and rounded (e.g. $55/hr → £43/hr); presets too; switching currency in Settings offers a one-time conversion. Prices never follow live exchange rates
+- ⬜ Metric units (m², litres), when non-US painters sign up
 - ✅ Trial countdown in the app: banner and Settings show days left + end date; one-time reminder card at 7, 3 and 1 days left (shows once billing is on)
 - ⬜ Trial-ending reminder email 3 days before (Supabase scheduled job + Resend), built with billing
 - ⬜ Subscribers: next renewal date and price in Settings, reminder before an annual renewal (needs the subscription link above)
@@ -220,3 +221,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Owner's fixes: trial days left (built: banner + Settings show end date, reminder cards at 7/3/1 days) and the founding deal for the first 100 payers with a congratulations email (planned with Lemon Squeezy).
 - **2026-11-15** — Founding price changed to $12/mo (half price) on the website, Terms, app and setup guide.
 - **2026-11-15** — Added a currency setting for worldwide painters (detected once, never auto-changes when travelling). Subscription prices stay in USD; Lemon Squeezy shows local currency at checkout.
+- **2026-11-15** — Owner asked whether quotes follow exchange rates. Built one-time conversion of starting prices (and on currency switch); prices never move with live rates so sent quotes stay fixed.
