@@ -5,5 +5,5 @@ window.CW_CONFIG = {
   // Require an account before the trial. Switch on once ACCOUNTS_SETUP.md steps 1–3 are done.
   accounts: true,
   // Show "Continue with Google". Switch on once ACCOUNTS_SETUP.md step 4 is done.
-  google: false
+  google: true
 };
