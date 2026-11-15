@@ -34,30 +34,50 @@ test('early users get a full trial from the day billing starts', () => {
 
 test('active subscription works, and must be re-checked online after the grace period', () => {
   const now = Date.now();
-  const lic = { status: 'active', plan: 'Yearly', checkedAt: now - 2 * DAY };
-  assert.deepStrictEqual(B.accessState({ trialStart: 0, license: lic }, now, on), { mode: 'active', canCreate: true, plan: 'Yearly' });
-  const stale = Object.assign({}, lic, { checkedAt: now - 8 * DAY });
-  assert.strictEqual(B.accessState({ license: stale }, now, on).mode, 'recheck');
-  const expiredKey = { status: 'expired', checkedAt: now };
-  const s = B.accessState({ trialStart: now - 30 * DAY, license: expiredKey }, now, on);
-  assert.strictEqual(s.mode, 'expired');
-  assert.strictEqual(s.licenseProblem, 'expired');
+  const sub = { status: 'active', plan: 'annual', periodEnd: now + 200 * DAY, cancelAtEnd: false, founderNumber: null, checkedAt: now - 2 * DAY };
+  const a = B.accessState({ trialStart: 0, sub }, now, on);
+  assert.strictEqual(a.mode, 'active');
+  assert.strictEqual(a.canCreate, true);
+  assert.strictEqual(a.plan, 'annual');
+  assert.strictEqual(a.renews, sub.periodEnd);
+  assert.strictEqual(B.accessState({ sub: Object.assign({}, sub, { checkedAt: now - 8 * DAY }) }, now, on).mode, 'recheck');
+  const pastDue = B.accessState({ sub: Object.assign({}, sub, { status: 'past_due' }) }, now, on);
+  assert.strictEqual(pastDue.mode, 'active', 'card problems: Stripe retries, keep working meanwhile');
+  assert.strictEqual(pastDue.pastDue, true);
+  const canceled = B.accessState({ trialStart: now - 30 * DAY, sub: Object.assign({}, sub, { status: 'canceled' }) }, now, on);
+  assert.strictEqual(canceled.mode, 'expired');
+  assert.strictEqual(canceled.lapsed, true);
+  const longOver = B.accessState({ trialStart: now - 90 * DAY, sub: Object.assign({}, sub, { periodEnd: now - 30 * DAY, checkedAt: now - 30 * DAY }) }, now, on);
+  assert.strictEqual(longOver.mode, 'expired', 'offline for weeks past the renewal date');
 });
 
-test('reads Lemon Squeezy activate/validate responses', () => {
-  const ok = B.licenseFromResponse({ activated: true, license_key: { status: 'active' }, instance: { id: 'inst_1' },
-    meta: { variant_name: 'Monthly', customer_email: 'a@b.com', store_id: 5, product_id: 9 } }, 'KEY', 1000, on);
-  assert.strictEqual(ok.status, 'active');
-  assert.strictEqual(ok.instanceId, 'inst_1');
-  assert.strictEqual(ok.plan, 'Monthly');
-  assert.strictEqual(ok.error, '');
-  const bad = B.licenseFromResponse({ activated: false, error: 'license_key not found.' }, 'NOPE', 1000, on);
-  assert.notStrictEqual(bad.status, 'active');
-  assert.strictEqual(bad.error, 'license_key not found.');
-  const expired = B.licenseFromResponse({ valid: true, license_key: { status: 'expired' } }, 'K', 1, on);
-  assert.strictEqual(expired.status, 'expired');
-  const other = B.licenseFromResponse({ valid: true, license_key: { status: 'active' }, meta: { store_id: 1 } }, 'K', 1, Object.assign({}, on, { storeId: 5 }));
-  assert.strictEqual(other.status, 'wrong-product');
+test('reads the account subscription rows from the database', () => {
+  const now = 1e12;
+  assert.strictEqual(B.subFromRows([], now), null);
+  const rows = [
+    { status: 'canceled', plan: 'founder', current_period_end: '2026-12-15T00:00:00Z', cancel_at_period_end: false, founder_number: 7, updated_at: '2026-12-16T00:00:00Z' },
+    { status: 'active', plan: 'founder', current_period_end: '2027-01-15T00:00:00Z', cancel_at_period_end: true, founder_number: null, updated_at: '2026-12-20T00:00:00Z' }
+  ];
+  const s = B.subFromRows(rows, now);
+  assert.strictEqual(s.status, 'active', 'a live subscription wins');
+  assert.strictEqual(s.cancelAtEnd, true);
+  assert.strictEqual(s.periodEnd, Date.parse('2027-01-15T00:00:00Z'));
+  assert.strictEqual(s.checkedAt, now);
+  assert.strictEqual(B.subFromRows([rows[0]], now).founderNumber, 7);
+});
+
+test('checkout links carry the account so the app unlocks by itself', () => {
+  const cfg = Object.assign({}, on, { checkout: { monthly: 'https://buy.stripe.com/m1', annual: 'https://buy.stripe.com/y1?locale=en' } });
+  const acct = { id: '11111111-1111-1111-1111-111111111111', email: 'ann+paint@x.com' };
+  assert.strictEqual(B.checkoutUrl(cfg, 'monthly', acct), 'https://buy.stripe.com/m1?client_reference_id=11111111-1111-1111-1111-111111111111&prefilled_email=ann%2Bpaint%40x.com');
+  assert.match(B.checkoutUrl(cfg, 'founder', acct), /^https:\/\/buy\.stripe\.com\/m1\?.*&prefilled_promo_code=FOUNDER$/);
+  assert.match(B.checkoutUrl(cfg, 'annual', acct), /\?locale=en&client_reference_id=/);
+  assert.strictEqual(B.checkoutUrl(cfg, 'monthly', null), '', 'must be signed in');
+  assert.strictEqual(B.checkoutUrl(on, 'monthly', acct), '', 'no link until Stripe is set up');
+  assert.strictEqual(B.portalUrl(Object.assign({}, on, { portal: 'https://billing.stripe.com/p/login/abc' }), 'a@b.com'), 'https://billing.stripe.com/p/login/abc?prefilled_email=a%40b.com');
+  assert.deepStrictEqual(B.planPrice(on, 'founder'), { amount: 12, unit: '/mo' });
+  assert.deepStrictEqual(B.planPrice(on, 'annual'), { amount: 199, unit: '/yr' });
+  assert.strictEqual(B.planName('founder'), 'Founding member');
 });
 
 test('annual plan math: $199/yr vs $24/mo', () => {

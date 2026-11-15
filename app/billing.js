@@ -1,13 +1,14 @@
 /*
- * Coatwright subscriptions: free trial, plans and license-key checks (Lemon Squeezy).
- * The decision logic is pure so it can be tested in Node.
+ * Coatwright subscriptions: free trial, plans and Stripe subscription status.
+ * Payments run on Stripe (Managed Payments). After checkout, Stripe tells our database (supabase/functions/stripe-webhook)
+ * and the app reads the account's subscription. The decision logic is pure so it can be tested in Node.
  */
 (function (global) {
   'use strict';
 
   // ---- Settings the owner changes when payments go live ------------------------------
   var BILLING = {
-    // Off until the Lemon Squeezy store and checkout links exist. While off, the app is fully usable.
+    // Off until Stripe is set up. While off, the app is fully usable and nobody is charged.
     enabled: false,
     // 'YYYY-MM-DD' when billing was switched on. Everyone's trial counts from this day at the earliest.
     startDate: '',
@@ -16,14 +17,11 @@
     graceDays: 7,
     prices: { founder: 12, monthly: 24, annual: 199 },
     founderSpots: 100,
-    // Lemon Squeezy checkout links (Store → Products → Share).
-    checkout: { founder: '', monthly: '', annual: '' },
-    // Optional: only accept license keys from this store/product (numbers from Lemon Squeezy).
-    storeId: null,
-    productId: null,
-    // Where customers manage or cancel their subscription.
-    portal: 'https://app.lemonsqueezy.com/my-orders',
-    api: 'https://api.lemonsqueezy.com/v1/licenses/'
+    // Stripe Payment Links (Dashboard → Payment Links). Founders use the monthly link with the FOUNDER code.
+    checkout: { monthly: '', annual: '' },
+    founderCode: 'FOUNDER',
+    // Stripe customer portal login link (Settings → Billing → Customer portal), where people manage or cancel.
+    portal: ''
   };
 
   var DAY = 864e5;
@@ -60,19 +58,75 @@
    *   trial   – free trial running
    *   expired – trial over and no subscription: view and export only
    */
+  var LIVE = { active: 1, trialing: 1, past_due: 1 };
+
+  /** Pick the subscription that matters from the account's rows (newest live one, else newest). */
+  function subFromRows(rows, now) {
+    rows = (rows || []).filter(Boolean);
+    if (!rows.length) return null;
+    var live = rows.filter(function (r) { return LIVE[r.status]; });
+    var r = (live.length ? live : rows).slice().sort(function (a, b) {
+      return (Date.parse(b.updated_at) || 0) - (Date.parse(a.updated_at) || 0);
+    })[0];
+    return {
+      status: r.status || '',
+      plan: r.plan || '',
+      periodEnd: Date.parse(r.current_period_end) || 0,
+      cancelAtEnd: !!r.cancel_at_period_end,
+      founderNumber: r.founder_number || null,
+      checkedAt: now || Date.now()
+    };
+  }
+
   function accessState(settings, now, cfg) {
     cfg = cfg || BILLING;
     now = now || Date.now();
     if (!cfg.enabled) return { mode: 'free', canCreate: true };
-    var lic = settings && settings.license;
-    if (lic && lic.status === 'active') {
-      var fresh = now - (Number(lic.checkedAt) || 0) <= (Number(cfg.graceDays) || 7) * DAY;
-      return fresh ? { mode: 'active', canCreate: true, plan: lic.plan || 'Pro' }
-        : { mode: 'recheck', canCreate: false, plan: lic.plan || 'Pro' };
+    var sub = settings && settings.sub;
+    var grace = (Number(cfg.graceDays) || 7) * DAY;
+    if (sub && LIVE[sub.status] && (!sub.periodEnd || now <= sub.periodEnd + grace)) {
+      var info = { plan: sub.plan || 'monthly', renews: sub.periodEnd || 0, cancelAtEnd: !!sub.cancelAtEnd,
+        founderNumber: sub.founderNumber || null, pastDue: sub.status === 'past_due' };
+      var fresh = now - (Number(sub.checkedAt) || 0) <= grace;
+      return Object.assign({ mode: fresh ? 'active' : 'recheck', canCreate: fresh }, info);
     }
     var end = trialEnds(settings, cfg);
     if (now < end) return { mode: 'trial', canCreate: true, daysLeft: Math.max(1, dayIndex(end) - dayIndex(now)), ends: end };
-    return { mode: 'expired', canCreate: false, ended: end, licenseProblem: lic && lic.status ? lic.status : null };
+    return { mode: 'expired', canCreate: false, ended: end, lapsed: !!(sub && sub.status) };
+  }
+
+  function addParams(url, params) {
+    var q = Object.keys(params).filter(function (k) { return params[k]; })
+      .map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+    return q ? url + (url.indexOf('?') === -1 ? '?' : '&') + q : url;
+  }
+
+  /** Checkout link for a plan, tied to the signed-in account so the app unlocks by itself. '' when not set up. */
+  function checkoutUrl(cfg, plan, account) {
+    cfg = cfg || BILLING;
+    var base = plan === 'founder' ? cfg.checkout.monthly : cfg.checkout[plan];
+    if (!base || !account || !account.id) return '';
+    return addParams(base, {
+      client_reference_id: account.id,
+      prefilled_email: account.email || '',
+      prefilled_promo_code: plan === 'founder' ? cfg.founderCode : ''
+    });
+  }
+
+  /** Where a subscriber manages or cancels (email filled in). */
+  function portalUrl(cfg, email) {
+    cfg = cfg || BILLING;
+    return cfg.portal ? addParams(cfg.portal, { prefilled_email: email || '' }) : '';
+  }
+
+  function planName(plan) {
+    return plan === 'founder' ? 'Founding member' : plan === 'annual' ? 'Yearly' : 'Monthly';
+  }
+
+  /** What the plan costs each renewal, e.g. { amount: 24, unit: '/mo' }. */
+  function planPrice(cfg, plan) {
+    cfg = cfg || BILLING;
+    return plan === 'annual' ? { amount: cfg.prices.annual, unit: '/yr' } : { amount: plan === 'founder' ? cfg.prices.founder : cfg.prices.monthly, unit: '/mo' };
   }
 
   /**
@@ -86,26 +140,6 @@
     return stage && (!last || stage < last) ? stage : 0;
   }
 
-  /** Turn a Lemon Squeezy activate/validate response into what the app stores. */
-  function licenseFromResponse(json, key, now, cfg) {
-    cfg = cfg || BILLING;
-    json = json || {};
-    var lk = json.license_key || {};
-    var meta = json.meta || {};
-    var wrongProduct = (cfg.storeId && meta.store_id && Number(meta.store_id) !== Number(cfg.storeId)) ||
-      (cfg.productId && meta.product_id && Number(meta.product_id) !== Number(cfg.productId));
-    var ok = (json.valid === true || json.activated === true) && lk.status === 'active' && !wrongProduct;
-    return {
-      key: key,
-      instanceId: (json.instance && json.instance.id) || null,
-      status: wrongProduct ? 'wrong-product' : ok ? 'active' : (lk.status || 'invalid'),
-      plan: meta.variant_name || '',
-      email: meta.customer_email || '',
-      checkedAt: now || Date.now(),
-      error: ok ? '' : (json.error || (wrongProduct ? 'This key is for a different product.' : 'This license key is not active.'))
-    };
-  }
-
   /** Annual price per month and savings versus paying monthly, for the pricing cards. */
   function annualDeal(cfg) {
     cfg = cfg || BILLING;
@@ -113,7 +147,8 @@
     return { perMonth: Math.round(a / 12 * 100) / 100, savePct: Math.round((1 - a / (m * 12)) * 100) };
   }
 
-  var api = { BILLING: BILLING, trialEnds: trialEnds, accessState: accessState, trialReminder: trialReminder, licenseFromResponse: licenseFromResponse, annualDeal: annualDeal };
+  var api = { BILLING: BILLING, trialEnds: trialEnds, accessState: accessState, subFromRows: subFromRows, checkoutUrl: checkoutUrl,
+    portalUrl: portalUrl, planName: planName, planPrice: planPrice, trialReminder: trialReminder, annualDeal: annualDeal };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.Billing = api;
 })(typeof window !== 'undefined' ? window : this);
