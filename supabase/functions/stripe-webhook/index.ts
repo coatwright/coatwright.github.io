@@ -4,7 +4,7 @@
 //
 // Secrets (Supabase → Edge Functions → Secrets): STRIPE_WEBHOOK_SECRET (whsec_…), RESEND_API_KEY (re_…).
 // Optional: FOUNDER_PROMO_CODES = comma-separated promotion code or coupon IDs that mean "founding member".
-// SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase automatically.
+// SUPABASE_URL and the server key (SUPABASE_SECRET_KEYS, or the legacy SUPABASE_SERVICE_ROLE_KEY) are provided by Supabase automatically.
 // "Verify JWT" must be OFF for this function (Stripe signs its requests instead).
 //
 // Plain JavaScript (valid TypeScript) in one file, so it can be pasted into the Supabase dashboard editor.
@@ -84,11 +84,23 @@ export function founderEmail(n) {
   };
 }
 
+/** The server key: the newer secret key (SUPABASE_SECRET_KEYS) if there is one, else the legacy service role key. */
+export function serverKey(env) {
+  try {
+    const keys = JSON.parse(env.SUPABASE_SECRET_KEYS || '{}');
+    const k = keys.default || Object.values(keys)[0];
+    if (k) return String(k);
+  } catch (e) { /* not set or not JSON */ }
+  return env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY || '';
+}
+
 async function rpc(env, fetchFn, name, args) {
-  const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY;
+  const key = serverKey(env);
+  const headers = { apikey: key, 'Content-Type': 'application/json' };
+  if (/^eyJ/.test(key)) headers.Authorization = 'Bearer ' + key; // legacy JWT keys also go in Authorization
   const r = await fetchFn(env.SUPABASE_URL + '/rest/v1/rpc/' + name, {
     method: 'POST',
-    headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(args)
   });
   const txt = await r.text();

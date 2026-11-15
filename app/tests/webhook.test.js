@@ -22,7 +22,7 @@ function fakeBackend(assignResult) {
   const calls = [];
   const fetchFn = async (url, opts) => {
     const body = opts && opts.body ? JSON.parse(opts.body) : null;
-    calls.push({ url, body });
+    calls.push({ url, body, headers: opts && opts.headers });
     if (url.endsWith('/rpc/assign_founder')) return new Response(JSON.stringify(assignResult || []), { status: 200 });
     return new Response('', { status: 200 });
   };
@@ -97,4 +97,19 @@ test('a bad client_reference_id is not trusted', async () => {
   const b = fakeBackend();
   await W.handle(signed({ type: 'checkout.session.completed', data: { object: { mode: 'subscription', customer: 'cus_9', client_reference_id: "x'; drop table" } } }), env, b.fetchFn);
   assert.strictEqual(b.calls[0].body.p_user, null);
+});
+
+test('uses the newer Supabase secret key when present, else the legacy service role key', async () => {
+  const W = await load();
+  assert.strictEqual(W.serverKey({ SUPABASE_SECRET_KEYS: '{"default":"sb_secret_abc"}', SUPABASE_SERVICE_ROLE_KEY: 'eyJold' }), 'sb_secret_abc');
+  assert.strictEqual(W.serverKey({ SUPABASE_SECRET_KEYS: 'not json', SUPABASE_SERVICE_ROLE_KEY: 'eyJold' }), 'eyJold');
+  assert.strictEqual(W.serverKey({ SUPABASE_SERVICE_ROLE_KEY: 'eyJold' }), 'eyJold');
+  const b = fakeBackend();
+  const evt = { type: 'customer.subscription.updated', created: 1, data: { object: { id: 's', customer: 'cus_1', status: 'active', items: { data: [] } } } };
+  await W.handle(signed(evt), Object.assign({}, env, { SUPABASE_SECRET_KEYS: '{"default":"sb_secret_abc"}' }), b.fetchFn);
+  assert.strictEqual(b.calls[0].headers.apikey, 'sb_secret_abc');
+  assert.strictEqual(b.calls[0].headers.Authorization, undefined, 'new secret keys go in apikey only');
+  const b2 = fakeBackend();
+  await W.handle(signed(evt), Object.assign({}, env, { SUPABASE_SERVICE_ROLE_KEY: 'eyJlegacy' }), b2.fetchFn);
+  assert.strictEqual(b2.calls[0].headers.Authorization, 'Bearer eyJlegacy');
 });
