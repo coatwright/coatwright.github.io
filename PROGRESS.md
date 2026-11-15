@@ -100,7 +100,8 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Founding members: Stripe coupon 50% forever + code FOUNDER (max 100, Stripe enforces); webhook numbers founders 1–100 and sends "You're Founding Member #N of 100" via Resend; badge in Settings/Plans; "X of 100 spots left" on the app's plans screen
 - ⬜ "X of 100 spots left" on the website pricing card too
 - ✅ Owner: Stripe account (Canada), Managed Payments, payouts weekly, 2FA, verification submitted
-- ⬜ Owner: `BILLING_SETUP.md` steps 2–11 (product, coupon, Payment Links, portal, emails, billing.sql, webhook function + secrets) → send Claude the 3 links
+- ✅ Owner: Stripe product ($24/mo, $199/yr, SaaS business use), FOUNDER coupon (50% forever, max 100, first order only), Monthly and Yearly Payment Links, customer portal link → saved in `app/billing.js` (billing still off)
+- 🔄 Owner: `BILLING_SETUP.md` steps 2–11 (product, coupon, Payment Links, portal, emails, billing.sql, webhook function + secrets) → send Claude the 3 links
 - ⬜ Claude switches billing on (`app/billing.js`: enabled, startDate, checkout + portal links) and tests a real purchase (then refund) together with the owner
 
 - ⬜ Accounts and cloud sync (quotes on any device)
@@ -228,3 +229,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Owner asked whether quotes follow exchange rates. Built one-time conversion of starting prices (and on currency switch); prices never move with live rates so sent quotes stay fixed.
 - **2026-11-15** — Told painters about currency: setup shows "Your currency" with a picker and a plain note (picked from the phone's region, starting prices converted, never follow exchange rates); website pricing note (USD, local currency at checkout) and FAQ "Does Coatwright work outside the US?".
 - **2026-11-15** — Owner started Lemon Squeezy, which offered Stripe Managed Payments; chose Stripe. Owner created the Stripe account (Canada, Managed Payments, weekly payouts, Radar Lite, 2FA) and submitted verification. Built Stripe payments: billing.sql, stripe-webhook function, app unlock after checkout, founder numbers + email, renewal info, portal; rewrote BILLING_SETUP.md, Terms and Privacy for Stripe.
+- **2026-11-15** — Owner created the Stripe product, prices, FOUNDER code, both Payment Links and the customer portal; links added to the app (billing still off). Refund requests set to owner approval.

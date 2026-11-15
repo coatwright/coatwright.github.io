@@ -18,10 +18,10 @@
     prices: { founder: 12, monthly: 24, annual: 199 },
     founderSpots: 100,
     // Stripe Payment Links (Dashboard → Payment Links). Founders use the monthly link with the FOUNDER code.
-    checkout: { monthly: '', annual: '' },
+    checkout: { monthly: 'https://buy.stripe.com/5kQfZic4D4xqapLfTl63K00', annual: 'https://buy.stripe.com/3cIcN69WvbZSgO922v63K01' },
     founderCode: 'FOUNDER',
     // Stripe customer portal login link (Settings → Billing → Customer portal), where people manage or cancel.
-    portal: ''
+    portal: 'https://billing.stripe.com/p/login/5kQfZic4D4xqapLfTl63K00'
   };
 
   var DAY = 864e5;
