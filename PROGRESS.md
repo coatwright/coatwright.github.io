@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/**. Email sign-up before the trial (6-digit code, one trial per email) is **switched on**. **Next (owner): raise the Supabase email rate limit; Google sign-in (step 4); send the app fixes list; Lemon Squeezy; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
+**Where we are now:** Live at **https://getcoatwright.com/**. Email sign-up before the trial (6-digit code, one trial per email) is **switched on**. **Next (owner): Google sign-in (step 4); send the app fixes list; Lemon Squeezy; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -88,8 +88,9 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Claude switched `accounts: true` (service worker cache v13)
 - ✅ Owner tested email sign-up on the phone: code arrived in the Gmail Primary inbox, signed in
 - ⬜ Owner: step 4 (Google sign-in) → Claude switches `google: true`
-- 🔄 Owner: step 5: Resend domain verified, API key made, Supabase custom SMTP on (hello@getcoatwright.com); still to do: raise "emails sent per hour" in Supabase Rate Limits
+- 🔄 Owner: step 5: Resend domain verified, API key made, Supabase custom SMTP on (hello@getcoatwright.com); rate limit raised
 - ⬜ Link Lemon Squeezy subscriptions to accounts (instead of license keys) once accounts exist
+- ⬜ Show days left in the trial everywhere it matters (Settings, plus reminders at 7/3/1 days) and, for subscribers, the next renewal date and price (needs the subscription link above)
 - ⬜ Owner sets up Lemon Squeezy (see `BILLING_SETUP.md`) and sends the 3 checkout links
 - ⬜ Claude switches billing on (`app/billing.js`: enabled, startDate, checkout links) and tests a real purchase together with the owner
 
@@ -204,3 +205,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-14** — Owner created the Supabase project. Built accounts (sign-in screen, database rules tested locally, keep-alive, setup guide); switched off until the owner finishes setup.
 - **2026-11-15** — Owner finished Supabase steps 1–3 and Resend (domain verified, SMTP connected, code email templates). Email sign-up switched on.
 - **2026-11-15** — Owner tested sign-up on their phone: code email reached the Primary inbox and sign-in worked.
+- **2026-11-15** — Owner raised the email rate limit. Owner asked for a visible countdown to the end of the trial and to the next renewal; added to the plan.
