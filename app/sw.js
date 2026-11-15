@@ -1,6 +1,6 @@
 // Offline support: always try the network first, fall back to the cached copy
 // (so the app still opens at a job site with no signal).
-var CACHE = 'coatwright-v12';
+var CACHE = 'coatwright-v13';
 var FILES = ['./', 'index.html', 'styles.css', 'pricing.js', 'stats.js', 'billing.js', 'config.js', 'account.js', 'app.js', 'icon.svg', 'manifest.json', 'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', function (e) {
