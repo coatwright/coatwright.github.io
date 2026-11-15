@@ -236,3 +236,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Owner skipped the test purchase for now. First trials end Nov 29, 2026, so the first possible renewal-driven sale is then (anyone can still buy earlier).
 - **2026-11-15** — Added LinkedIn to the social kit (Coatwright Page, Founder & CEO profile, launch post) with new LinkedIn banner and company cover; fixed the X header (phone covered the headline).
 - **2026-11-15** — Added `marketing/COMMUNITIES.md`: groups & communities playbook (Facebook groups, Reddit, LinkedIn, Instagram/TikTok), rules, daily routine, reply templates, founder posts, follow-up and tracking.
+- **2026-11-15** — Added `marketing/CHROME_PROMPTS.md`: copy-paste prompts for the Claude in Chrome extension to set up Instagram, Facebook Page, TikTok, YouTube, X, LinkedIn (Page + Founder & CEO profile), 2FA and post scheduling in Meta Business Suite.
