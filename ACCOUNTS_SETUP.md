@@ -64,11 +64,11 @@ Save each one. (`{{ .Token }}` is where Supabase puts the code. Type it exactly.
 |---|---|
 | App name | `Coatwright` |
 | User support email | `coatwrightapp@gmail.com` |
-| App logo | optional (`marketing/social/profile-picture.png`) |
+| App logo | skip (a logo makes Google require a review) |
 | App home page | `https://getcoatwright.com/` |
 | Privacy policy | `https://getcoatwright.com/privacy.html` |
 | Terms of service | `https://getcoatwright.com/terms.html` |
-| Authorized domains | `getcoatwright.com` and `supabase.co` |
+| Authorized domains | `getcoatwright.com` (Google refuses `supabase.co`; it isn't needed) |
 | Developer contact | `coatwrightapp@gmail.com` |
 | Audience / User type | **External** |
 | Scopes | leave the defaults (email, profile, openid) |
