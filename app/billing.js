@@ -75,6 +75,17 @@
     return { mode: 'expired', canCreate: false, ended: end, licenseProblem: lic && lic.status ? lic.status : null };
   }
 
+  /**
+   * Trial reminder to show now: 7, 3 or 1 (days left), or 0 for none.
+   * `lastShown` is the last reminder the user saw, so each one appears once and a skipped one isn't repeated.
+   */
+  function trialReminder(state, lastShown) {
+    if (!state || state.mode !== 'trial') return 0;
+    var d = state.daysLeft, stage = d <= 1 ? 1 : d <= 3 ? 3 : d <= 7 ? 7 : 0;
+    var last = Number(lastShown) || 0;
+    return stage && (!last || stage < last) ? stage : 0;
+  }
+
   /** Turn a Lemon Squeezy activate/validate response into what the app stores. */
   function licenseFromResponse(json, key, now, cfg) {
     cfg = cfg || BILLING;
@@ -102,7 +113,7 @@
     return { perMonth: Math.round(a / 12 * 100) / 100, savePct: Math.round((1 - a / (m * 12)) * 100) };
   }
 
-  var api = { BILLING: BILLING, trialEnds: trialEnds, accessState: accessState, licenseFromResponse: licenseFromResponse, annualDeal: annualDeal };
+  var api = { BILLING: BILLING, trialEnds: trialEnds, accessState: accessState, trialReminder: trialReminder, licenseFromResponse: licenseFromResponse, annualDeal: annualDeal };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.Billing = api;
 })(typeof window !== 'undefined' ? window : this);

@@ -63,3 +63,17 @@ test('reads Lemon Squeezy activate/validate responses', () => {
 test('annual plan math: $199/yr vs $24/mo', () => {
   assert.deepStrictEqual(B.annualDeal(on), { perMonth: 16.58, savePct: 31 });
 });
+
+test('trial reminders at 7, 3 and 1 days left, each shown once', () => {
+  const t = (d) => ({ mode: 'trial', daysLeft: d });
+  assert.strictEqual(B.trialReminder(t(10), 0), 0);
+  assert.strictEqual(B.trialReminder(t(7), 0), 7);
+  assert.strictEqual(B.trialReminder(t(6), 7), 0, 'already seen the 7-day one');
+  assert.strictEqual(B.trialReminder(t(3), 7), 3);
+  assert.strictEqual(B.trialReminder(t(2), 3), 0);
+  assert.strictEqual(B.trialReminder(t(1), 3), 1);
+  assert.strictEqual(B.trialReminder(t(1), 1), 0);
+  assert.strictEqual(B.trialReminder(t(2), 0), 3, 'opened the app late: shows the current one only');
+  assert.strictEqual(B.trialReminder({ mode: 'active' }, 0), 0);
+  assert.strictEqual(B.trialReminder({ mode: 'free', canCreate: true }, 0), 0);
+});

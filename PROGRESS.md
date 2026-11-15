@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. **Next (owner): send the app fixes list; Lemon Squeezy; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
+**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. **Next (owner): founding price $14 or $12?; more app fixes; Lemon Squeezy; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -91,7 +91,10 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Owner tested Continue with Google on the phone
 - 🔄 Owner: step 5: Resend domain verified, API key made, Supabase custom SMTP on (hello@getcoatwright.com); rate limit raised
 - ⬜ Link Lemon Squeezy subscriptions to accounts (instead of license keys) once accounts exist
-- ⬜ Show days left in the trial everywhere it matters (Settings, plus reminders at 7/3/1 days) and, for subscribers, the next renewal date and price (needs the subscription link above)
+- ✅ Trial countdown in the app: banner and Settings show days left + end date; one-time reminder card at 7, 3 and 1 days left (shows once billing is on)
+- ⬜ Trial-ending reminder email 3 days before (Supabase scheduled job + Resend), built with billing
+- ⬜ Subscribers: next renewal date and price in Settings, reminder before an annual renewal (needs the subscription link above)
+- ⬜ Founding members: Lemon Squeezy discount "forever", max 100 redemptions (Lemon Squeezy enforces the cap); webhook → Supabase numbers each founder and sends the "You're Founding Member #N of 100" email via Resend; badge in Settings; "X of 100 spots left" on the pricing page. Owner to confirm the founding price ($14 now, or $12 = true half price)
 - ⬜ Owner sets up Lemon Squeezy (see `BILLING_SETUP.md`) and sends the 3 checkout links
 - ⬜ Claude switches billing on (`app/billing.js`: enabled, startDate, checkout links) and tests a real purchase together with the owner
 
@@ -157,6 +160,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-13 | Require sign-up before the trial: Google one-tap or email code; trial tied to the email | Owner wants one trial per email; matches Jobber/Housecall Pro (sign up, no card) with less friction |
 | 2026-11-13 | Accounts on Supabase (free tier) rather than Firebase | Firebase's free plan sends only 5 sign-in emails/day; Supabase free covers 50k users/month |
 | 2026-11-12 | Name: **BidBrush** (replaced) | Says what it does (bids) and who it's for (painters); short and works as a social handle |
+| 2026-11-15 | Founding deal goes to the first 100 **paying** subscribers, price locked for life | Spots go to real customers; sign-ups who never pay don't use one. Lemon Squeezy's redemption limit enforces the 100 |
 
 ## Log
 
@@ -209,3 +213,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Owner raised the email rate limit. Owner asked for a visible countdown to the end of the trial and to the next renewal; added to the plan.
 - **2026-11-15** — Owner set up Google sign-in (Google Cloud + Supabase). Switched on "Continue with Google". Setup guide fixed: Google refuses `supabase.co` as an authorized domain and a logo triggers review.
 - **2026-11-15** — Owner tested Continue with Google on their phone: works.
+- **2026-11-15** — Owner's fixes: trial days left (built: banner + Settings show end date, reminder cards at 7/3/1 days) and the founding deal for the first 100 payers with a congratulations email (planned with Lemon Squeezy).

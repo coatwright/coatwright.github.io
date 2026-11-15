@@ -339,7 +339,7 @@
     var a = access();
     if (a.mode === 'trial') {
       return '<a class="plan-banner' + (a.daysLeft <= 3 ? ' urgent' : '') + '" href="#/upgrade"><span>⏳</span><div><strong>Free trial: ' +
-        a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left</strong><div class="small">Keep every feature for $' + BC.prices.monthly + '/mo or $' +
+        a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left</strong><div class="small">Ends ' + esc(fmtDate(a.ends)) + '. Keep every feature for $' + BC.prices.monthly + '/mo or $' +
         BC.prices.annual + '/yr.</div></div><span class="pb-cta">Upgrade</span></a>';
     }
     if (a.mode === 'expired' || a.mode === 'recheck') {
@@ -349,6 +349,17 @@
         '</div></div><span class="pb-cta">' + (a.mode === 'recheck' ? 'Check' : 'Upgrade') + '</span></a>';
     }
     return '';
+  }
+
+  /** One-time reminder card at 7, 3 and 1 days left in the trial. */
+  function trialReminderCard() {
+    var a = access(), stage = BL.trialReminder(a, settings.trialReminder);
+    if (!stage) return '';
+    var d = a.daysLeft, when = d === 1 ? 'Your free trial ends tomorrow' : d + ' days left in your free trial';
+    return '<div class="trial-remind"><button class="icon-btn sm" data-action="trial-remind-dismiss" data-v="' + stage + '" aria-label="Dismiss">✕</button>' +
+      '<strong>⏳ ' + when + '</strong><p class="small">It ends on <b>' + esc(fmtDate(a.ends)) + '</b>. Your jobs and customers stay safe either way. ' +
+      'Pick a plan to keep quoting and invoicing' + (BC.founderSpots ? ', and grab a founding price while spots last' : '') + '.</p>' +
+      '<a class="btn btn-primary full" href="#/upgrade" data-action="trial-remind-dismiss" data-v="' + stage + '">See plans</a></div>';
   }
 
   function planCard(id, title, price, unit, note, badge, featured) {
@@ -463,7 +474,7 @@
     });
 
     var showInstall = settings.onboarded && !isInstalled() && isMobile() && !settings.installHintDismissed;
-    app.innerHTML = planBanner() +
+    app.innerHTML = (trialReminderCard() || planBanner()) +
       (showInstall ? '<div class="install-banner"><a href="#/install"><span>📲</span><div><strong>Add Coatwright to your home screen</strong>' +
         '<div class="small">Open it like a regular app, even with no signal.</div></div></a>' +
         '<button class="icon-btn sm" data-action="install-dismiss" aria-label="Dismiss">✕</button></div>' : '') +
@@ -1385,7 +1396,7 @@
       (BC.enabled ? '<section class="card"><h2 class="card-title">⭐ Subscription</h2>' + (function () {
         var a = access();
         return '<p class="small" style="margin-top:0">' + (a.mode === 'active' ? 'Coatwright Pro · ' + esc(a.plan) + ' ✓'
-          : a.mode === 'trial' ? 'Free trial · ' + a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left'
+          : a.mode === 'trial' ? 'Free trial · <b>' + a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left</b> · ends ' + esc(fmtDate(a.ends))
             : a.mode === 'recheck' ? 'Pro · needs a quick online check' : 'Free trial ended · view and export only') + '</p>';
       })() + '<a class="btn ' + (access().mode === 'active' ? '' : 'btn-primary') + ' full" href="#/upgrade">' + (access().mode === 'active' ? 'View plan' : 'See plans') + '</a></section>' : '') +
       '<section class="card"><h2 class="card-title">🔒 Your data</h2>' +
@@ -1606,6 +1617,10 @@
           installPrompt.userChoice.then(function (c) { if (c && c.outcome === 'accepted') toast('Installed! Find Coatwright on your home screen'); }).catch(function () {});
           installPrompt = null; route();
         }
+        return;
+      case 'trial-remind-dismiss':
+        settings.trialReminder = Number(el.dataset.v) || 0; saveSettings();
+        if (el.tagName !== 'A') renderHome();
         return;
       case 'install-dismiss':
         settings.installHintDismissed = true; saveSettings(); renderHome();
