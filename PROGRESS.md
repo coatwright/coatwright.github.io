@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. **Paid plans are live** on Stripe Managed Payments (14-day trials from Nov 15, 2026). **Next (owner): test purchase + refund; more app fixes; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
+**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. **Paid plans are live** on Stripe Managed Payments (14-day trials from Nov 15, 2026). **Next (owner): watch the first real sale's webhook delivery (purchase test skipped); more app fixes; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -103,7 +103,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Owner: Stripe product ($24/mo, $199/yr, SaaS business use), FOUNDER coupon (50% forever, max 100, first order only), Monthly and Yearly Payment Links, customer portal link → saved in `app/billing.js` (billing still off)
 - ✅ Owner: `BILLING_SETUP.md` steps 2–11 (product, coupon, Payment Links, portal, emails, billing.sql, webhook function + secrets) → send Claude the 3 links
 - ✅ Claude switched billing on (startDate 2026-11-15: everyone's 14-day trial counts from today; cache v22)
-- 🔄 Test purchase (Monthly) by the owner, then refund + cancel
+- ⬜ End-to-end purchase test: skipped by the owner for now (cash). Free option when ready: one-time 100% code OWNERTEST + set secret FOUNDER_PROMO_CODES to the FOUNDER promo ID. Until then, check Stripe → Webhooks → Event deliveries after the first real sale
 
 - ⬜ Accounts and cloud sync (quotes on any device)
 - ⬜ Customer "Accept quote" link with e-signature
@@ -233,3 +233,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Owner created the Stripe product, prices, FOUNDER code, both Payment Links and the customer portal; links added to the app (billing still off). Refund requests set to owner approval.
 - **2026-11-15** — Owner set Stripe emails, ran billing.sql, deployed stripe-webhook (JWT verification off), added the Stripe webhook destination (5 events) and the two secrets. Webhook now prefers Supabase's newer secret key (SUPABASE_SECRET_KEYS) over the deprecated service role key.
 - **2026-11-15** — Owner redeployed the webhook (JWT off). Billing switched on: trials run from Nov 15, 2026; plans screen live with Stripe Payment Links.
+- **2026-11-15** — Owner skipped the test purchase for now. First trials end Nov 29, 2026, so the first possible renewal-driven sale is then (anyone can still buy earlier).
