@@ -14,7 +14,7 @@ and know what you really made.
 | `app/` | The Coatwright app (plain HTML/CSS/JS, no build step) |
 | `app/pricing.js`, `app/stats.js` | Pricing engine and business math (pure functions, tested) |
 | `app/tests/` | Unit tests |
-| `marketing/` | Video plan, demo videos, social media kit |
+| `marketing/` | Video plan, demo videos, social media kit, groups & communities playbook |
 | `ACCOUNTS_SETUP.md`, `supabase/setup.sql` | Sign-up / one-trial-per-email setup (owner steps and database rules) |
 | `BILLING_SETUP.md` | How to connect Stripe payments (owner steps) |
 | `app/billing.js` | Trial and subscription settings; billing switch and checkout links |
