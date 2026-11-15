@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. Payments moved to **Stripe Managed Payments** and are built (switched off). **Next (owner): `BILLING_SETUP.md` steps 2–11 in Stripe and Supabase, then send Claude the 3 links; more app fixes; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
+**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. **Paid plans are live** on Stripe Managed Payments (14-day trials from Nov 15, 2026). **Next (owner): test purchase + refund; more app fixes; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -101,8 +101,9 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ⬜ "X of 100 spots left" on the website pricing card too
 - ✅ Owner: Stripe account (Canada), Managed Payments, payouts weekly, 2FA, verification submitted
 - ✅ Owner: Stripe product ($24/mo, $199/yr, SaaS business use), FOUNDER coupon (50% forever, max 100, first order only), Monthly and Yearly Payment Links, customer portal link → saved in `app/billing.js` (billing still off)
-- 🔄 Owner: `BILLING_SETUP.md` steps 2–11 (product, coupon, Payment Links, portal, emails, billing.sql, webhook function + secrets) → send Claude the 3 links
-- ⬜ Claude switches billing on (`app/billing.js`: enabled, startDate, checkout + portal links) and tests a real purchase (then refund) together with the owner
+- ✅ Owner: `BILLING_SETUP.md` steps 2–11 (product, coupon, Payment Links, portal, emails, billing.sql, webhook function + secrets) → send Claude the 3 links
+- ✅ Claude switched billing on (startDate 2026-11-15: everyone's 14-day trial counts from today; cache v22)
+- 🔄 Test purchase (Monthly) by the owner, then refund + cancel
 
 - ⬜ Accounts and cloud sync (quotes on any device)
 - ⬜ Customer "Accept quote" link with e-signature
@@ -231,3 +232,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Owner started Lemon Squeezy, which offered Stripe Managed Payments; chose Stripe. Owner created the Stripe account (Canada, Managed Payments, weekly payouts, Radar Lite, 2FA) and submitted verification. Built Stripe payments: billing.sql, stripe-webhook function, app unlock after checkout, founder numbers + email, renewal info, portal; rewrote BILLING_SETUP.md, Terms and Privacy for Stripe.
 - **2026-11-15** — Owner created the Stripe product, prices, FOUNDER code, both Payment Links and the customer portal; links added to the app (billing still off). Refund requests set to owner approval.
 - **2026-11-15** — Owner set Stripe emails, ran billing.sql, deployed stripe-webhook (JWT verification off), added the Stripe webhook destination (5 events) and the two secrets. Webhook now prefers Supabase's newer secret key (SUPABASE_SECRET_KEYS) over the deprecated service role key.
+- **2026-11-15** — Owner redeployed the webhook (JWT off). Billing switched on: trials run from Nov 15, 2026; plans screen live with Stripe Payment Links.
