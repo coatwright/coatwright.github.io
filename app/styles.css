@@ -373,6 +373,10 @@ body[data-view="welcome"] .top-actions, body[data-view="signin"] .top-actions { 
 .plan-banner.urgent { background: #fff4e0; border-color: #f2cf86; }
 .plan-banner > span:first-child { font-size: 22px; }
 .pb-cta { margin-left: auto; background: var(--brand); color: #fff; font-weight: 700; font-size: 14px; padding: 8px 12px; border-radius: 10px; white-space: nowrap; }
+.trial-remind { position: relative; background: #fff4e0; border: 1px solid #f2cf86; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; }
+.trial-remind strong { display: block; font-size: 17px; padding-right: 30px; }
+.trial-remind p { margin: 6px 0 12px; }
+.trial-remind .icon-btn { position: absolute; top: 8px; right: 8px; }
 .plans-app { display: grid; gap: 12px; margin: 14px 0; }
 .plan-card { position: relative; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 16px; border: 2px solid transparent; }
 .plan-card.featured { border-color: var(--brand); }
