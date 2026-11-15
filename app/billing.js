@@ -9,9 +9,9 @@
   // ---- Settings the owner changes when payments go live ------------------------------
   var BILLING = {
     // Off until Stripe is set up. While off, the app is fully usable and nobody is charged.
-    enabled: false,
+    enabled: true,
     // 'YYYY-MM-DD' when billing was switched on. Everyone's trial counts from this day at the earliest.
-    startDate: '',
+    startDate: '2026-11-15',
     trialDays: 14,
     // How long a paid subscription keeps working offline before it must be re-checked online.
     graceDays: 7,
