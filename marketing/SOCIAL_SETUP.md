@@ -25,6 +25,8 @@ Open each link on your phone, **press and hold the image → Save to Photos** (i
 | Facebook cover | https://getcoatwright.com/marketing/social/facebook-cover.png | Facebook Page |
 | YouTube banner | https://getcoatwright.com/marketing/social/youtube-banner.png | YouTube |
 | X header | https://getcoatwright.com/marketing/social/x-header.png | X (Twitter) |
+| LinkedIn banner (your profile) | https://getcoatwright.com/marketing/social/linkedin-banner.png | Your personal LinkedIn |
+| LinkedIn company cover | https://getcoatwright.com/marketing/social/linkedin-company-cover.png | Coatwright LinkedIn Page |
 | First post | https://getcoatwright.com/marketing/social/first-post.png | Instagram & Facebook |
 | Demo video 1 | https://getcoatwright.com/marketing/videos/coatwright-demo-quote.mp4 | Posts on every platform |
 | Demo video 2 | https://getcoatwright.com/marketing/videos/coatwright-demo-stats.mp4 | Posts on every platform |
@@ -32,7 +34,8 @@ Open each link on your phone, **press and hold the image → Save to Photos** (i
 
 Also have your **password manager** ready (iPhone Passwords app or Google Password Manager) to save each new password.
 
-**Order:** Instagram → Facebook Page → TikTok → YouTube → X. About 5–10 minutes each.
+**Order:** Instagram → Facebook Page → TikTok → YouTube → X → LinkedIn. About 5–10 minutes each.
+LinkedIn is easiest on a computer (save the two LinkedIn images there).
 
 ---
 
@@ -202,6 +205,113 @@ The quoting & business app for painters. Itemized quotes in minutes, invoices, a
 
 ---
 
+## 6. LinkedIn (your profile as Founder & CEO, plus a Coatwright Page)
+
+LinkedIn is where people look you up before trusting a new company. Do it in this order: **A** create the Coatwright Page,
+**B** update your own profile, **C** post the launch announcement. About 20 minutes.
+
+> **Title: "Founder & CEO", not "Software Developer".** "Founder" already says you built the company. "Software developer"
+> means someone who codes professionally; if asked technical questions it won't hold up and it can make the rest of your
+> profile look less believable. It's honest (and common now) to say you built the product with **AI-assisted development**.
+
+### A. Create the Coatwright Page (company page)
+
+On linkedin.com, signed in to **your personal account**: **For Business** (grid icon, top right) → **Create a Company Page** → **Company**.
+
+| Screen asks | Your answer |
+|---|---|
+| Name | `Coatwright` |
+| LinkedIn public URL | `coatwright` (or `coatwrightapp` if taken) |
+| Website | `https://getcoatwright.com/` |
+| Industry | **Software Development** |
+| Organization size | **0–1 employees** |
+| Organization type | **Privately held** (or **Self-employed**) |
+| Logo | **profile picture** |
+| Tagline | `The quoting & business app for painters` |
+| Verification checkbox | Tick ("I verify that I am an authorized representative…") → **Create page** |
+
+Then on the new Page → **Edit page**:
+- **Cover image:** **LinkedIn company cover**
+- **Description (About):**
+
+```
+Coatwright is the quoting and business app for painting contractors. Price any paint job in minutes (interior, exterior, cabinets, garage floors and commercial) and send your customer a clean, itemized quote with your logo. Then track every job, invoice, payment and dollar of profit from your phone.
+
+Works in your own currency. Try it free for 14 days, no credit card needed: getcoatwright.com
+```
+
+- **Location:** your city/region (or leave blank)
+- **Custom button:** **Visit website** → `https://getcoatwright.com/`
+
+### B. Update your personal profile
+
+Go to your profile (**Me → View profile**).
+
+1. **Banner:** click the pencil on the background image → upload **LinkedIn banner** → Apply.
+2. **Headline** (pencil next to your name → Headline):
+
+```
+Founder & CEO at Coatwright | Quoting and business software for painting contractors
+```
+
+3. Same screen → **Website:** `https://getcoatwright.com/`, link text **Coatwright** → Save.
+4. **Add position:** **Add profile section → Core → Add position**:
+
+| Field | Enter |
+|---|---|
+| Title | `Founder & CEO` |
+| Employment type | **Self-employed** |
+| Company | Start typing `Coatwright` and pick **your Page** (so the logo shows) |
+| Currently working here | ✓ |
+| Start date | **November 2026** |
+| Location | Your city/region, or **Remote** |
+| Location type | **Remote** |
+| Description | (below) |
+| Skills | Product Management, Entrepreneurship, Go-to-Market Strategy, Software as a Service (SaaS) |
+| Notify network | **On** (people see the update) |
+
+```
+Founded Coatwright, a phone-first app that helps painting contractors price jobs in minutes and run their business.
+• Itemized quotes for interior, exterior, cabinets, floors and commercial work, sent to customers by email or text
+• Invoices, payment tracking, scheduling, customer list and real profit per job
+• Launched with a 14-day free trial and subscription plans; works worldwide in local currencies
+• Led product, design and go-to-market; built the product with AI-assisted development
+getcoatwright.com
+```
+
+5. **About** (optional, Add profile section → Core → Add about):
+
+```
+I'm building Coatwright to give independent painters the tools big companies have: fast, professional quotes and a clear view of what each job really earns. If you run a painting business, I'd love your feedback. Try it free at getcoatwright.com.
+```
+
+6. **Open to → Providing services** is not needed; skip.
+
+### C. Launch post (from your personal profile)
+
+**Start a post** → attach the **Explainer** video → paste:
+
+```
+Today I'm launching Coatwright 🎨
+
+Painters lose hours (and money) pricing jobs by hand. Coatwright lets a painter walk a house, tap in the rooms and send the customer a clean, itemized quote in minutes. Then it tracks every job, invoice, payment and the real profit, all from their phone.
+
+The first 100 subscribers get half price for life as founding members.
+
+If you know a painter or contractor, I'd really appreciate a share or a tag. 🙏
+Try it free for 14 days: https://getcoatwright.com/
+
+#smallbusiness #contractors #painting #startup #founder
+```
+
+Then: share the same post from the **Coatwright Page** (… on your post → **Repost**, or post it from the Page), and
+**invite your connections to follow the Page** (Page → **Grow → Invite to follow**; LinkedIn gives free invites each month).
+
+### Protect it
+**Me → Settings & Privacy → Sign in & security → Two-step verification → On**.
+
+---
+
 ## After each account: protect it (1 min each)
 
 Turn on **two-factor authentication** (2FA). Use an authenticator app or text messages to your personal phone:
@@ -211,6 +321,7 @@ Turn on **two-factor authentication** (2FA). Use an authenticator app or text me
 - **TikTok:** Settings and privacy → Security → 2-step verification
 - **YouTube:** protected by the Google account: turn on 2-Step Verification for coatwrightapp@gmail.com
 - **X:** Settings → Security and account access → Security → Two-factor authentication
+- **LinkedIn:** Me → Settings & Privacy → Sign in & security → Two-step verification
 
 ---
 
@@ -258,5 +369,8 @@ Your real profit, real hourly rate and win rate, all from the jobs you already q
 - [ ] TikTok: business account, bio, photo, first video pinned
 - [ ] YouTube: channel, handle, picture, banner, description, link, first Short
 - [ ] X: name reserved, photo, header, bio
+- [ ] LinkedIn: Coatwright Page (logo, cover, about, button)
+- [ ] LinkedIn: your headline, banner, website, Founder & CEO position linked to the Page
+- [ ] LinkedIn: launch post with the explainer, shared from the Page, connections invited
 - [ ] Two-factor authentication on every account
 - [ ] Tell Claude the usernames you got, so the website can link to them
