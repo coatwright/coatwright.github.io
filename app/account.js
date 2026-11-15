@@ -97,6 +97,17 @@
       .then(function (rows) { return rows && rows[0] ? rows[0] : null; });
   }
 
+  /** The account's subscriptions (filled by Stripe through our webhook). Users can only read their own. */
+  function getSubscriptions(cfg, session) {
+    return call(cfg, '/rest/v1/subscriptions?select=status,plan,current_period_end,cancel_at_period_end,founder_number,updated_at&order=updated_at.desc&limit=5',
+      { token: session.accessToken });
+  }
+
+  /** How many founding-member spots are left (public). */
+  function founderSpotsLeft(cfg) {
+    return call(cfg, '/rest/v1/rpc/founder_spots_left', { method: 'POST', body: {} }).then(function (n) { return Number(n); });
+  }
+
   function signOut(cfg, session) {
     if (!session || !session.accessToken) return Promise.resolve();
     return call(cfg, '/auth/v1/logout', { method: 'POST', token: session.accessToken }).catch(function () {});
@@ -109,7 +120,7 @@
   var api = {
     normalizeEmail: normalizeEmail, validEmail: validEmail, parseAuthFragment: parseAuthFragment, sessionFrom: sessionFrom,
     needsRefresh: needsRefresh, sendCode: sendCode, verifyCode: verifyCode, refresh: refresh, getUser: getUser,
-    getProfile: getProfile, signOut: signOut, googleUrl: googleUrl
+    getProfile: getProfile, getSubscriptions: getSubscriptions, founderSpotsLeft: founderSpotsLeft, signOut: signOut, googleUrl: googleUrl
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.Account = api;

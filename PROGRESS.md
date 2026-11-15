@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. **Next (owner): more app fixes; Lemon Squeezy; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
+**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. Payments moved to **Stripe Managed Payments** and are built (switched off). **Next (owner): `BILLING_SETUP.md` steps 2–11 in Stripe and Supabase, then send Claude the 3 links; more app fixes; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -80,7 +80,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 
 ## Phase 4 — Start making money 🔄
 
-- ✅ 14-day trial + subscription paywall built in the app (plans screen, license keys, view-only after trial); **switched off until payments are set up**
+- ✅ 14-day trial + subscription paywall built in the app (plans screen, view-only after trial); **switched off until payments are set up**
 - ✅ Website, Terms, Privacy, social kit and explainer video updated for paid plans
 - ✅ Supabase project created (East US); URL + publishable key in `app/config.js`
 - ✅ Accounts built: sign-in screen (Google + email code), server trial start, sign-out, offline-safe; database rules in `supabase/setup.sql` (tested on PostgreSQL: one trial per email incl. Gmail +/. variations and deleted accounts, users can't see others or change their trial); daily keep-alive workflow; Privacy/Terms/FAQ updated. **Switched off** (`accounts: false`) until setup is done
@@ -89,17 +89,19 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Owner tested email sign-up on the phone: code arrived in the Gmail Primary inbox, signed in
 - ✅ Owner: step 4 (Google Cloud project, consent screen in production, web client, Supabase Google provider) → Claude switched `google: true` (cache v14)
 - ✅ Owner tested Continue with Google on the phone
-- 🔄 Owner: step 5: Resend domain verified, API key made, Supabase custom SMTP on (hello@getcoatwright.com); rate limit raised
-- ⬜ Link Lemon Squeezy subscriptions to accounts (instead of license keys) once accounts exist
+- ✅ Owner: step 5: Resend domain verified, API key made, Supabase custom SMTP on (hello@getcoatwright.com); rate limit raised
 - ✅ Currency setting: quotes, invoices, stats in the painter's currency (20 choices), chosen once from the phone's region and changeable in Settings; existing users stay on $
 - ✅ Local starting prices: new painters abroad get the US starting prices converted once at a built-in approximate rate and rounded (e.g. $55/hr → £43/hr); presets too; switching currency in Settings offers a one-time conversion. Prices never follow live exchange rates
 - ⬜ Metric units (m², litres), when non-US painters sign up
 - ✅ Trial countdown in the app: banner and Settings show days left + end date; one-time reminder card at 7, 3 and 1 days left (shows once billing is on)
 - ⬜ Trial-ending reminder email 3 days before (Supabase scheduled job + Resend), built with billing
-- ⬜ Subscribers: next renewal date and price in Settings, reminder before an annual renewal (needs the subscription link above)
-- ⬜ Founding members: Lemon Squeezy discount "forever", max 100 redemptions (Lemon Squeezy enforces the cap); webhook → Supabase numbers each founder and sends the "You're Founding Member #N of 100" email via Resend; badge in Settings; "X of 100 spots left" on the pricing page. Founding price: $12 (half of $24)
-- ⬜ Owner sets up Lemon Squeezy (see `BILLING_SETUP.md`) and sends the 3 checkout links
-- ⬜ Claude switches billing on (`app/billing.js`: enabled, startDate, checkout links) and tests a real purchase together with the owner
+- ✅ Subscribers: plan, renewal date and price in Settings and Plans; "Ends on …" after cancelling; payment-problem banner. Renewal reminder emails come from Stripe (BILLING_SETUP step 6)
+- ✅ Stripe payments built: Payment Links tied to the account (client_reference_id), webhook Edge Function (`supabase/functions/stripe-webhook`) records subscriptions in `supabase/billing.sql` (tested on PostgreSQL), app unlocks by itself after checkout, customer portal for manage/cancel
+- ✅ Founding members: Stripe coupon 50% forever + code FOUNDER (max 100, Stripe enforces); webhook numbers founders 1–100 and sends "You're Founding Member #N of 100" via Resend; badge in Settings/Plans; "X of 100 spots left" on the app's plans screen
+- ⬜ "X of 100 spots left" on the website pricing card too
+- ✅ Owner: Stripe account (Canada), Managed Payments, payouts weekly, 2FA, verification submitted
+- ⬜ Owner: `BILLING_SETUP.md` steps 2–11 (product, coupon, Payment Links, portal, emails, billing.sql, webhook function + secrets) → send Claude the 3 links
+- ⬜ Claude switches billing on (`app/billing.js`: enabled, startDate, checkout + portal links) and tests a real purchase (then refund) together with the owner
 
 - ⬜ Accounts and cloud sync (quotes on any device)
 - ⬜ Customer "Accept quote" link with e-signature
@@ -166,6 +168,8 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-15 | Founding deal goes to the first 100 **paying** subscribers, price locked for life | Spots go to real customers; sign-ups who never pay don't use one. Lemon Squeezy's redemption limit enforces the 100 |
 | 2026-11-15 | Founding price is $12/mo (true half price), was $14 | "Half price for life" is a clearer, honest pitch; costs at most $200/mo across all 100 founders |
 | 2026-11-15 | Painters pick their own currency; picked once from the phone's region, never changed automatically; subscription stays in USD | Worldwide use without travel changing anyone's quotes; Lemon Squeezy localizes checkout and handles VAT. Metric units later, when non-US sign-ups appear |
+| 2026-11-15 | Payments on **Stripe Managed Payments** instead of Lemon Squeezy; no license keys | Stripe owns Lemon Squeezy and steers new sellers to Managed Payments (same merchant-of-record tax handling, ~3.5% + card fee). With accounts, a webhook unlocks the app automatically: no keys to copy |
+| 2026-11-15 | Owner's Stripe account is in Canada, store prices in USD, payouts to a CAD bank | Owner lives in Canada; identity, payouts and tax forms must match |
 
 ## Log
 
@@ -223,3 +227,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Added a currency setting for worldwide painters (detected once, never auto-changes when travelling). Subscription prices stay in USD; Lemon Squeezy shows local currency at checkout.
 - **2026-11-15** — Owner asked whether quotes follow exchange rates. Built one-time conversion of starting prices (and on currency switch); prices never move with live rates so sent quotes stay fixed.
 - **2026-11-15** — Told painters about currency: setup shows "Your currency" with a picker and a plain note (picked from the phone's region, starting prices converted, never follow exchange rates); website pricing note (USD, local currency at checkout) and FAQ "Does Coatwright work outside the US?".
+- **2026-11-15** — Owner started Lemon Squeezy, which offered Stripe Managed Payments; chose Stripe. Owner created the Stripe account (Canada, Managed Payments, weekly payouts, Radar Lite, 2FA) and submitted verification. Built Stripe payments: billing.sql, stripe-webhook function, app unlock after checkout, founder numbers + email, renewal info, portal; rewrote BILLING_SETUP.md, Terms and Privacy for Stripe.

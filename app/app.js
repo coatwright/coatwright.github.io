@@ -346,6 +346,13 @@
           settings.trialStart = settings.account.trialStartedAt;
           settings.account.checkedAt = Date.now(); saveSettings();
         }
+        if (!BC.enabled) return;
+        return AC.getSubscriptions(CFG, session).then(function (rows) {
+          var before = JSON.stringify(access());
+          settings.sub = BL.subFromRows(rows, Date.now()); saveSettings();
+          var v = location.hash.split('/')[1] || '';
+          if (JSON.stringify(access()) !== before && (v === '' || v === 'upgrade' || v === 'settings')) route();
+        });
       })
       .catch(function (e) {
         if (e && (e.status === 400 || e.status === 401 || e.status === 403) && /refresh|token|jwt|session/i.test(e.message)) {
@@ -374,9 +381,12 @@
         a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left</strong><div class="small">Ends ' + esc(fmtDate(a.ends)) + '. Keep every feature for ' + usd(BC.prices.monthly) + '/mo or ' +
         usd(BC.prices.annual) + '/yr.</div></div><span class="pb-cta">Upgrade</span></a>';
     }
+    if (a.mode === 'active' && a.pastDue) {
+      return '<a class="plan-banner urgent" href="#/upgrade"><span>💳</span><div><strong>Payment problem</strong><div class="small">Your last payment didn\'t go through. Update your card to keep Coatwright Pro.</div></div><span class="pb-cta">Fix</span></a>';
+    }
     if (a.mode === 'expired' || a.mode === 'recheck') {
       return '<a class="plan-banner urgent" href="#/upgrade"><span>🔒</span><div><strong>' +
-        (a.mode === 'recheck' ? 'Confirm your subscription' : 'Your free trial has ended') + '</strong><div class="small">' +
+        (a.mode === 'recheck' ? 'Confirm your subscription' : a.lapsed ? 'Your subscription has ended' : 'Your free trial has ended') + '</strong><div class="small">' +
         (a.mode === 'recheck' ? 'Connect to the internet so Coatwright can check your subscription.' : 'Your jobs are safe. Upgrade to keep quoting and invoicing.') +
         '</div></div><span class="pb-cta">' + (a.mode === 'recheck' ? 'Check' : 'Upgrade') + '</span></a>';
     }
@@ -394,60 +404,80 @@
       '<a class="btn btn-primary full" href="#/upgrade" data-action="trial-remind-dismiss" data-v="' + stage + '">See plans</a></div>';
   }
 
+  var founderLeft = null; // founding spots left (null = unknown)
+
   function planCard(id, title, price, unit, note, badge, featured) {
-    var url = BC.checkout[id];
+    var url = BL.checkoutUrl(BC, id, settings.account);
     return '<div class="plan-card' + (featured ? ' featured' : '') + '">' + (badge ? '<div class="plan-badge">' + badge + '</div>' : '') +
       '<h3>' + title + '</h3><div class="plan-price">' + usd(price) + '<span>' + unit + '</span></div><p class="muted small">' + note + '</p>' +
-      (url ? '<a class="btn ' + (featured ? 'btn-primary' : '') + ' full" href="' + esc(url) + '" target="_blank" rel="noopener">Choose ' + title + '</a>'
-        : '<span class="btn full disabled">Available soon</span>') + '</div>';
+      (url ? '<a class="btn ' + (featured ? 'btn-primary' : '') + ' full" href="' + esc(url) + '" rel="noopener">Choose ' + title + '</a>'
+        : '<span class="btn full disabled">' + (BC.enabled && !signedIn() ? 'Sign in to subscribe' : 'Available soon') + '</span>') + '</div>';
+  }
+
+  /** "Renews Dec 15, 2026 · $24/mo" or "Ends Dec 15, 2026". */
+  function renewLine(a) {
+    var pp = BL.planPrice(BC, a.plan);
+    if (!a.renews) return '';
+    return a.cancelAtEnd ? 'Ends on <b>' + esc(fmtDate(a.renews)) + '</b> (cancelled)'
+      : 'Renews on <b>' + esc(fmtDate(a.renews)) + '</b> · ' + usd(pp.amount) + pp.unit;
   }
 
   function renderUpgrade() {
     var a = access(), deal = BL.annualDeal(BC);
-    var head = a.mode === 'active' ? '<h1 class="ask">You\'re on Coatwright Pro ✓</h1><p class="muted">Plan: ' + esc(a.plan) + '. Thank you for supporting Coatwright!</p>'
-      : a.mode === 'expired' ? '<h1 class="ask">Your free trial has ended</h1><p class="muted">Your jobs, customers and numbers are all still here. Pick a plan to keep quoting and invoicing.</p>'
+    var thanks = (location.hash.split('/')[2] || '') === 'thanks';
+    var portal = BL.portalUrl(BC, settings.account && settings.account.email);
+    if (thanks && a.mode !== 'active') {
+      app.innerHTML = '<div class="welcome"><div class="wz-hero"><img src="icon.svg" alt="" width="72" height="72"><h1>Finishing up…</h1>' +
+        '<p class="muted">Payment received. Unlocking Coatwright Pro, this takes a few seconds.</p></div></div>';
+      waitForSubscription(0);
+      return;
+    }
+    var head = a.mode === 'active' ? '<h1 class="ask">' + (thanks ? '🎉 Welcome to Coatwright Pro!' : 'You\'re on Coatwright Pro ✓') + '</h1>' +
+        (a.founderNumber ? '<p class="founder-badge">🔥 Founding Member #' + a.founderNumber + ' of 100</p>' : '') +
+        '<p class="muted">Plan: <b>' + esc(BL.planName(a.plan)) + '</b>. ' + renewLine(a) + '</p>' +
+        (a.pastDue ? '<p class="small" style="color:var(--danger)">Your last payment didn\'t go through. Please update your card so Coatwright keeps working.</p>' : '') +
+        '<p class="muted">Thank you for supporting Coatwright!</p>'
+      : a.mode === 'expired' ? '<h1 class="ask">' + (a.lapsed ? 'Your subscription has ended' : 'Your free trial has ended') + '</h1><p class="muted">Your jobs, customers and numbers are all still here. Pick a plan to keep quoting and invoicing.</p>'
       : a.mode === 'recheck' ? '<h1 class="ask">Confirm your subscription</h1><p class="muted">Connect to the internet and tap Check below.</p>'
-      : a.mode === 'trial' ? '<h1 class="ask">Keep Coatwright after your trial</h1><p class="muted">' + a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left in your free trial. Every plan includes everything.</p>'
+      : a.mode === 'trial' ? '<h1 class="ask">Keep Coatwright after your trial</h1><p class="muted">' + a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left in your free trial (ends ' + esc(fmtDate(a.ends)) + '). Every plan includes everything.</p>'
       : '<h1 class="ask">Coatwright Pro</h1><p class="muted">Plans are coming soon. Everything is free while we get ready.</p>';
-    var lic = settings.license;
+    var showFounder = BC.checkout.monthly && founderLeft !== 0;
     app.innerHTML =
       '<div class="page-head"><a href="#/" class="back">‹ Jobs</a><span class="muted small">Plans</span></div>' + head +
       (a.mode !== 'active' ? '<div class="plans-app">' +
-        (BC.checkout.founder ? planCard('founder', 'Founding member', BC.prices.founder, '/mo', 'Half price for the first ' + BC.founderSpots + ' paying customers, locked in for life.', '🔥 Limited', false) : '') +
+        (showFounder ? planCard('founder', 'Founding member', BC.prices.founder, '/mo', 'Half price for life, for the first ' + BC.founderSpots + ' paying customers.' +
+          (founderLeft != null && founderLeft >= 0 ? ' <b>' + founderLeft + ' of ' + BC.founderSpots + ' spots left.</b>' : ''), '🔥 Limited', false) : '') +
         planCard('annual', 'Yearly', BC.prices.annual, '/yr', 'Just ' + usd(deal.perMonth.toFixed(2)) + '/mo. Save ' + deal.savePct + '% vs monthly.', 'Best value', true) +
         planCard('monthly', 'Monthly', BC.prices.monthly, '/mo', 'Cancel anytime.', '', false) + '</div>' +
         '<ul class="ticks-app"><li>Unlimited quotes and invoices</li><li>Interior, exterior, cabinets, floors and commercial</li>' +
-        '<li>Job tracking, schedule, customers and profit stats</li><li>Your data stays private on your device</li></ul>' : '') +
-      '<section class="card"><h2 class="card-title">' + (a.mode === 'active' ? 'Your license' : 'Already subscribed?') + '</h2>' +
-      (lic && lic.key ? '<p class="small">License: <b>' + esc(lic.key.slice(0, 8)) + '…</b> · ' + esc(lic.status) +
-        (lic.checkedAt ? ' · checked ' + esc(fmtDate(lic.checkedAt)) : '') + '</p>' : '<p class="muted small" style="margin-top:0">Enter the license key from your purchase email.</p>') +
-      (lic && lic.error ? '<p class="small" style="color:var(--danger)">' + esc(lic.error) + '</p>' : '') +
-      (lic && lic.key ? '<div class="row2"><button class="btn" data-action="lic-check">🔄 Check now</button><button class="btn" data-action="lic-remove">Remove from this device</button></div>'
-        : '<label class="field"><span>License key</span><input id="lic-key" autocomplete="off" autocapitalize="characters" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"></label>' +
-          '<button class="btn btn-primary full" data-action="lic-activate"' + (BC.enabled ? '' : ' disabled') + '>Activate</button>') +
-      (lic && lic.key ? '<a class="btn btn-ghost full" style="margin-top:10px" href="' + esc(BC.portal) + '" target="_blank" rel="noopener">Manage or cancel subscription</a>' : '') +
+        '<li>Job tracking, schedule, customers and profit stats</li><li>Your data stays private on your device</li></ul>' +
+        '<p class="muted small center-text">Secure checkout by Stripe. Prices in US dollars; you\'ll see your local currency and any tax at checkout.</p>' : '') +
+      '<section class="card"><h2 class="card-title">' + (a.mode === 'active' ? 'Manage your subscription' : 'Already subscribed?') + '</h2>' +
+      (a.mode === 'active'
+        ? '<p class="muted small" style="margin-top:0">Change plan, update your card, download receipts or cancel.</p>' +
+          (portal ? '<a class="btn btn-primary full" href="' + esc(portal) + '" target="_blank" rel="noopener">Manage or cancel</a>' : '')
+        : '<p class="muted small" style="margin-top:0">Subscribed but still seeing this? Make sure you\'re signed in with the email you paid with' +
+          (settings.account ? ' (now: <b>' + esc(settings.account.email) + '</b>)' : '') + ', then check again.</p>' +
+          '<button class="btn full" data-action="sub-check"' + (BC.enabled ? '' : ' disabled') + '>🔄 Check my subscription</button>' +
+          (portal ? '<a class="btn btn-ghost full" style="margin-top:10px" href="' + esc(portal) + '" target="_blank" rel="noopener">Manage or cancel</a>' : '')) +
       '</section>' +
       '<p class="center-text muted small">Questions? <a href="mailto:coatwrightapp@gmail.com?subject=Coatwright%20subscription">coatwrightapp@gmail.com</a></p>';
+    if (BC.enabled && BC.checkout.monthly && accountsOn() && founderLeft === null) {
+      founderLeft = -1; // asking
+      AC.founderSpotsLeft(CFG).then(function (n) { founderLeft = isFinite(n) ? n : null; })
+        .catch(function () { founderLeft = null; })
+        .then(function () { if ((location.hash.split('/')[1] || '') === 'upgrade' && founderLeft !== -1) renderUpgrade(); });
+    }
   }
 
-  function licenseCall(endpoint, params) {
-    var body = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
-    return fetch(BC.api + endpoint, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
-      .then(function (r) { return r.json().catch(function () { return { error: 'Unexpected response (' + r.status + ')' }; }); });
-  }
-
-  function checkLicense(quiet) {
-    var lic = settings.license;
-    if (!lic || !lic.key || !BC.enabled) return Promise.resolve();
-    return licenseCall('validate', lic.instanceId ? { license_key: lic.key, instance_id: lic.instanceId } : { license_key: lic.key })
-      .then(function (json) {
-        var next = BL.licenseFromResponse(json, lic.key, Date.now(), BC);
-        next.instanceId = next.instanceId || lic.instanceId;
-        settings.license = next; saveSettings();
-        if (!quiet) toast(next.status === 'active' ? 'Subscription confirmed ✓' : 'Subscription not active');
-      })
-      .catch(function () { if (!quiet) toast('Could not reach the license server. Check your connection.'); })
-      .then(function () { var v = location.hash.split('/')[1] || ''; if (v === 'upgrade' || v === '' || v === 'settings') route(); });
+  /** After Stripe checkout: keep checking for a few seconds until the webhook has recorded the subscription. */
+  function waitForSubscription(tries) {
+    syncAccount().then(function () {
+      if ((location.hash.split('/')[1] || '') !== 'upgrade') return;
+      if (access().mode === 'active') { renderUpgrade(); return; }
+      if (tries < 20) setTimeout(function () { waitForSubscription(tries + 1); }, 3000);
+      else { location.hash = '#/upgrade'; toast('Still confirming your payment. Tap “Check my subscription” in a minute'); }
+    });
   }
 
   // ---------- Home: all jobs ----------
@@ -1428,12 +1458,13 @@
         '<a class="btn btn-ghost full" href="#/install">Show me how</a></section>' : '') +
       (BC.enabled ? '<section class="card"><h2 class="card-title">⭐ Subscription</h2>' + (function () {
         var a = access();
-        return '<p class="small" style="margin-top:0">' + (a.mode === 'active' ? 'Coatwright Pro · ' + esc(a.plan) + ' ✓'
+        return (a.founderNumber && a.mode === 'active' ? '<p class="founder-badge">🔥 Founding Member #' + a.founderNumber + ' of 100</p>' : '') +
+          '<p class="small" style="margin-top:0">' + (a.mode === 'active' ? 'Coatwright Pro · ' + esc(BL.planName(a.plan)) + ' ✓<br>' + renewLine(a)
           : a.mode === 'trial' ? 'Free trial · <b>' + a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left</b> · ends ' + esc(fmtDate(a.ends))
-            : a.mode === 'recheck' ? 'Pro · needs a quick online check' : 'Free trial ended · view and export only') + '</p>';
+            : a.mode === 'recheck' ? 'Pro · needs a quick online check' : (a.lapsed ? 'Subscription ended' : 'Free trial ended') + ' · view and export only') + '</p>';
       })() + '<a class="btn ' + (access().mode === 'active' ? '' : 'btn-primary') + ' full" href="#/upgrade">' + (access().mode === 'active' ? 'View plan' : 'See plans') + '</a></section>' : '') +
       '<section class="card"><h2 class="card-title">🔒 Your data</h2>' +
-      '<p class="muted small" style="margin-top:0">Your jobs, customers and money stay private on this device and are never uploaded' + (BC.enabled ? ' (only your license key is checked with our payment provider)' : '') + '. ' +
+      '<p class="muted small" style="margin-top:0">Your jobs, customers and money stay private on this device and are never uploaded' + (accountsOn() ? ' (only your account and subscription status are stored online)' : '') + '. ' +
       'Make a backup now and then (and before switching phones) so your history is never lost.' +
       (settings.lastBackup ? ' Last backup: <b>' + esc(fmtDate(settings.lastBackup)) + '</b>.' : ' <b>No backup yet.</b>') + '</p>' +
       '<div class="actions"><button class="btn btn-primary" data-action="backup">⬇️ Back up now</button>' +
@@ -1735,29 +1766,13 @@
       case 'new-job':
         location.hash = access().canCreate ? '#/new' : '#/upgrade';
         return;
-      case 'lic-activate': {
-        var key = (document.getElementById('lic-key').value || '').trim();
-        if (!key) { toast('Paste your license key first'); return; }
+      case 'sub-check':
         el.disabled = true; el.textContent = 'Checking…';
-        licenseCall('activate', { license_key: key, instance_name: 'Coatwright on ' + (navigator.platform || 'device') })
-          .then(function (json) {
-            settings.license = BL.licenseFromResponse(json, key, Date.now(), BC); saveSettings();
-            toast(settings.license.status === 'active' ? '🎉 Welcome to Coatwright Pro!' : (settings.license.error || 'That key did not work'));
-          })
-          .catch(function () { toast('Could not reach the license server. Check your connection.'); })
-          .then(function () { renderUpgrade(); });
+        syncAccount().then(function () {
+          toast(access().mode === 'active' ? '🎉 Subscription confirmed' : 'No active subscription found for ' + ((settings.account && settings.account.email) || 'this account'));
+          renderUpgrade();
+        });
         return;
-      }
-      case 'lic-check':
-        checkLicense(false);
-        return;
-      case 'lic-remove': {
-        if (!confirm('Remove the license from this device? You can add it again anytime.')) return;
-        var old = settings.license;
-        if (old && old.instanceId && BC.enabled) licenseCall('deactivate', { license_key: old.key, instance_id: old.instanceId }).catch(function () {});
-        delete settings.license; saveSettings(); renderUpgrade();
-        return;
-      }
       case 'quote-for': {
         if (!access().canCreate) { location.hash = '#/upgrade'; return; }
         var cust = S.customersFrom(jobs, settings).find(function (x) { return x.key === el.dataset.key; });
@@ -1957,6 +1972,4 @@
 
   if (!handleAuthReturn()) route();
   syncAccount();
-  if (settings.license && settings.license.key && navigator.onLine !== false &&
-      Date.now() - (Number(settings.license.checkedAt) || 0) > 864e5) checkLicense(true);
 })();

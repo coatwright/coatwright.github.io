@@ -16,7 +16,7 @@ and know what you really made.
 | `app/tests/` | Unit tests |
 | `marketing/` | Video plan, demo videos, social media kit |
 | `ACCOUNTS_SETUP.md`, `supabase/setup.sql` | Sign-up / one-trial-per-email setup (owner steps and database rules) |
-| `BILLING_SETUP.md` | How to connect Lemon Squeezy payments (owner steps) |
+| `BILLING_SETUP.md` | How to connect Stripe payments (owner steps) |
 | `app/billing.js` | Trial and subscription settings; billing switch and checkout links |
 | `PROGRESS.md` | Step-by-step project tracker |
 
