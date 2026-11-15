@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/**. Email sign-up before the trial (6-digit code, one trial per email) is **switched on**. **Next (owner): test sign-up on the phone; raise the Supabase email rate limit; Google sign-in (step 4); send the app fixes list; Lemon Squeezy; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
+**Where we are now:** Live at **https://getcoatwright.com/**. Email sign-up before the trial (6-digit code, one trial per email) is **switched on**. **Next (owner): raise the Supabase email rate limit; Google sign-in (step 4); send the app fixes list; Lemon Squeezy; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -86,7 +86,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Accounts built: sign-in screen (Google + email code), server trial start, sign-out, offline-safe; database rules in `supabase/setup.sql` (tested on PostgreSQL: one trial per email incl. Gmail +/. variations and deleted accounts, users can't see others or change their trial); daily keep-alive workflow; Privacy/Terms/FAQ updated. **Switched off** (`accounts: false`) until setup is done
 - ✅ Owner: ACCOUNTS_SETUP.md steps 1–3 (SQL ran, URLs, email code templates)
 - ✅ Claude switched `accounts: true` (service worker cache v13)
-- 🔄 Owner tests email sign-up on the phone
+- ✅ Owner tested email sign-up on the phone: code arrived in the Gmail Primary inbox, signed in
 - ⬜ Owner: step 4 (Google sign-in) → Claude switches `google: true`
 - 🔄 Owner: step 5: Resend domain verified, API key made, Supabase custom SMTP on (hello@getcoatwright.com); still to do: raise "emails sent per hour" in Supabase Rate Limits
 - ⬜ Link Lemon Squeezy subscriptions to accounts (instead of license keys) once accounts exist
@@ -203,3 +203,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-13** — Owner wants a real sign-up so the trial is one per email. Researched competitors (Jobber, Housecall Pro: sign up, no card) and free account services; plan agreed in principle: Google one-tap + email code on Supabase. Paused here.
 - **2026-11-14** — Owner created the Supabase project. Built accounts (sign-in screen, database rules tested locally, keep-alive, setup guide); switched off until the owner finishes setup.
 - **2026-11-15** — Owner finished Supabase steps 1–3 and Resend (domain verified, SMTP connected, code email templates). Email sign-up switched on.
+- **2026-11-15** — Owner tested sign-up on their phone: code email reached the Primary inbox and sign-in worked.
