@@ -360,6 +360,14 @@ Your real profit, real hourly rate and win rate, all from the jobs you already q
 
 ---
 
+## Groups & communities
+
+Once the accounts exist, find painters where they already talk: **`marketing/COMMUNITIES.md`** has where to look on each platform,
+the rules that keep you from getting banned, a daily routine, ready-to-personalize replies to common pricing questions,
+and honest "I built this" posts.
+
+---
+
 ## Checklist
 
 - [x] Coatwright email created (coatwrightapp@gmail.com)
