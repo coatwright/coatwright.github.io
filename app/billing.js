@@ -14,7 +14,7 @@
     trialDays: 14,
     // How long a paid subscription keeps working offline before it must be re-checked online.
     graceDays: 7,
-    prices: { founder: 14, monthly: 24, annual: 199 },
+    prices: { founder: 12, monthly: 24, annual: 199 },
     founderSpots: 100,
     // Lemon Squeezy checkout links (Store → Products → Share).
     checkout: { founder: '', monthly: '', annual: '' },
