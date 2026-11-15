@@ -162,6 +162,21 @@
     return { laborRate: CUR.convert(p.laborRate, 'USD', settings.currency), markup: p.markup, minimumJob: CUR.convert(p.minimumJob, 'USD', settings.currency) };
   }
 
+  /** Currency picker with a plain explanation, shown during setup. */
+  function currencySelect() {
+    return '<select data-setting="currency" aria-label="Currency">' + CUR.LIST.map(function (c) {
+      return '<option value="' + c[0] + '"' + (c[0] === settings.currency ? ' selected' : '') + '>' + esc(CUR.symbol(c[0]) + ' · ' + c[1] + ' (' + c[0] + ')') + '</option>';
+    }).join('') + '</select>';
+  }
+  function currencyNote() {
+    var name = (CUR.LIST.find(function (c) { return c[0] === settings.currency; }) || ['', 'US dollar'])[1];
+    return '<div class="wz-tip cur-note"><label class="field" style="margin:0"><span>Your currency</span>' + currencySelect() + '</label>' +
+      '<p class="small" style="margin:8px 0 0">' + (settings.currency === 'USD'
+        ? 'Quotes and invoices will be in US dollars. Not in the US? Pick your currency above.'
+        : 'We picked <b>' + esc(name) + 's</b> from your phone\'s region. The starting prices below are our US prices converted for you, ' +
+          'so set them to what painters really charge where you work. Your prices never change with exchange rates.') + '</p></div>';
+  }
+
   function welcomeSteps(step) {
     return '<div class="wz-dots" aria-label="Step ' + step + ' of 3">' + [1, 2, 3].map(function (n) {
       return '<span class="' + (n <= step ? 'on' : '') + '"></span>';
@@ -228,6 +243,7 @@
     } else if (step === 2) {
       var active = RATE_PRESETS.find(function (p) { return presetVals(p).laborRate === Number(settings.laborRate) && p.markup === Number(settings.markup); });
       body = welcomeSteps(2) + '<h1 class="ask">Your prices</h1><p class="muted">Pick a starting point. Every number can be changed later in Settings.</p>' +
+        currencyNote() +
         '<div class="pick-list">' + RATE_PRESETS.map(function (p) {
           return '<button type="button" class="pick' + (active === p ? ' picked' : '') + '" data-action="preset" data-v="' + p.id + '">' +
             '<span class="pick-icon">' + p.icon + '</span><span><strong>' + p.label + '</strong><span class="muted small">' + p.desc +
@@ -1360,9 +1376,7 @@
       setField('ownerName', 'Your name', { placeholder: 'John Smith' }) +
       '<div class="row2">' + setField('phone', 'Phone', { type: 'tel' }) + setField('email', 'Email', { type: 'email' }) + '</div>' +
       setField('website', 'Website (optional)') +
-      '<label class="field"><span>Currency</span><select data-setting="currency">' + CUR.LIST.map(function (c) {
-        return '<option value="' + c[0] + '"' + (c[0] === settings.currency ? ' selected' : '') + '>' + esc(CUR.symbol(c[0]) + ' · ' + c[1] + ' (' + c[0] + ')') + '</option>';
-      }).join('') + '</select><small class="muted">Used on your quotes, invoices and stats. When you switch, you can convert your prices once. They never change with exchange rates after that.</small></label>' + '</section>' +
+      '<label class="field"><span>Currency</span>' + currencySelect() + '<small class="muted">Used on your quotes, invoices and stats. When you switch, you can convert your prices once. They never change with exchange rates after that.</small></label>' + '</section>' +
 
       '<section class="card"><h2 class="card-title">Your prices</h2>' +
       '<div class="row2">' + setField('laborRate', 'Labor rate', { type: 'number', pre: sym(), unit: '/hr', hint: 'What an hour of painting is worth' }) +
@@ -1518,7 +1532,7 @@
           CUR.format(settings.laborRate, from, 0) + '/hr becomes about ' + CUR.format(CUR.convert(settings.laborRate, from, to), to, 0) + '/hr).\n' +
           'Cancel: keep the same numbers and only change the currency sign.\n\nQuotes you already made are not changed.');
         settings = convert ? CUR.convertSettings(settings, from, to) : Object.assign(settings, { currency: to });
-        saveSettings(); renderSettings(); window.scrollTo(0, y);
+        saveSettings(); route(); window.scrollTo(0, y);
         toast(convert ? 'Prices converted to ' + to + '. Check they match what you charge' : 'Currency: ' + to);
         return;
       }

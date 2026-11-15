@@ -222,3 +222,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Founding price changed to $12/mo (half price) on the website, Terms, app and setup guide.
 - **2026-11-15** — Added a currency setting for worldwide painters (detected once, never auto-changes when travelling). Subscription prices stay in USD; Lemon Squeezy shows local currency at checkout.
 - **2026-11-15** — Owner asked whether quotes follow exchange rates. Built one-time conversion of starting prices (and on currency switch); prices never move with live rates so sent quotes stay fixed.
+- **2026-11-15** — Told painters about currency: setup shows "Your currency" with a picker and a plain note (picked from the phone's region, starting prices converted, never follow exchange rates); website pricing note (USD, local currency at checkout) and FAQ "Does Coatwright work outside the US?".
