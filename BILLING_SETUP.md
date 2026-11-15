@@ -71,7 +71,7 @@ Lemon Squeezy emails the license key to the customer after purchase. Customers p
 
 **Publish** the product.
 
-## 5. Founding member price ($14/mo for life, first 100)
+## 5. Founding member price (half price: $12/mo for life, first 100)
 
 **Discounts → New discount**
 
@@ -79,7 +79,7 @@ Lemon Squeezy emails the license key to the customer after purchase. Customers p
 |---|---|
 | Name | `Founding member` |
 | Code | `FOUNDER` |
-| Amount | **$10.00 off** (fixed amount), so $24 becomes $14 |
+| Amount | **50% off** (percentage), so $24 becomes $12 |
 | Duration | **Forever** (applies to every renewal) |
 | Limit to products/variants | **Coatwright Pro → Monthly** only |
 | Limit number of redemptions | **100** |

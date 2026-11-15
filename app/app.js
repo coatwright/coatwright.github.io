@@ -381,7 +381,7 @@
     app.innerHTML =
       '<div class="page-head"><a href="#/" class="back">‹ Jobs</a><span class="muted small">Plans</span></div>' + head +
       (a.mode !== 'active' ? '<div class="plans-app">' +
-        (BC.checkout.founder ? planCard('founder', 'Founding member', BC.prices.founder, '/mo', 'First ' + BC.founderSpots + ' customers only. Your price is locked in for life.', '🔥 Limited', false) : '') +
+        (BC.checkout.founder ? planCard('founder', 'Founding member', BC.prices.founder, '/mo', 'Half price for the first ' + BC.founderSpots + ' paying customers, locked in for life.', '🔥 Limited', false) : '') +
         planCard('annual', 'Yearly', BC.prices.annual, '/yr', 'Just $' + deal.perMonth.toFixed(2) + '/mo. Save ' + deal.savePct + '% vs monthly.', 'Best value', true) +
         planCard('monthly', 'Monthly', BC.prices.monthly, '/mo', 'Cancel anytime.', '', false) + '</div>' +
         '<ul class="ticks-app"><li>Unlimited quotes and invoices</li><li>Interior, exterior, cabinets, floors and commercial</li>' +
