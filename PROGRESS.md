@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. **Next (owner): test Continue with Google; send the app fixes list; Lemon Squeezy; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
+**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. **Next (owner): send the app fixes list; Lemon Squeezy; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -88,7 +88,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Claude switched `accounts: true` (service worker cache v13)
 - ✅ Owner tested email sign-up on the phone: code arrived in the Gmail Primary inbox, signed in
 - ✅ Owner: step 4 (Google Cloud project, consent screen in production, web client, Supabase Google provider) → Claude switched `google: true` (cache v14)
-- 🔄 Owner tests Continue with Google on the phone
+- ✅ Owner tested Continue with Google on the phone
 - 🔄 Owner: step 5: Resend domain verified, API key made, Supabase custom SMTP on (hello@getcoatwright.com); rate limit raised
 - ⬜ Link Lemon Squeezy subscriptions to accounts (instead of license keys) once accounts exist
 - ⬜ Show days left in the trial everywhere it matters (Settings, plus reminders at 7/3/1 days) and, for subscribers, the next renewal date and price (needs the subscription link above)
@@ -208,3 +208,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Owner tested sign-up on their phone: code email reached the Primary inbox and sign-in worked.
 - **2026-11-15** — Owner raised the email rate limit. Owner asked for a visible countdown to the end of the trial and to the next renewal; added to the plan.
 - **2026-11-15** — Owner set up Google sign-in (Google Cloud + Supabase). Switched on "Continue with Google". Setup guide fixed: Google refuses `supabase.co` as an authorized domain and a logo triggers review.
+- **2026-11-15** — Owner tested Continue with Google on their phone: works.
