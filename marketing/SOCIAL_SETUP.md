@@ -11,6 +11,8 @@ looks a little different, pick the option closest to what's written here.
 | **Website link** | `https://getcoatwright.com/` |
 | **Birthday** | Your real birthday: platforms require it. It is never shown on the business profile. |
 
+**Using the Claude in Chrome extension?** `marketing/CHROME_PROMPTS.md` has copy-paste prompts that set up each page for you (you still type passwords and codes).
+
 Try to get the **same username** on every platform. If `coatwright` is taken anywhere, consider using `coatwrightapp` everywhere.
 
 ---
