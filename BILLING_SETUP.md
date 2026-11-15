@@ -122,6 +122,6 @@ app only accepts keys from your store.
 - [ ] Lemon Squeezy account with `coatwrightapp@gmail.com`, 2FA on
 - [ ] Payouts and identity verification done, store approved
 - [ ] Product "Coatwright Pro" with Monthly $24 and Yearly $199, license keys on (limit 3, tied to subscription)
-- [ ] FOUNDER discount: $10 off forever, Monthly only, 100 uses
+- [ ] FOUNDER discount: 50% off forever, Monthly only, 100 uses
 - [ ] Test purchase works; license key email received
 - [ ] Send Claude the 3 links (test first, then live)

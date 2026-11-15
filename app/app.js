@@ -6,6 +6,7 @@
   var S = window.Stats;
   var BL = window.Billing, BC = BL.BILLING;
   var AC = window.Account, CFG = window.CW_CONFIG || {};
+  var CUR = window.Currency;
   var app = document.getElementById('app');
 
   // ---------- Storage ----------
@@ -24,6 +25,11 @@
   var jobs = load('pq.jobs', []);
   var expenses = load('pq.expenses', []);
   if (!settings.onboarded && (jobs.length || settings.businessName)) { settings.onboarded = true; save('pq.settings', settings); }
+  // Currency is chosen once and saved, so it never changes when the painter travels. Existing users had dollars.
+  if (!settings.currency) {
+    settings.currency = (settings.onboarded || jobs.length) ? 'USD' : CUR.detect(navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]);
+    save('pq.settings', settings);
+  }
   if (!settings.trialStart) { settings.trialStart = Date.now(); save('pq.settings', settings); }
   var wantsInstall = /[?&]install=1/.test(location.search);
   var session = load('pq.session', null);
@@ -50,12 +56,16 @@
   }
   function money(n) {
     var v = Number(n) || 0;
-    return (v < 0 ? '−$' : '$') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return CUR.format(v, settings.currency, 2);
   }
   function money0(n) {
     var v = Math.round(Number(n) || 0);
-    return (v < 0 ? '−$' : '$') + Math.abs(v).toLocaleString('en-US');
+    return CUR.format(v, settings.currency, 0);
   }
+  /** Currency sign for input fields, e.g. '$' or '£'. */
+  function sym() { return CUR.symbol(settings.currency); }
+  /** Coatwright's own prices are in US dollars; say so to painters who use another currency. */
+  function usd(n) { return (settings.currency === 'USD' ? '$' : 'US$') + n; }
   function fmtDate(ts) {
     return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
@@ -215,11 +225,11 @@
         '<div class="pick-list">' + RATE_PRESETS.map(function (p) {
           return '<button type="button" class="pick' + (active === p ? ' picked' : '') + '" data-action="preset" data-v="' + p.id + '">' +
             '<span class="pick-icon">' + p.icon + '</span><span><strong>' + p.label + '</strong><span class="muted small">' + p.desc +
-            ' · $' + p.laborRate + '/hr, ' + p.markup + '% markup</span></span>' + (active === p ? '<span class="chev">✓</span>' : '') + '</button>';
+            ' · ' + money0(p.laborRate) + '/hr, ' + p.markup + '% markup</span></span>' + (active === p ? '<span class="chev">✓</span>' : '') + '</button>';
         }).join('') + '</div>' +
         '<section class="card" style="margin-top:14px"><div class="row2">' +
-        setField('laborRate', 'Labor rate', { type: 'number', pre: '$', unit: '/hr' }) + setField('markup', 'Markup', { type: 'number', unit: '%' }) + '</div>' +
-        '<div class="row2">' + setField('minimumJob', 'Minimum job', { type: 'number', pre: '$' }) + setField('depositPct', 'Deposit', { type: 'number', unit: '%' }) + '</div>' +
+        setField('laborRate', 'Labor rate', { type: 'number', pre: sym(), unit: '/hr' }) + setField('markup', 'Markup', { type: 'number', unit: '%' }) + '</div>' +
+        '<div class="row2">' + setField('minimumJob', 'Minimum job', { type: 'number', pre: sym() }) + setField('depositPct', 'Deposit', { type: 'number', unit: '%' }) + '</div>' +
         '<p class="muted small" style="margin:0">Paint prices, tax and how fast you work are in Settings too.</p></section>' +
         '<div class="wz-nav"><a class="btn" href="#/welcome/1">Back</a><button class="btn btn-primary" data-action="wz-next" data-v="3">Continue</button></div>';
     } else {
@@ -339,8 +349,8 @@
     var a = access();
     if (a.mode === 'trial') {
       return '<a class="plan-banner' + (a.daysLeft <= 3 ? ' urgent' : '') + '" href="#/upgrade"><span>⏳</span><div><strong>Free trial: ' +
-        a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left</strong><div class="small">Ends ' + esc(fmtDate(a.ends)) + '. Keep every feature for $' + BC.prices.monthly + '/mo or $' +
-        BC.prices.annual + '/yr.</div></div><span class="pb-cta">Upgrade</span></a>';
+        a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left</strong><div class="small">Ends ' + esc(fmtDate(a.ends)) + '. Keep every feature for ' + usd(BC.prices.monthly) + '/mo or ' +
+        usd(BC.prices.annual) + '/yr.</div></div><span class="pb-cta">Upgrade</span></a>';
     }
     if (a.mode === 'expired' || a.mode === 'recheck') {
       return '<a class="plan-banner urgent" href="#/upgrade"><span>🔒</span><div><strong>' +
@@ -365,7 +375,7 @@
   function planCard(id, title, price, unit, note, badge, featured) {
     var url = BC.checkout[id];
     return '<div class="plan-card' + (featured ? ' featured' : '') + '">' + (badge ? '<div class="plan-badge">' + badge + '</div>' : '') +
-      '<h3>' + title + '</h3><div class="plan-price">$' + price + '<span>' + unit + '</span></div><p class="muted small">' + note + '</p>' +
+      '<h3>' + title + '</h3><div class="plan-price">' + usd(price) + '<span>' + unit + '</span></div><p class="muted small">' + note + '</p>' +
       (url ? '<a class="btn ' + (featured ? 'btn-primary' : '') + ' full" href="' + esc(url) + '" target="_blank" rel="noopener">Choose ' + title + '</a>'
         : '<span class="btn full disabled">Available soon</span>') + '</div>';
   }
@@ -382,7 +392,7 @@
       '<div class="page-head"><a href="#/" class="back">‹ Jobs</a><span class="muted small">Plans</span></div>' + head +
       (a.mode !== 'active' ? '<div class="plans-app">' +
         (BC.checkout.founder ? planCard('founder', 'Founding member', BC.prices.founder, '/mo', 'Half price for the first ' + BC.founderSpots + ' paying customers, locked in for life.', '🔥 Limited', false) : '') +
-        planCard('annual', 'Yearly', BC.prices.annual, '/yr', 'Just $' + deal.perMonth.toFixed(2) + '/mo. Save ' + deal.savePct + '% vs monthly.', 'Best value', true) +
+        planCard('annual', 'Yearly', BC.prices.annual, '/yr', 'Just ' + usd(deal.perMonth.toFixed(2)) + '/mo. Save ' + deal.savePct + '% vs monthly.', 'Best value', true) +
         planCard('monthly', 'Monthly', BC.prices.monthly, '/mo', 'Cancel anytime.', '', false) + '</div>' +
         '<ul class="ticks-app"><li>Unlimited quotes and invoices</li><li>Interior, exterior, cabinets, floors and commercial</li>' +
         '<li>Job tracking, schedule, customers and profit stats</li><li>Your data stays private on your device</li></ul>' : '') +
@@ -665,14 +675,14 @@
     var a = job.actuals;
     var costField = function (key, label, unit, ph) {
       return '<label class="field"><span>' + label + '</span><div class="with-unit' + (unit === '$' ? ' pre' : '') + '">' +
-        (unit === '$' ? '<em>$</em>' : '') + '<input type="number" inputmode="decimal" min="0" step="any" data-field="actuals.' + key +
+        (unit === '$' ? '<em>' + sym() + '</em>' : '') + '<input type="number" inputmode="decimal" min="0" step="any" data-field="actuals.' + key +
         '" value="' + esc(a[key] == null ? '' : a[key]) + '" placeholder="' + ph + '">' + (unit !== '$' ? '<em>' + unit + '</em>' : '') + '</div></label>';
     };
     return '<section class="card money-card"><h2 class="card-title"><span class="step">5</span> Payments & real costs</h2>' +
       '<div class="label" style="margin-top:0">Payments received</div>' +
       (job.payments.length ? job.payments.map(function (p, i) {
         return '<div class="pay-row"><input type="date" data-field="payments.' + i + '.date" value="' + esc(p.date) + '" aria-label="Payment date">' +
-          '<div class="with-unit pre"><em>$</em><input type="number" inputmode="decimal" min="0" step="any" data-field="payments.' + i + '.amount" value="' + esc(p.amount) + '" aria-label="Amount"></div>' +
+          '<div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-field="payments.' + i + '.amount" value="' + esc(p.amount) + '" aria-label="Amount"></div>' +
           '<select data-field="payments.' + i + '.method" aria-label="Payment method">' + S.PAYMENT_METHODS.map(function (m) {
             return '<option' + (p.method === m ? ' selected' : '') + '>' + m + '</option>';
           }).join('') + '</select>' +
@@ -759,7 +769,7 @@
       case 'popcorn':
         body = '<div class="dims two">' + oNum(i, 'sqft', item.sqft, 'Ceiling area', 'sq ft') + '</div>' +
           '<div class="label">New finish</div>' + oSeg(i, 'retexture', item.retexture, [['smooth', 'Smooth'], ['knockdown', 'Knockdown']]) +
-          '<div class="label">Asbestos test</div>' + oSeg(i, 'test', item.test, [[1, 'Include ($75)'], [0, 'Not needed']]) +
+          '<div class="label">Asbestos test</div>' + oSeg(i, 'test', item.test, [[1, 'Include (' + money0(75) + ')'], [0, 'Not needed']]) +
           '<p class="muted small">⚠️ Homes built before 1980 should be tested before scraping.</p>';
         break;
       case 'drywall':
@@ -839,11 +849,11 @@
       '<details class="card"' + (job.extras.length || job.discount || job.notes ? ' open' : '') + '><summary class="card-title"><span class="step">4</span> Extras, discount & notes <em class="muted small">(optional)</em></summary>' +
       job.extras.map(function (e, i) {
         return '<div class="extra-row"><input data-field="extras.' + i + '.label" value="' + esc(e.label) + '" placeholder="e.g. Drywall repair" aria-label="Extra item">' +
-          '<div class="with-unit pre"><em>$</em><input type="number" inputmode="decimal" min="0" data-field="extras.' + i + '.price" value="' + esc(e.price) + '" aria-label="Price"></div>' +
+          '<div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" data-field="extras.' + i + '.price" value="' + esc(e.price) + '" aria-label="Price"></div>' +
           '<button type="button" class="icon-btn" data-action="del-extra" data-i="' + i + '" aria-label="Remove">✕</button></div>';
       }).join('') +
       '<button type="button" class="btn btn-ghost" data-action="add-extra">＋ Add extra item</button>' +
-      '<div class="row2"><label class="field"><span>Discount</span><div class="with-unit pre"><em>$</em><input type="number" inputmode="decimal" min="0" data-field="discount" value="' + esc(job.discount || '') + '" placeholder="0"></div></label></div>' +
+      '<div class="row2"><label class="field"><span>Discount</span><div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" data-field="discount" value="' + esc(job.discount || '') + '" placeholder="0"></div></label></div>' +
       '<label class="field"><span>Notes for customer</span><textarea data-field="notes" rows="3" placeholder="Colors, start date, anything special…">' + esc(job.notes) + '</textarea></label>' +
       '</details>' +
       moneyCard(job) +
@@ -1153,7 +1163,7 @@
     return 10 * mag;
   }
   function axisMoney(v) {
-    return v >= 10000 ? '$' + Math.round(v / 1000) + 'K' : '$' + v.toLocaleString('en-US');
+    return v >= 10000 ? sym() + Math.round(v / 1000) + 'K' : money0(v);
   }
 
   // Single-series column chart: money collected each month.
@@ -1259,7 +1269,7 @@
       '<div class="expense-form"><input type="date" id="ex-date" value="' + (year === new Date().getFullYear() ? today() : year + '-12-31') + '" aria-label="Date">' +
       '<input id="ex-label" placeholder="What was it?" aria-label="Description">' +
       '<select id="ex-cat" aria-label="Category">' + S.EXPENSE_CATEGORIES.map(function (c) { return '<option>' + c + '</option>'; }).join('') + '</select>' +
-      '<div class="with-unit pre"><em>$</em><input id="ex-amount" type="number" inputmode="decimal" min="0" step="any" placeholder="0" aria-label="Amount"></div>' +
+      '<div class="with-unit pre"><em>' + sym() + '</em><input id="ex-amount" type="number" inputmode="decimal" min="0" step="any" placeholder="0" aria-label="Amount"></div>' +
       '<button type="button" class="btn btn-primary" data-action="add-expense">Add</button></div>' +
       (cats.length ? '<div class="cat-list">' + cats.map(function (c) { return '<span class="tag">' + esc(c) + ' ' + money0(y.byCategory[c]) + '</span>'; }).join(' ') + '</div>' : '') +
       (yearExpenses.length ? '<table class="lines expenses"><tbody>' + yearExpenses.map(function (e) {
@@ -1343,30 +1353,33 @@
       setField('businessName', 'Business name', { placeholder: 'Smith Painting LLC' }) +
       setField('ownerName', 'Your name', { placeholder: 'John Smith' }) +
       '<div class="row2">' + setField('phone', 'Phone', { type: 'tel' }) + setField('email', 'Email', { type: 'email' }) + '</div>' +
-      setField('website', 'Website (optional)') + '</section>' +
+      setField('website', 'Website (optional)') +
+      '<label class="field"><span>Currency</span><select data-setting="currency">' + CUR.LIST.map(function (c) {
+        return '<option value="' + c[0] + '"' + (c[0] === settings.currency ? ' selected' : '') + '>' + esc(CUR.symbol(c[0]) + ' · ' + c[1] + ' (' + c[0] + ')') + '</option>';
+      }).join('') + '</select><small class="muted">Used on your quotes, invoices and stats. Your prices aren\'t converted, so update them if you switch.</small></label>' + '</section>' +
 
       '<section class="card"><h2 class="card-title">Your prices</h2>' +
-      '<div class="row2">' + setField('laborRate', 'Labor rate', { type: 'number', pre: '$', unit: '/hr', hint: 'What an hour of painting is worth' }) +
+      '<div class="row2">' + setField('laborRate', 'Labor rate', { type: 'number', pre: sym(), unit: '/hr', hint: 'What an hour of painting is worth' }) +
       setField('markup', 'Markup', { type: 'number', unit: '%', hint: 'Overhead & profit added on top' }) + '</div>' +
-      '<div class="row2">' + setField('minimumJob', 'Minimum job', { type: 'number', pre: '$' }) +
+      '<div class="row2">' + setField('minimumJob', 'Minimum job', { type: 'number', pre: sym() }) +
       setField('depositPct', 'Deposit', { type: 'number', unit: '%' }) + '</div>' +
       '<div class="row2">' + setField('taxRate', 'Sales tax', { type: 'number', unit: '%' }) +
       setField('validDays', 'Quote valid for', { type: 'number', unit: 'days' }) + '</div></section>' +
 
       '<section class="card"><h2 class="card-title">Paint cost <em class="muted small">(what you pay per gallon)</em></h2>' +
-      '<div class="row2">' + setField('wallPaintPrice', 'Wall paint', { type: 'number', pre: '$' }) +
-      setField('ceilingPaintPrice', 'Ceiling paint', { type: 'number', pre: '$' }) + '</div>' +
-      '<div class="row2">' + setField('trimPaintPrice', 'Trim paint', { type: 'number', pre: '$' }) +
-      setField('primerPrice', 'Primer', { type: 'number', pre: '$' }) + '</div>' +
+      '<div class="row2">' + setField('wallPaintPrice', 'Wall paint', { type: 'number', pre: sym() }) +
+      setField('ceilingPaintPrice', 'Ceiling paint', { type: 'number', pre: sym() }) + '</div>' +
+      '<div class="row2">' + setField('trimPaintPrice', 'Trim paint', { type: 'number', pre: sym() }) +
+      setField('primerPrice', 'Primer', { type: 'number', pre: sym() }) + '</div>' +
       setField('suppliesPct', 'Supplies (tape, plastic, caulk…)', { type: 'number', unit: '% of paint' }) + '</section>' +
 
       '<section class="card"><h2 class="card-title">Exterior & floor products <em class="muted small">(your cost)</em></h2>' +
-      '<div class="row2">' + setField('extPaintPrice', 'Exterior paint', { type: 'number', pre: '$', unit: '/gal' }) +
-      setField('stainPrice', 'Deck & fence stain', { type: 'number', pre: '$', unit: '/gal' }) + '</div>' +
-      '<div class="row2">' + setField('floorPaintPrice', 'Floor paint', { type: 'number', pre: '$', unit: '/gal' }) +
-      setField('epoxySqft', 'Epoxy kit', { type: 'number', pre: '$', unit: '/sq ft' }) + '</div>' +
-      '<div class="row2">' + setField('flakeSqft', 'Epoxy + flake kit', { type: 'number', pre: '$', unit: '/sq ft' }) +
-      setField('cabinetPaintPrice', 'Cabinet enamel', { type: 'number', pre: '$', unit: '/gal' }) + '</div></section>' +
+      '<div class="row2">' + setField('extPaintPrice', 'Exterior paint', { type: 'number', pre: sym(), unit: '/gal' }) +
+      setField('stainPrice', 'Deck & fence stain', { type: 'number', pre: sym(), unit: '/gal' }) + '</div>' +
+      '<div class="row2">' + setField('floorPaintPrice', 'Floor paint', { type: 'number', pre: sym(), unit: '/gal' }) +
+      setField('epoxySqft', 'Epoxy kit', { type: 'number', pre: sym(), unit: '/sq ft' }) + '</div>' +
+      '<div class="row2">' + setField('flakeSqft', 'Epoxy + flake kit', { type: 'number', pre: sym(), unit: '/sq ft' }) +
+      setField('cabinetPaintPrice', 'Cabinet enamel', { type: 'number', pre: sym(), unit: '/gal' }) + '</div></section>' +
 
       '<details class="card"><summary class="card-title">How fast you work <em class="muted small">(advanced)</em></summary>' +
       '<p class="muted small">Per coat, for one painter. The defaults suit most painters — adjust once you\'ve timed a few jobs.</p>' +
@@ -1454,6 +1467,7 @@
       if (!confirm('Restore ' + data.jobs.length + ' jobs from ' + (data.exportedAt || 'this backup').slice(0, 10) +
         '? This replaces what is on this device now.')) return;
       settings = Object.assign({}, P.DEFAULT_SETTINGS, data.settings || {});
+      if (!settings.currency) settings.currency = 'USD';
       jobs = data.jobs;
       expenses = Array.isArray(data.expenses) ? data.expenses : [];
       saveSettings(); saveJobs(); saveExpenses();
@@ -1493,6 +1507,7 @@
       var key = el.dataset.setting;
       settings[key] = el.type === 'number' ? (el.value === '' ? '' : Number(el.value)) : el.value;
       saveSettings();
+      if (key === 'currency') { var y = window.scrollY; renderSettings(); window.scrollTo(0, y); toast('Currency: ' + el.value); return; }
       var s = document.getElementById('saved');
       if (s) s.textContent = 'Saved ✓';
       return;
