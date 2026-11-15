@@ -27,7 +27,8 @@
   if (!settings.onboarded && (jobs.length || settings.businessName)) { settings.onboarded = true; save('pq.settings', settings); }
   // Currency is chosen once and saved, so it never changes when the painter travels. Existing users had dollars.
   if (!settings.currency) {
-    settings.currency = (settings.onboarded || jobs.length) ? 'USD' : CUR.detect(navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]);
+    var cur0 = (settings.onboarded || jobs.length) ? 'USD' : CUR.detect(navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]);
+    settings = CUR.convertSettings(settings, 'USD', cur0); // new painters abroad start from local prices, converted once
     save('pq.settings', settings);
   }
   if (!settings.trialStart) { settings.trialStart = Date.now(); save('pq.settings', settings); }
@@ -156,6 +157,11 @@
     { id: 'premium', icon: '⭐', label: 'Premium / high-end', desc: 'Top-quality work and service', laborRate: 70, markup: 30, minimumJob: 750 }
   ];
 
+  /** A starting-price preset in the painter's currency (presets are written in US dollars). */
+  function presetVals(p) {
+    return { laborRate: CUR.convert(p.laborRate, 'USD', settings.currency), markup: p.markup, minimumJob: CUR.convert(p.minimumJob, 'USD', settings.currency) };
+  }
+
   function welcomeSteps(step) {
     return '<div class="wz-dots" aria-label="Step ' + step + ' of 3">' + [1, 2, 3].map(function (n) {
       return '<span class="' + (n <= step ? 'on' : '') + '"></span>';
@@ -220,12 +226,12 @@
         setField('email', 'Email', { type: 'email', placeholder: 'you@email.com' }) + '</div></section>' +
         '<div class="wz-nav"><a class="btn" href="#/welcome/0">Back</a><button class="btn btn-primary" data-action="wz-next" data-v="2">Continue</button></div>';
     } else if (step === 2) {
-      var active = RATE_PRESETS.find(function (p) { return p.laborRate === Number(settings.laborRate) && p.markup === Number(settings.markup); });
+      var active = RATE_PRESETS.find(function (p) { return presetVals(p).laborRate === Number(settings.laborRate) && p.markup === Number(settings.markup); });
       body = welcomeSteps(2) + '<h1 class="ask">Your prices</h1><p class="muted">Pick a starting point. Every number can be changed later in Settings.</p>' +
         '<div class="pick-list">' + RATE_PRESETS.map(function (p) {
           return '<button type="button" class="pick' + (active === p ? ' picked' : '') + '" data-action="preset" data-v="' + p.id + '">' +
             '<span class="pick-icon">' + p.icon + '</span><span><strong>' + p.label + '</strong><span class="muted small">' + p.desc +
-            ' · ' + money0(p.laborRate) + '/hr, ' + p.markup + '% markup</span></span>' + (active === p ? '<span class="chev">✓</span>' : '') + '</button>';
+            ' · ' + money0(presetVals(p).laborRate) + '/hr, ' + p.markup + '% markup</span></span>' + (active === p ? '<span class="chev">✓</span>' : '') + '</button>';
         }).join('') + '</div>' +
         '<section class="card" style="margin-top:14px"><div class="row2">' +
         setField('laborRate', 'Labor rate', { type: 'number', pre: sym(), unit: '/hr' }) + setField('markup', 'Markup', { type: 'number', unit: '%' }) + '</div>' +
@@ -769,7 +775,7 @@
       case 'popcorn':
         body = '<div class="dims two">' + oNum(i, 'sqft', item.sqft, 'Ceiling area', 'sq ft') + '</div>' +
           '<div class="label">New finish</div>' + oSeg(i, 'retexture', item.retexture, [['smooth', 'Smooth'], ['knockdown', 'Knockdown']]) +
-          '<div class="label">Asbestos test</div>' + oSeg(i, 'test', item.test, [[1, 'Include (' + money0(75) + ')'], [0, 'Not needed']]) +
+          '<div class="label">Asbestos test</div>' + oSeg(i, 'test', item.test, [[1, 'Include (' + money0(75 * (Number(settings.costFactor) || 1)) + ')'], [0, 'Not needed']]) +
           '<p class="muted small">⚠️ Homes built before 1980 should be tested before scraping.</p>';
         break;
       case 'drywall':
@@ -1356,7 +1362,7 @@
       setField('website', 'Website (optional)') +
       '<label class="field"><span>Currency</span><select data-setting="currency">' + CUR.LIST.map(function (c) {
         return '<option value="' + c[0] + '"' + (c[0] === settings.currency ? ' selected' : '') + '>' + esc(CUR.symbol(c[0]) + ' · ' + c[1] + ' (' + c[0] + ')') + '</option>';
-      }).join('') + '</select><small class="muted">Used on your quotes, invoices and stats. Your prices aren\'t converted, so update them if you switch.</small></label>' + '</section>' +
+      }).join('') + '</select><small class="muted">Used on your quotes, invoices and stats. When you switch, you can convert your prices once. They never change with exchange rates after that.</small></label>' + '</section>' +
 
       '<section class="card"><h2 class="card-title">Your prices</h2>' +
       '<div class="row2">' + setField('laborRate', 'Labor rate', { type: 'number', pre: sym(), unit: '/hr', hint: 'What an hour of painting is worth' }) +
@@ -1505,9 +1511,19 @@
     }
     if (el.dataset.setting) {
       var key = el.dataset.setting;
+      if (key === 'currency') {
+        var from = settings.currency || 'USD', to = el.value, y = window.scrollY;
+        var convert = from !== to && confirm('Convert your prices from ' + from + ' to ' + to + '?\n\n' +
+          'OK: your labor rate, minimum job and paint prices are converted once at an approximate exchange rate (e.g. ' +
+          CUR.format(settings.laborRate, from, 0) + '/hr becomes about ' + CUR.format(CUR.convert(settings.laborRate, from, to), to, 0) + '/hr).\n' +
+          'Cancel: keep the same numbers and only change the currency sign.\n\nQuotes you already made are not changed.');
+        settings = convert ? CUR.convertSettings(settings, from, to) : Object.assign(settings, { currency: to });
+        saveSettings(); renderSettings(); window.scrollTo(0, y);
+        toast(convert ? 'Prices converted to ' + to + '. Check they match what you charge' : 'Currency: ' + to);
+        return;
+      }
       settings[key] = el.type === 'number' ? (el.value === '' ? '' : Number(el.value)) : el.value;
       saveSettings();
-      if (key === 'currency') { var y = window.scrollY; renderSettings(); window.scrollTo(0, y); toast('Currency: ' + el.value); return; }
       var s = document.getElementById('saved');
       if (s) s.textContent = 'Saved ✓';
       return;
@@ -1622,7 +1638,7 @@
         return;
       case 'preset': {
         var pr = RATE_PRESETS.find(function (x) { return x.id === el.dataset.v; });
-        if (pr) { settings.laborRate = pr.laborRate; settings.markup = pr.markup; settings.minimumJob = pr.minimumJob; saveSettings(); }
+        if (pr) { Object.assign(settings, presetVals(pr)); saveSettings(); }
         renderWelcome(2);
         return;
       }

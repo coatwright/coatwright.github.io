@@ -23,6 +23,50 @@
   };
   EURO.forEach(function (r) { BY_REGION[r] = 'EUR'; });
 
+  /**
+   * Approximate value of 1 US dollar in each currency. Only used once, to turn the US starting prices into
+   * sensible local ones (or when a painter asks to convert after switching). Prices never follow live rates.
+   */
+  var PER_USD = {
+    USD: 1, CAD: 1.38, GBP: 0.78, EUR: 0.9, AUD: 1.52, NZD: 1.68, ZAR: 18, MXN: 18.5, INR: 85, AED: 3.67,
+    SGD: 1.33, CHF: 0.85, SEK: 10, NOK: 10.4, DKK: 6.7, PLN: 3.8, BRL: 5.5, PHP: 57, JPY: 150, ILS: 3.6
+  };
+
+  /** Settings that hold money (everything else is %, hours, rates or text). */
+  var MONEY_KEYS = ['laborRate', 'minimumJob', 'wallPaintPrice', 'ceilingPaintPrice', 'trimPaintPrice', 'primerPrice',
+    'extPaintPrice', 'stainPrice', 'floorPaintPrice', 'epoxySqft', 'flakeSqft', 'cabinetPaintPrice'];
+
+  /** Round to a clean price: two significant figures (42.9 → 43, 351 → 350, 0.78 → 0.78, 4675 → 4700). */
+  function nice(v) {
+    v = Number(v) || 0;
+    if (v <= 0) return 0;
+    var mag = Math.pow(10, Math.floor(Math.log10(v)) - 1);
+    return Math.round(Math.round(v / mag) * mag * 100) / 100;
+  }
+
+  function factor(from, to) {
+    var a = PER_USD[from], b = PER_USD[to];
+    return a && b ? b / a : 1;
+  }
+
+  /** Convert an amount once (rounded to a clean price). */
+  function convert(n, from, to) { return from === to ? Number(n) || 0 : nice((Number(n) || 0) * factor(from, to)); }
+
+  /**
+   * Convert a painter's money settings from one currency to another, once. `costFactor` scales the few built-in
+   * material costs (patch supplies, lab test) so they follow too. Returns a new settings object.
+   */
+  function convertSettings(settings, from, to) {
+    var out = Object.assign({}, settings);
+    if (from === to || !PER_USD[from] || !PER_USD[to]) { out.currency = to; return out; }
+    MONEY_KEYS.forEach(function (k) {
+      if (out[k] !== '' && out[k] != null && !isNaN(Number(out[k]))) out[k] = convert(out[k], from, to);
+    });
+    out.costFactor = Math.round((Number(settings.costFactor) || 1) * factor(from, to) * 10000) / 10000;
+    out.currency = to;
+    return out;
+  }
+
   function known(code) { return LIST.some(function (c) { return c[0] === code; }); }
 
   /** Pick a currency from the phone's language settings, e.g. ['en-GB'] → 'GBP'. Falls back to USD. */
@@ -63,7 +107,8 @@
     return p ? p.value : '$';
   }
 
-  var api = { LIST: LIST, detect: detect, format: format, symbol: symbol, known: known };
+  var api = { LIST: LIST, PER_USD: PER_USD, MONEY_KEYS: MONEY_KEYS, detect: detect, format: format, symbol: symbol, known: known,
+    nice: nice, convert: convert, convertSettings: convertSettings };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.Currency = api;
 })(typeof window !== 'undefined' ? window : this);

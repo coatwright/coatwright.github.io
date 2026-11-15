@@ -425,6 +425,7 @@
   function calcOutside(item, settings) {
     var s = Object.assign({}, DEFAULT_SETTINGS, settings);
     var rate = num(s.laborRate);
+    var cf = num(s.costFactor) || 1; // built-in material costs follow the currency (1 for US dollars)
     var coats = Math.round(num(item.coats, 2)) || 1;
     var coatTxt = coats + (coats === 1 ? ' coat' : ' coats');
     var cond = CONDITIONS[item.condition] || CONDITIONS.good;
@@ -550,7 +551,7 @@
       if (wp > 0) {
         add('wpremove', 'Wallpaper removal', fmt(wp) + ' sq ft · score, steam & strip', wp / 40 * cond.labor);
         add('wpskim', 'Wash glue, patch & prime walls', fmt(wp) + ' sq ft', wp / 150);
-        direct.push({ key: 'wpsupplies', label: 'Wallpaper remover & glue wash', sqft: wp, cost: round2(wp * 0.1) });
+        direct.push({ key: 'wpsupplies', label: 'Wallpaper remover & glue wash', sqft: wp, cost: round2(wp * 0.1 * cf) });
         gallons.primer += wp / 300;
       }
       summary = fmt(wp) + ' sq ft of wallpaper';
@@ -561,15 +562,15 @@
         add('pcscrape', 'Wet & scrape popcorn texture', fmt(pc) + ' sq ft', pc / 60);
         add('pcfinish', item.retexture === 'knockdown' ? 'Skim & knockdown texture' : 'Skim coat smooth & sand', fmt(pc) + ' sq ft',
           pc / (item.retexture === 'knockdown' ? 120 : 80));
-        direct.push({ key: 'pcsupplies', label: 'Joint compound, plastic & sanding', sqft: pc, cost: round2(pc * 0.25) });
-        if (Math.round(num(item.test)) === 1) direct.push({ key: 'asbestos', label: 'Asbestos test (lab)', sqft: 0, cost: 75 });
+        direct.push({ key: 'pcsupplies', label: 'Joint compound, plastic & sanding', sqft: pc, cost: round2(pc * 0.25 * cf) });
+        if (Math.round(num(item.test)) === 1) direct.push({ key: 'asbestos', label: 'Asbestos test (lab)', sqft: 0, cost: round2(75 * cf) });
       }
       summary = fmt(pc) + ' sq ft ceiling, ' + (item.retexture === 'knockdown' ? 'knockdown finish' : 'smooth finish');
     } else if (item.type === 'drywall') {
       var ds = Math.round(num(item.small)), dl = Math.round(num(item.large));
       if (ds) add('dwsmall', 'Small drywall repairs', ds + ' × nail pops, dents, holes up to 6"', ds * 0.5);
       if (dl) add('dwlarge', 'Large drywall patches', dl + ' × holes over 6" · mesh/backer, 3 coats', dl * 1.75);
-      if (ds + dl) direct.push({ key: 'drywall', label: 'Drywall patch materials', sqft: 0, cost: ds * 4 + dl * 15 });
+      if (ds + dl) direct.push({ key: 'drywall', label: 'Drywall patch materials', sqft: 0, cost: round2((ds * 4 + dl * 15) * cf) });
       summary = ds + ' small, ' + dl + ' large';
     }
 
