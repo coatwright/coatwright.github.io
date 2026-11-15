@@ -234,3 +234,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Owner set Stripe emails, ran billing.sql, deployed stripe-webhook (JWT verification off), added the Stripe webhook destination (5 events) and the two secrets. Webhook now prefers Supabase's newer secret key (SUPABASE_SECRET_KEYS) over the deprecated service role key.
 - **2026-11-15** — Owner redeployed the webhook (JWT off). Billing switched on: trials run from Nov 15, 2026; plans screen live with Stripe Payment Links.
 - **2026-11-15** — Owner skipped the test purchase for now. First trials end Nov 29, 2026, so the first possible renewal-driven sale is then (anyone can still buy earlier).
+- **2026-11-15** — Added LinkedIn to the social kit (Coatwright Page, Founder & CEO profile, launch post) with new LinkedIn banner and company cover; fixed the X header (phone covered the headline).
