@@ -73,7 +73,7 @@ test('checkout links carry the account so the app unlocks by itself', () => {
   assert.match(B.checkoutUrl(cfg, 'founder', acct), /^https:\/\/buy\.stripe\.com\/m1\?.*&prefilled_promo_code=FOUNDER$/);
   assert.match(B.checkoutUrl(cfg, 'annual', acct), /\?locale=en&client_reference_id=/);
   assert.strictEqual(B.checkoutUrl(cfg, 'monthly', null), '', 'must be signed in');
-  assert.strictEqual(B.checkoutUrl(on, 'monthly', acct), '', 'no link until Stripe is set up');
+  assert.strictEqual(B.checkoutUrl(Object.assign({}, on, { checkout: { monthly: '', annual: '' } }), 'monthly', acct), '', 'no link until Stripe is set up');
   assert.strictEqual(B.portalUrl(Object.assign({}, on, { portal: 'https://billing.stripe.com/p/login/abc' }), 'a@b.com'), 'https://billing.stripe.com/p/login/abc?prefilled_email=a%40b.com');
   assert.deepStrictEqual(B.planPrice(on, 'founder'), { amount: 12, unit: '/mo' });
   assert.deepStrictEqual(B.planPrice(on, 'annual'), { amount: 199, unit: '/yr' });
