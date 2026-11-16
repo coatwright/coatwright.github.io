@@ -99,7 +99,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Stripe payments built: Payment Links tied to the account (client_reference_id), webhook Edge Function (`supabase/functions/stripe-webhook`) records subscriptions in `supabase/billing.sql` (tested on PostgreSQL), app unlocks by itself after checkout, customer portal for manage/cancel
 - ✅ Founding members: Stripe coupon 50% forever + code FOUNDER (max 100, Stripe enforces); webhook numbers founders 1–100 and sends "You're Founding Member #N of 100" via Resend; badge in Settings/Plans; "X of 100 spots left" on the app's plans screen
 - ⬜ "X of 100 spots left" on the website pricing card too
-- ⬜ Owner: register the business name "Coatwright" (Ontario Business Registry → Master Business Licence); needed for TikTok/Facebook/LinkedIn business verification and a business bank account. Ask an accountant: sole proprietor vs incorporating
+- ⬜ Owner: register the business name "Coatwright" (Ontario Business Registry → Master Business Licence); needed for TikTok/Facebook/LinkedIn business verification and a business bank account. Ask an accountant: sole proprietor vs incorporating. **Owner's decision: wait until about $30K in sales** (same time as GST/HST registration). Note: the name rule applies regardless of income; risk of waiting is small (no verified badges, no business bank account)
 - ✅ Owner: Stripe account (Canada), Managed Payments, payouts weekly, 2FA, verification submitted
 - ✅ Owner: Stripe product ($24/mo, $199/yr, SaaS business use), FOUNDER coupon (50% forever, max 100, first order only), Monthly and Yearly Payment Links, customer portal link → saved in `app/billing.js` (billing still off)
 - ✅ Owner: `BILLING_SETUP.md` steps 2–11 (product, coupon, Payment Links, portal, emails, billing.sql, webhook function + secrets) → send Claude the 3 links
@@ -173,6 +173,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-15 | Painters pick their own currency; picked once from the phone's region, never changed automatically; subscription stays in USD | Worldwide use without travel changing anyone's quotes; Lemon Squeezy localizes checkout and handles VAT. Metric units later, when non-US sign-ups appear |
 | 2026-11-15 | Payments on **Stripe Managed Payments** instead of Lemon Squeezy; no license keys | Stripe owns Lemon Squeezy and steers new sellers to Managed Payments (same merchant-of-record tax handling, ~3.5% + card fee). With accounts, a webhook unlocks the app automatically: no keys to copy |
 | 2026-11-15 | Owner's Stripe account is in Canada, store prices in USD, payouts to a CAD bank | Owner lives in Canada; identity, payouts and tax forms must match |
+| 2026-11-16 | Register the business name and GST/HST together at about $30K in sales | Keep early costs down; platform verification can wait |
 
 ## Log
 
