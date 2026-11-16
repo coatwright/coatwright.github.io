@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/**. Sign-up before the trial (Google or 6-digit email code, one trial per email) is **switched on**. **Paid plans are live** on Stripe Managed Payments (14-day trials from Nov 15, 2026). **Next (owner): watch the first real sale's webhook delivery (purchase test skipped); more app fixes; social accounts.** Claude also owes a check of the quoting defaults against published production rates.
+**Where we are now:** Live at **https://getcoatwright.com/** with sign-up (Google or email code, one trial per email) and **paid plans on Stripe** (trials from Nov 15, 2026). Social: Instagram and Facebook **@coatwrightapp** done, TikTok in progress. **Next:** finish TikTok (repost the fresh explainer and pin it), YouTube, X, LinkedIn; Google Search Console; more app fixes. Claude also owes a check of the quoting defaults against published production rates.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -244,3 +244,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-16** — Facebook Page username set: facebook.com/coatwrightapp (footer updated).
 - **2026-11-16** — Owner creating TikTok @coatwrightapp. TikTok business verification needs registration documents, so skipped for now; registering the business name added to the plan.
 - **2026-11-16** — Owner posted on TikTok, but used an old saved explainer that still showed the GitHub address. Kit download links now end in `?v=2` so phones fetch the newest files; added how to save videos.
+- **2026-11-16** — Owner got a "claim your listing" email from a domain-listing site: advised it's spam/phishing aimed at new domains; ignore and report. Next session: finish TikTok, then YouTube/X/LinkedIn, and set up Google Search Console.
