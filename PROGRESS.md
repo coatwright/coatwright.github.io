@@ -138,6 +138,14 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 
 ---
 
+## Phase 2 — Paint store partnerships (after the first painters)
+
+- ✅ Pitch deck for paint stores: `marketing/store-pitch/Coatwright-Paint-Store-Pitch.pptx` (problem, how it works, store and contractor benefits, illustrative sales maths, store-branded version, free 60-day pilot, pricing, next steps; speaker notes on every slide)
+- ⬜ Build "colour per room" + "Send paint order to my store" (email/PDF) in the app: needed before pitching; the deck presents it as the pilot feature
+- ⬜ 20–50 painters using Coatwright (proof for stores)
+- ⬜ First free pilot with a local independent paint store (Benjamin Moore dealers and other independents; Sherwin-Williams stores are company-owned)
+- ⬜ Paid store plans ($299/store/month or $12/contractor/month as starting points), then dealer groups, then brand partnerships (brand names and colour libraries only with permission)
+
 ## Decisions made
 
 | Date | Decision | Why |
@@ -176,6 +184,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-15 | Payments on **Stripe Managed Payments** instead of Lemon Squeezy; no license keys | Stripe owns Lemon Squeezy and steers new sellers to Managed Payments (same merchant-of-record tax handling, ~3.5% + card fee). With accounts, a webhook unlocks the app automatically: no keys to copy |
 | 2026-11-15 | Owner's Stripe account is in Canada, store prices in USD, payouts to a CAD bank | Owner lives in Canada; identity, payouts and tax forms must match |
 | 2026-11-16 | Register the business name and GST/HST together at about $30K in sales | Keep early costs down; platform verification can wait |
+| 2026-11-16 | Phase 2: partner with independent paint stores ("Coatwright for [Store]"), free pilot first | Each store reaches many contractors; stores gain earlier, bigger, loyal orders. Store names only, no brand names without a licence |
 
 ## Log
 
@@ -248,3 +257,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-16** — Owner posted on TikTok, but used an old saved explainer that still showed the GitHub address. Kit download links now end in `?v=2` so phones fetch the newest files; added how to save videos.
 - **2026-11-16** — Owner got a "claim your listing" email from a domain-listing site: advised it's spam/phishing aimed at new domains; ignore and report. Next session: finish TikTok, then YouTube/X/LinkedIn, and set up Google Search Console.
 - **2026-11-16** — Owner wanted a free account to demo. Built complimentary access (database-granted by email, read-own RLS, Gmail variations match). Cache v23.
+- **2026-11-16** — Owner's idea: partner with paint stores. Advised independent dealers first, store branding (not brand names), free pilot, simple per-store pricing. Built the store pitch deck (11 slides with speaker notes).
