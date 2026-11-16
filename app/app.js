@@ -347,9 +347,14 @@
           settings.account.checkedAt = Date.now(); saveSettings();
         }
         if (!BC.enabled) return;
-        return AC.getSubscriptions(CFG, session).then(function (rows) {
-          var before = JSON.stringify(access());
-          settings.sub = BL.subFromRows(rows, Date.now()); saveSettings();
+        var before = JSON.stringify(access());
+        return Promise.all([
+          AC.getSubscriptions(CFG, session),
+          AC.getComp(CFG, session).catch(function (e) { return e && e.status === 404 ? null : Promise.reject(e); })
+        ]).then(function (res) {
+          settings.sub = BL.subFromRows(res[0], Date.now());
+          settings.comp = res[1] ? { note: res[1].note || 'Complimentary', checkedAt: Date.now() } : null;
+          saveSettings();
           var v = location.hash.split('/')[1] || '';
           if (JSON.stringify(access()) !== before && (v === '' || v === 'upgrade' || v === 'settings')) route();
         });
@@ -416,6 +421,7 @@
 
   /** "Renews Dec 15, 2026 · $24/mo" or "Ends Dec 15, 2026". */
   function renewLine(a) {
+    if (a.comp) return 'Complimentary access (' + esc(a.comp) + '), no subscription needed.';
     var pp = BL.planPrice(BC, a.plan);
     if (!a.renews) return '';
     return a.cancelAtEnd ? 'Ends on <b>' + esc(fmtDate(a.renews)) + '</b> (cancelled)'
@@ -453,7 +459,9 @@
         '<li>Job tracking, schedule, customers and profit stats</li><li>Your data stays private on your device</li></ul>' +
         '<p class="muted small center-text">Secure checkout by Stripe. Prices in US dollars; you\'ll see your local currency and any tax at checkout.</p>' : '') +
       '<section class="card"><h2 class="card-title">' + (a.mode === 'active' ? 'Manage your subscription' : 'Already subscribed?') + '</h2>' +
-      (a.mode === 'active'
+      (a.mode === 'active' && a.comp
+        ? '<p class="muted small" style="margin-top:0">This account has complimentary access, so there\'s nothing to pay or manage.</p>'
+        : a.mode === 'active'
         ? '<p class="muted small" style="margin-top:0">Change plan, update your card, download receipts or cancel.</p>' +
           (portal ? '<a class="btn btn-primary full" href="' + esc(portal) + '" target="_blank" rel="noopener">Manage or cancel</a>' : '')
         : '<p class="muted small" style="margin-top:0">Subscribed but still seeing this? Make sure you\'re signed in with the email you paid with' +

@@ -97,3 +97,16 @@ test('trial reminders at 7, 3 and 1 days left, each shown once', () => {
   assert.strictEqual(B.trialReminder({ mode: 'active' }, 0), 0);
   assert.strictEqual(B.trialReminder({ mode: 'free', canCreate: true }, 0), 0);
 });
+
+test('complimentary access unlocks Pro without a subscription, re-checked online now and then', () => {
+  const now = Date.now();
+  const a = B.accessState({ trialStart: now - 90 * DAY, comp: { note: 'Owner', checkedAt: now - DAY } }, now, on);
+  assert.strictEqual(a.mode, 'active');
+  assert.strictEqual(a.canCreate, true);
+  assert.strictEqual(a.plan, 'comp');
+  assert.strictEqual(a.comp, 'Owner');
+  assert.strictEqual(B.planName('comp'), 'Complimentary');
+  const stale = B.accessState({ trialStart: now - 90 * DAY, comp: { note: 'Owner', checkedAt: now - 40 * DAY } }, now, on);
+  assert.strictEqual(stale.mode, 'expired', 'must reconnect within 28 days');
+  assert.strictEqual(B.accessState({ comp: { note: 'Owner', checkedAt: now } }, now, Object.assign({}, on, { enabled: false })).mode, 'free');
+});

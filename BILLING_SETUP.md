@@ -132,6 +132,27 @@ Claude will ask you to buy the **Monthly** plan yourself with a real card from t
 
 ---
 
+## Free Pro for yourself, demos and testers (complimentary access)
+
+1. Open **https://getcoatwright.com/supabase/comp.sql** → copy all → Supabase **SQL Editor → New query** → paste → **Run** (once).
+2. To give someone free Pro, run this in a new query (put the **email they sign in with** between the quotes):
+
+```sql
+insert into public.comp_access (email_norm, note) values (public.normalize_email('THEIR-EMAIL-HERE'), 'Owner')
+on conflict (email_norm) do update set note = excluded.note;
+```
+
+   Use `'Owner'`, `'Beta tester'`, `'Partner'`… as the note. Gmail `+` / `.` variations count as the same address.
+3. They open the app (close and reopen it): Plans says **"Complimentary access, no subscription needed"**.
+
+Take it away: `delete from public.comp_access where email_norm = public.normalize_email('THEIR-EMAIL-HERE');`
+See everyone: `select * from public.comp_access order by created_at;`
+
+Access lives only in the database, so nobody can give it to themselves. The app re-checks it whenever it's online
+(it keeps working offline for up to 4 weeks).
+
+---
+
 ## What customers experience
 
 1. Sign up → 14-day free trial, no card. The app shows days left and reminds them at 7, 3 and 1 days.
