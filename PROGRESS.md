@@ -239,3 +239,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-15** — Added `marketing/CHROME_PROMPTS.md`: copy-paste prompts for the Claude in Chrome extension to set up Instagram, Facebook Page, TikTok, YouTube, X, LinkedIn (Page + Founder & CEO profile), 2FA and post scheduling in Meta Business Suite.
 - **2026-11-16** — Owner created Instagram **@coatwrightapp** (business account, App page, bio, link, first post). Use `coatwrightapp` on every other platform. Instagram linked from the website footer.
 - **2026-11-16** — Owner created the Facebook Page "Coatwright" (App page, bio, logo, link, email). Footer links it via the share link for now; switch to facebook.com/coatwrightapp once the username can be set.
+- **2026-11-16** — Facebook Page username set: facebook.com/coatwrightapp (footer updated).
