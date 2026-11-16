@@ -8,15 +8,15 @@ sensitive. Same answers as `SOCIAL_SETUP.md`, packed into prompts.
 
 1. In Chrome, **sign in to Gmail as coatwrightapp@gmail.com** (so codes are easy to find) and open your password manager.
 2. **Download the images to your computer** (open each link → right-click → Save image as…):
-   - Profile picture: https://getcoatwright.com/marketing/social/profile-picture.png
-   - Facebook cover: https://getcoatwright.com/marketing/social/facebook-cover.png
-   - YouTube banner: https://getcoatwright.com/marketing/social/youtube-banner.png
-   - X header: https://getcoatwright.com/marketing/social/x-header.png
-   - LinkedIn banner: https://getcoatwright.com/marketing/social/linkedin-banner.png
-   - LinkedIn company cover: https://getcoatwright.com/marketing/social/linkedin-company-cover.png
-   - First post: https://getcoatwright.com/marketing/social/first-post.png
-   - Explainer video: https://getcoatwright.com/marketing/videos/coatwright-explainer.mp4
-   - Demo video: https://getcoatwright.com/marketing/videos/coatwright-demo-quote.mp4
+   - Profile picture: https://getcoatwright.com/marketing/social/profile-picture.png?v=2
+   - Facebook cover: https://getcoatwright.com/marketing/social/facebook-cover.png?v=2
+   - YouTube banner: https://getcoatwright.com/marketing/social/youtube-banner.png?v=2
+   - X header: https://getcoatwright.com/marketing/social/x-header.png?v=2
+   - LinkedIn banner: https://getcoatwright.com/marketing/social/linkedin-banner.png?v=2
+   - LinkedIn company cover: https://getcoatwright.com/marketing/social/linkedin-company-cover.png?v=2
+   - First post: https://getcoatwright.com/marketing/social/first-post.png?v=2
+   - Explainer video: https://getcoatwright.com/marketing/videos/coatwright-explainer.mp4?v=2
+   - Demo video: https://getcoatwright.com/marketing/videos/coatwright-demo-quote.mp4?v=2
 3. **Open a new tab** for each prompt. One platform per conversation keeps it reliable.
 4. Platforms sometimes block or slow down sign-ups that look automated. If a site asks for a phone number or shows repeated
    checks, finish that part yourself, then let Claude continue.

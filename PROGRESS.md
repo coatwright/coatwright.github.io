@@ -243,3 +243,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-16** — Owner created the Facebook Page "Coatwright" (App page, bio, logo, link, email). Footer links it via the share link for now; switch to facebook.com/coatwrightapp once the username can be set.
 - **2026-11-16** — Facebook Page username set: facebook.com/coatwrightapp (footer updated).
 - **2026-11-16** — Owner creating TikTok @coatwrightapp. TikTok business verification needs registration documents, so skipped for now; registering the business name added to the plan.
+- **2026-11-16** — Owner posted on TikTok, but used an old saved explainer that still showed the GitHub address. Kit download links now end in `?v=2` so phones fetch the newest files; added how to save videos.
