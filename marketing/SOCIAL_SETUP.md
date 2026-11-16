@@ -21,20 +21,25 @@ Try to get the **same username** on every platform. If `coatwright` is taken any
 
 ## Before you start: save the images to your phone (2 min)
 
-Open each link on your phone, **press and hold the image → Save to Photos** (iPhone) or **Download image** (Android):
+Open each link on your phone:
+- **Images:** press and hold the image → **Save to Photos** (iPhone) or **Download image** (Android).
+- **Videos:** tap the **Share** button (square with an arrow) → **Save Video** (iPhone), or ⋮ → **Download** (Android).
+
+The `?v=2` at the end of each link makes sure you get the newest version, not an old copy your phone remembered.
+If you saved any of these before Nov 14, 2026, delete the old copies first (the old explainer showed a GitHub address).
 
 | Image | Link | Used for |
 |---|---|---|
-| Profile picture | https://getcoatwright.com/marketing/social/profile-picture.png | Every platform |
-| Facebook cover | https://getcoatwright.com/marketing/social/facebook-cover.png | Facebook Page |
-| YouTube banner | https://getcoatwright.com/marketing/social/youtube-banner.png | YouTube |
-| X header | https://getcoatwright.com/marketing/social/x-header.png | X (Twitter) |
-| LinkedIn banner (your profile) | https://getcoatwright.com/marketing/social/linkedin-banner.png | Your personal LinkedIn |
-| LinkedIn company cover | https://getcoatwright.com/marketing/social/linkedin-company-cover.png | Coatwright LinkedIn Page |
-| First post | https://getcoatwright.com/marketing/social/first-post.png | Instagram & Facebook |
-| Demo video 1 | https://getcoatwright.com/marketing/videos/coatwright-demo-quote.mp4 | Posts on every platform |
-| Demo video 2 | https://getcoatwright.com/marketing/videos/coatwright-demo-stats.mp4 | Posts on every platform |
-| **Explainer (with voiceover)** | https://getcoatwright.com/marketing/videos/coatwright-explainer.mp4 | **Pinned post on every platform** |
+| Profile picture | https://getcoatwright.com/marketing/social/profile-picture.png?v=2 | Every platform |
+| Facebook cover | https://getcoatwright.com/marketing/social/facebook-cover.png?v=2 | Facebook Page |
+| YouTube banner | https://getcoatwright.com/marketing/social/youtube-banner.png?v=2 | YouTube |
+| X header | https://getcoatwright.com/marketing/social/x-header.png?v=2 | X (Twitter) |
+| LinkedIn banner (your profile) | https://getcoatwright.com/marketing/social/linkedin-banner.png?v=2 | Your personal LinkedIn |
+| LinkedIn company cover | https://getcoatwright.com/marketing/social/linkedin-company-cover.png?v=2 | Coatwright LinkedIn Page |
+| First post | https://getcoatwright.com/marketing/social/first-post.png?v=2 | Instagram & Facebook |
+| Demo video 1 | https://getcoatwright.com/marketing/videos/coatwright-demo-quote.mp4?v=2 | Posts on every platform (no sound: add music in the app) |
+| Demo video 2 | https://getcoatwright.com/marketing/videos/coatwright-demo-stats.mp4?v=2 | Posts on every platform (no sound: add music in the app) |
+| **Explainer (with voiceover)** | https://getcoatwright.com/marketing/videos/coatwright-explainer.mp4?v=2 | **Pinned post on every platform** |
 
 Also have your **password manager** ready (iPhone Passwords app or Google Password Manager) to save each new password.
 
