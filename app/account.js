@@ -103,6 +103,12 @@
       { token: session.accessToken });
   }
 
+  /** Complimentary access row for this account (owner, demos, testers). Empty when none. */
+  function getComp(cfg, session) {
+    return call(cfg, '/rest/v1/comp_access?select=note&limit=1', { token: session.accessToken })
+      .then(function (rows) { return rows && rows[0] ? rows[0] : null; });
+  }
+
   /** How many founding-member spots are left (public). */
   function founderSpotsLeft(cfg) {
     return call(cfg, '/rest/v1/rpc/founder_spots_left', { method: 'POST', body: {} }).then(function (n) { return Number(n); });
@@ -120,7 +126,7 @@
   var api = {
     normalizeEmail: normalizeEmail, validEmail: validEmail, parseAuthFragment: parseAuthFragment, sessionFrom: sessionFrom,
     needsRefresh: needsRefresh, sendCode: sendCode, verifyCode: verifyCode, refresh: refresh, getUser: getUser,
-    getProfile: getProfile, getSubscriptions: getSubscriptions, founderSpotsLeft: founderSpotsLeft, signOut: signOut, googleUrl: googleUrl
+    getProfile: getProfile, getSubscriptions: getSubscriptions, getComp: getComp, founderSpotsLeft: founderSpotsLeft, signOut: signOut, googleUrl: googleUrl
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.Account = api;

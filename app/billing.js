@@ -84,6 +84,10 @@
     if (!cfg.enabled) return { mode: 'free', canCreate: true };
     var sub = settings && settings.sub;
     var grace = (Number(cfg.graceDays) || 7) * DAY;
+    var comp = settings && settings.comp;
+    if (comp && now - (Number(comp.checkedAt) || 0) <= 4 * grace) {
+      return { mode: 'active', canCreate: true, plan: 'comp', comp: comp.note || 'Complimentary', renews: 0, cancelAtEnd: false, founderNumber: null, pastDue: false };
+    }
     if (sub && LIVE[sub.status] && (!sub.periodEnd || now <= sub.periodEnd + grace)) {
       var info = { plan: sub.plan || 'monthly', renews: sub.periodEnd || 0, cancelAtEnd: !!sub.cancelAtEnd,
         founderNumber: sub.founderNumber || null, pastDue: sub.status === 'past_due' };
@@ -120,7 +124,7 @@
   }
 
   function planName(plan) {
-    return plan === 'founder' ? 'Founding member' : plan === 'annual' ? 'Yearly' : 'Monthly';
+    return plan === 'comp' ? 'Complimentary' : plan === 'founder' ? 'Founding member' : plan === 'annual' ? 'Yearly' : 'Monthly';
   }
 
   /** What the plan costs each renewal, e.g. { amount: 24, unit: '/mo' }. */

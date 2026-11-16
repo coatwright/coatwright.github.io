@@ -9,6 +9,7 @@ from `main` (anything merged into `main` goes live).
 - Accounts: `app/config.js` (Supabase URL/public key, `accounts` and `google` switches), `app/account.js`, database rules in `supabase/setup.sql`, owner steps in `ACCOUNTS_SETUP.md`.
 - Payments (Stripe Managed Payments): `app/billing.js` holds the billing switch (`enabled`, `startDate`), Stripe Payment Links and the customer portal link;
   database in `supabase/billing.sql`, webhook in `supabase/functions/stripe-webhook/index.ts`; owner steps in `BILLING_SETUP.md`.
+  Complimentary (free Pro) access by email: `supabase/comp.sql` (table `comp_access`, granted only from the SQL Editor).
   When switching billing on, set `startDate` to that day so existing users get a full 14-day trial, and bump the cache name in `app/sw.js`.
 
 **Project tracking:** `PROGRESS.md` is the step-by-step tracker. Read it at the start of every

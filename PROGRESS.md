@@ -97,6 +97,8 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ⬜ Trial-ending reminder email 3 days before (Supabase scheduled job + Resend), built with billing
 - ✅ Subscribers: plan, renewal date and price in Settings and Plans; "Ends on …" after cancelling; payment-problem banner. Renewal reminder emails come from Stripe (BILLING_SETUP step 6)
 - ✅ Stripe payments built: Payment Links tied to the account (client_reference_id), webhook Edge Function (`supabase/functions/stripe-webhook`) records subscriptions in `supabase/billing.sql` (tested on PostgreSQL), app unlocks by itself after checkout, customer portal for manage/cancel
+- ✅ Complimentary access (free Pro for the owner, demos, testers): `supabase/comp.sql`, granted by email from the SQL Editor only; app shows "Complimentary" (tested on PostgreSQL + simulated phone)
+- ⬜ Owner: run comp.sql and grant their own sign-in email (BILLING_SETUP → Free Pro)
 - ✅ Founding members: Stripe coupon 50% forever + code FOUNDER (max 100, Stripe enforces); webhook numbers founders 1–100 and sends "You're Founding Member #N of 100" via Resend; badge in Settings/Plans; "X of 100 spots left" on the app's plans screen
 - ⬜ "X of 100 spots left" on the website pricing card too
 - ⬜ Owner: register the business name "Coatwright" (Ontario Business Registry → Master Business Licence); needed for TikTok/Facebook/LinkedIn business verification and a business bank account. Ask an accountant: sole proprietor vs incorporating. **Owner's decision: wait until about $30K in sales** (same time as GST/HST registration). Note: the name rule applies regardless of income; risk of waiting is small (no verified badges, no business bank account)
@@ -245,3 +247,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-16** — Owner creating TikTok @coatwrightapp. TikTok business verification needs registration documents, so skipped for now; registering the business name added to the plan.
 - **2026-11-16** — Owner posted on TikTok, but used an old saved explainer that still showed the GitHub address. Kit download links now end in `?v=2` so phones fetch the newest files; added how to save videos.
 - **2026-11-16** — Owner got a "claim your listing" email from a domain-listing site: advised it's spam/phishing aimed at new domains; ignore and report. Next session: finish TikTok, then YouTube/X/LinkedIn, and set up Google Search Console.
+- **2026-11-16** — Owner wanted a free account to demo. Built complimentary access (database-granted by email, read-own RLS, Gmail variations match). Cache v23.
