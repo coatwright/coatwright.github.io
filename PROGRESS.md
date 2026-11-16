@@ -99,6 +99,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Stripe payments built: Payment Links tied to the account (client_reference_id), webhook Edge Function (`supabase/functions/stripe-webhook`) records subscriptions in `supabase/billing.sql` (tested on PostgreSQL), app unlocks by itself after checkout, customer portal for manage/cancel
 - ✅ Founding members: Stripe coupon 50% forever + code FOUNDER (max 100, Stripe enforces); webhook numbers founders 1–100 and sends "You're Founding Member #N of 100" via Resend; badge in Settings/Plans; "X of 100 spots left" on the app's plans screen
 - ⬜ "X of 100 spots left" on the website pricing card too
+- ⬜ Owner: register the business name "Coatwright" (Ontario Business Registry → Master Business Licence); needed for TikTok/Facebook/LinkedIn business verification and a business bank account. Ask an accountant: sole proprietor vs incorporating
 - ✅ Owner: Stripe account (Canada), Managed Payments, payouts weekly, 2FA, verification submitted
 - ✅ Owner: Stripe product ($24/mo, $199/yr, SaaS business use), FOUNDER coupon (50% forever, max 100, first order only), Monthly and Yearly Payment Links, customer portal link → saved in `app/billing.js` (billing still off)
 - ✅ Owner: `BILLING_SETUP.md` steps 2–11 (product, coupon, Payment Links, portal, emails, billing.sql, webhook function + secrets) → send Claude the 3 links
@@ -240,3 +241,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-16** — Owner created Instagram **@coatwrightapp** (business account, App page, bio, link, first post). Use `coatwrightapp` on every other platform. Instagram linked from the website footer.
 - **2026-11-16** — Owner created the Facebook Page "Coatwright" (App page, bio, logo, link, email). Footer links it via the share link for now; switch to facebook.com/coatwrightapp once the username can be set.
 - **2026-11-16** — Facebook Page username set: facebook.com/coatwrightapp (footer updated).
+- **2026-11-16** — Owner creating TikTok @coatwrightapp. TikTok business verification needs registration documents, so skipped for now; registering the business name added to the plan.
