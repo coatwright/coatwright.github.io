@@ -448,3 +448,15 @@ body[data-view="welcome"] .top-actions, body[data-view="signin"] .top-actions { 
 .row2 .stepper output { flex: 1; }
 .cur-note { margin: 0 0 14px; }
 .founder-badge { display: inline-block; background: #fff4e0; border: 1px solid #f2cf86; color: #8a5a00; font-weight: 700; font-size: 14px; padding: 4px 12px; border-radius: 999px; margin: 6px 0 4px; }
+
+/* Paint picks & paint order */
+.paint-box { margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: #fafbff; }
+.paint-box summary { cursor: pointer; font-weight: 700; font-size: 15px; }
+.paint-row { margin-top: 10px; }
+.paint-row .paint-label { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+.paint-row input, .paint-row select { width: 100%; }
+.paint-row .row2 { margin-top: 6px; }
+.paint-card summary { cursor: pointer; }
+.paint-order { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 8px; }
+.paint-order li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+.paint-order .buy { font-weight: 800; white-space: nowrap; color: var(--brand); }

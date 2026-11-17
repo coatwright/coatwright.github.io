@@ -580,6 +580,90 @@
       hours: round2(hours), laborCost: round2(laborCost) };
   }
 
+  // ---- Paint selections & paint order -----------------------------------------------------------
+  var PAINT_BASES = [['latex', 'Latex'], ['oil', 'Oil-based']];
+  var SHEENS = ['Flat', 'Matte', 'Eggshell', 'Satin', 'Semi-gloss', 'Gloss'];
+  var PAINT_SURFACES = [['walls', 'Walls'], ['ceiling', 'Ceiling'], ['trim', 'Trim & doors']];
+  var DEFAULT_PAINT = {
+    walls: { color: '', base: 'latex', sheen: 'Eggshell' },
+    ceiling: { color: '', base: 'latex', sheen: 'Flat' },
+    trim: { color: '', base: 'latex', sheen: 'Semi-gloss' }
+  };
+
+  /** Room paint picks with defaults filled in (copies, never shares objects). */
+  function paintFor(holder) {
+    var p = (holder && holder.paint) || {};
+    var out = {};
+    PAINT_SURFACES.forEach(function (sf) {
+      out[sf[0]] = Object.assign({}, DEFAULT_PAINT[sf[0]], p[sf[0]] || {});
+    });
+    return out;
+  }
+
+  /**
+   * What to buy for an exact amount of paint: 5-gallon pails, gallons and quarts.
+   * Three or more quarts become another gallon (cheaper); tiny overages (< 1/2 quart) are ignored.
+   */
+  function containers(gallons) {
+    var g = Math.max(0, num(gallons));
+    if (g <= 0) return { pails: 0, gallons: 0, quarts: 0, text: '' };
+    var quartsTotal = Math.max(1, Math.ceil(g * 4 - 0.5));
+    var gal = Math.floor(quartsTotal / 4), qt = quartsTotal % 4;
+    if (qt >= 3) { gal += 1; qt = 0; }
+    var pails = gal >= 5 ? Math.floor(gal / 5) : 0;
+    gal -= pails * 5;
+    var parts = [];
+    if (pails) parts.push(pails + (pails === 1 ? ' × 5-gal pail' : ' × 5-gal pails'));
+    if (gal) parts.push(gal + (gal === 1 ? ' gal' : ' gal'));
+    if (qt) parts.push(qt + (qt === 1 ? ' qt' : ' qt'));
+    return { pails: pails, gallons: gal, quarts: qt, text: parts.join(' + ') };
+  }
+
+  /**
+   * Paint order for a job: every room's walls, ceiling and trim paint grouped by
+   * product + type + sheen + colour, with exact gallons and what to buy.
+   */
+  function paintOrder(job, settings) {
+    var s = Object.assign({}, DEFAULT_SETTINGS, settings);
+    var groups = {}, order = [];
+    function add(product, spec, gallons, where) {
+      if (!(gallons > 0)) return;
+      var color = String(spec.color || '').trim();
+      var key = [product, spec.base || '', spec.sheen || '', color.toLowerCase()].join('|');
+      var g = groups[key];
+      if (!g) {
+        g = groups[key] = { product: product, base: spec.base || '', sheen: spec.sheen || '', color: color, gallons: 0, where: [] };
+        order.push(g);
+      }
+      g.gallons += gallons;
+      if (where && g.where.indexOf(where) === -1) g.where.push(where);
+    }
+    var rooms = job.mode === 'quick'
+      ? [{ name: job.jobType === 'commercial' ? 'Whole space' : 'Whole home', calc: calcQuick(job.quick, s, job.jobType, job.propertyType), paint: paintFor(job.quick) }]
+      : (job.rooms || []).map(function (r) { return { name: r.name || 'Room', calc: calcRoom(r, s), paint: paintFor(r) }; });
+    rooms.forEach(function (r) {
+      var gl = r.calc.gallons || {};
+      add('Wall paint', r.paint.walls, gl.wall, r.name);
+      add('Ceiling paint', r.paint.ceiling, gl.ceiling, r.name);
+      add('Trim & door paint', r.paint.trim, gl.trim, r.name);
+      add('Primer', { base: 'latex', sheen: '', color: '' }, gl.primer, r.name);
+    });
+    var outsideProducts = { ext: 'Exterior paint', stain: 'Deck & fence stain', floor: 'Floor paint', cabinet: 'Cabinet primer & enamel', primer: 'Primer' };
+    (job.outside || []).forEach(function (item) {
+      var c = calcOutside(item, s);
+      Object.keys(c.gallons || {}).forEach(function (k) {
+        if (outsideProducts[k]) add(outsideProducts[k], { base: k === 'stain' ? '' : 'latex', sheen: '', color: '' }, c.gallons[k], item.name || 'Exterior');
+      });
+    });
+    order.forEach(function (g) {
+      g.gallons = round2(g.gallons);
+      var cont = containers(g.gallons);
+      g.buy = cont;
+      g.buyText = cont.text;
+    });
+    return order;
+  }
+
   /** Full itemized quote for a job. */
   function calcJob(job, settings) {
     var s = Object.assign({}, DEFAULT_SETTINGS, settings);
@@ -619,7 +703,7 @@
     var products = [
       ['wall', 'Wall paint', s.wallPaintPrice],
       ['ceiling', 'Ceiling paint', s.ceilingPaintPrice],
-      ['trim', 'Trim & door paint (semi-gloss)', s.trimPaintPrice],
+      ['trim', 'Trim & door paint', s.trimPaintPrice],
       ['primer', 'Primer', s.primerPrice],
       ['ext', 'Exterior paint', s.extPaintPrice],
       ['stain', 'Deck & fence stain', s.stainPrice],
@@ -710,6 +794,8 @@
     COMMERCIAL_ROOM_TYPES: COMMERCIAL_ROOM_TYPES,
     COMMERCIAL_AREAS: COMMERCIAL_AREAS,
     findProperty: findProperty,
+    PAINT_BASES: PAINT_BASES, SHEENS: SHEENS, PAINT_SURFACES: PAINT_SURFACES, DEFAULT_PAINT: DEFAULT_PAINT,
+    paintFor: paintFor, containers: containers, paintOrder: paintOrder,
     JOB_TYPES: JOB_TYPES,
     roomTypesFor: roomTypesFor,
     propertyLabel: propertyLabel,
