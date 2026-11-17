@@ -22,10 +22,12 @@ with open(V + '/frames.ffconcat', 'w') as fh:
 total = endT - t0
 sr = 24000
 track = np.zeros(int((total + 0.5) * sr), dtype=np.float32)
+planned = 0.0
 for s in scenes:
     data, rate = sf.read(f"{V}/vo/{s['id']}.wav", dtype='float32')
     assert rate == sr
-    off = int((s['start'] - t0 + 0.45) * sr)
+    off = int((planned + 0.12) * sr)  # continuous narration on the planned timeline
+    planned += s['dur']
     track[off:off + len(data)] += data[: max(0, len(track) - off)]
 peak = np.max(np.abs(track)) or 1
 track = track / peak * 0.89
