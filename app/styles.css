@@ -458,5 +458,18 @@ body[data-view="welcome"] .top-actions, body[data-view="signin"] .top-actions { 
 .paint-row .row2 { margin-top: 6px; }
 .paint-card summary { cursor: pointer; }
 .paint-order { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 8px; }
-.paint-order li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+.paint-order li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
 .paint-order .buy { font-weight: 800; white-space: nowrap; color: var(--brand); }
+
+.room-paint { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: 13px; }
+.room-paint:empty { display: none; }
+.room-paint .rp-title { width: 100%; font-weight: 700; color: var(--muted); }
+.room-paint .rp-item { background: var(--brand-soft); border-radius: 999px; padding: 3px 10px; }
+.paint-rooms { display: grid; gap: 8px; }
+.pr-room { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; font-size: 14px; }
+.pr-line { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.po-main { display: flex; justify-content: space-between; gap: 10px; }
+.po-price { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.po-price .with-unit { max-width: 170px; }
+.po-cost { font-weight: 700; }
+.po-total { display: flex; justify-content: space-between; font-size: 16px; padding: 8px 2px; border-top: 1px solid var(--line); margin-top: 4px; }
