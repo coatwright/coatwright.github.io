@@ -141,7 +141,8 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 ## Phase 2 — Paint store partnerships (after the first painters)
 
 - ✅ Pitch deck for paint stores: `marketing/store-pitch/Coatwright-Paint-Store-Pitch.pptx` (problem, how it works, store and contractor benefits, illustrative sales maths, store-branded version, free 60-day pilot, pricing, next steps; speaker notes on every slide)
-- ⬜ Build "colour per room" + "Send paint order to my store" (email/PDF) in the app: needed before pitching; the deck presents it as the pilot feature
+- ✅ Paint picks per room (colour name/code, latex or oil-based, sheen for walls, ceiling, trim & doors; new rooms copy the last room's picks) + **Paint order** card: same paint across rooms combined, exact gallons from the quote rounded to pails/gallons/quarts, store name/email and pickup date, Email store / Text / Copy
+- ⬜ Later: oil-based price and slower labour in the quote; colours shown on the customer's estimate
 - ⬜ 20–50 painters using Coatwright (proof for stores)
 - ⬜ First free pilot with a local independent paint store (Benjamin Moore dealers and other independents; Sherwin-Williams stores are company-owned)
 - ⬜ Paid store plans ($299/store/month or $12/contractor/month as starting points), then dealer groups, then brand partnerships (brand names and colour libraries only with permission)
@@ -259,3 +260,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-16** — Owner wanted a free account to demo. Built complimentary access (database-granted by email, read-own RLS, Gmail variations match). Cache v23.
 - **2026-11-16** — Owner's idea: partner with paint stores. Advised independent dealers first, store branding (not brand names), free pilot, simple per-store pricing. Built the store pitch deck (11 slides with speaker notes).
 - **2026-11-17** — Owner noticed Venmo/Zelle (US-only) in the app. Payment methods painters log now follow their currency (Canada: Interac e-Transfer and cheque; US: Zelle, Venmo, check; elsewhere bank transfer), with a matching example for invoice payment instructions; website wording made international. Cache v24.
+- **2026-11-17** — Owner's idea: pick colour, latex/oil and sheen per room, and the app knows the paint needed. Built paint picks per room and the Paint order (send to store). Cache v25.

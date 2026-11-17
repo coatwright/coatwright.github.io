@@ -215,3 +215,30 @@ test('specialty: popcorn asbestos test is optional; drywall and wallpaper add ma
   assert.deepStrictEqual(P.OUTSIDE_GROUPS.map(g => g[0]), ['exterior', 'floor', 'specialty']);
   P.OUTSIDE_TYPES.forEach(x => assert.ok(P.OUTSIDE_GROUPS.some(g => g[0] === x.group), x.name + ' has a group'));
 });
+
+test('paint containers: what you actually buy', () => {
+  assert.strictEqual(P.containers(0).text, '');
+  assert.strictEqual(P.containers(0.3).text, '1 qt');
+  assert.strictEqual(P.containers(1.1).text, '1 gal', 'a tiny overage does not add a quart');
+  assert.strictEqual(P.containers(2.3).text, '2 gal + 1 qt');
+  assert.strictEqual(P.containers(2.8).text, '3 gal', '3 quarts become a gallon');
+  assert.strictEqual(P.containers(12.6).text, '2 × 5-gal pails + 2 gal + 2 qt');
+});
+
+test('paint order groups the same paint across rooms and keeps picks separate', () => {
+  const a = P.newRoom(P.ROOM_TYPES[0]), b = P.newRoom(P.ROOM_TYPES[1]);
+  a.name = 'Bedroom'; b.name = 'Living Room';
+  a.paint = { walls: { color: 'Chantilly Lace OC-65' } };
+  b.paint = { walls: { color: 'chantilly lace oc-65 ' }, trim: { base: 'oil', sheen: 'Gloss' } };
+  const order = P.paintOrder({ mode: 'rooms', rooms: [a, b] }, {});
+  const walls = order.filter(g => g.product === 'Wall paint');
+  assert.strictEqual(walls.length, 1, 'same colour, type and sheen combined (case and spaces ignored)');
+  assert.deepStrictEqual(walls[0].where, ['Bedroom', 'Living Room']);
+  assert.strictEqual(walls[0].sheen, 'Eggshell', 'default wall sheen');
+  const exact = P.calcRoom(a, {}).gallons.wall + P.calcRoom(b, {}).gallons.wall;
+  assert.ok(Math.abs(walls[0].gallons - exact) < 0.01, 'uses the same gallons as the quote');
+  const trims = order.filter(g => g.product === 'Trim & door paint');
+  assert.strictEqual(trims.length, 2, 'latex semi-gloss and oil gloss trim stay separate');
+  assert.ok(trims.some(t => t.base === 'oil' && t.sheen === 'Gloss'));
+  assert.deepStrictEqual(P.paintFor({}).ceiling, { color: '', base: 'latex', sheen: 'Flat' });
+});

@@ -641,6 +641,26 @@
       (unit ? '<em>' + unit + '</em>' : '') + '</div></label>';
   }
 
+  /** Colour, latex/oil and sheen for each surface being painted. `prefix` is the data-field path to the room. */
+  function paintSection(holder, prefix, surfaces) {
+    var active = { walls: !!surfaces.walls, ceiling: !!surfaces.ceiling, trim: !!(surfaces.trim || surfaces.doors) };
+    var rows = P.PAINT_SURFACES.filter(function (sf) { return active[sf[0]]; }).map(function (sf) {
+      var k = sf[0], pk = holder.paint[k], f = prefix + '.paint.' + k;
+      return '<div class="paint-row"><div class="paint-label">' + sf[1] + '</div>' +
+        '<input data-field="' + f + '.color" value="' + esc(pk.color) + '" placeholder="Colour name / code" aria-label="' + sf[1] + ' colour" autocomplete="off">' +
+        '<div class="row2"><select data-field="' + f + '.base" aria-label="' + sf[1] + ' paint type">' + P.PAINT_BASES.map(function (b) {
+          return '<option value="' + b[0] + '"' + (pk.base === b[0] ? ' selected' : '') + '>' + b[1] + '</option>';
+        }).join('') + '</select>' +
+        '<select data-field="' + f + '.sheen" aria-label="' + sf[1] + ' sheen">' + P.SHEENS.map(function (sh) {
+          return '<option' + (pk.sheen === sh ? ' selected' : '') + '>' + sh + '</option>';
+        }).join('') + '</select></div></div>';
+    }).join('');
+    if (!rows) return '';
+    var picked = P.PAINT_SURFACES.filter(function (sf) { return active[sf[0]] && holder.paint[sf[0]].color; }).length;
+    return '<details class="paint-box"' + (picked ? '' : '') + '><summary>🎨 Paint: colours, type &amp; sheen' +
+      (picked ? ' <span class="muted small">(' + picked + ' picked)</span>' : ' <span class="muted small">(optional)</span>') + '</summary>' + rows + '</details>';
+  }
+
   function roomCard(room, i, calc) {
     var c = calc.rooms[i];
     return '<section class="card room-card" data-room="' + i + '">' +
@@ -655,6 +675,7 @@
       '<div class="row2">' + stepper(i, 'doors', room.doors, 'Doors') + stepper(i, 'windows', room.windows, 'Windows') + '</div>' +
       '<div class="row2"><div><div class="label">Coats</div>' + segmented(i, 'coats', room.coats, [[1, '1'], [2, '2'], [3, '3']]) + '</div>' +
       '<div><div class="label">Wall condition</div>' + segmented(i, 'condition', room.condition, [['good', 'Good'], ['fair', 'Fair'], ['poor', 'Rough']]) + '</div></div>' +
+      paintSection(room, 'rooms.' + i, room.surfaces || {}) +
       '<div class="room-foot"><span class="muted small" data-out="room-meta-' + i + '">' + roomMeta(c) + '</span>' +
       '<span><button type="button" class="link" data-action="dup-room" data-i="' + i + '">Copy</button>' +
       '<button type="button" class="link danger" data-action="del-room" data-i="' + i + '">Remove</button></span></div>' +
@@ -692,6 +713,7 @@
       }).join('') + '</div>' +
       '<div class="row2"><div><div class="label">Coats</div>' + qseg('coats', q.coats, [[1, '1'], [2, '2'], [3, '3']]) + '</div>' +
       '<div><div class="label">Wall condition</div>' + qseg('condition', q.condition, [['good', 'Good'], ['fair', 'Fair'], ['poor', 'Rough']]) + '</div></div>' +
+      paintSection(q, 'quick', q.surfaces || {}) +
       '<div class="room-foot"><span class="muted small" data-out="room-meta-0">' + roomMeta(c) + '</span></div>' +
       '<p class="hint">💡 Ballpark price. Switch to <b>Room by room</b> after a walkthrough for an exact quote.</p>' +
       '</section>';
@@ -856,11 +878,51 @@
   }
   function outMeta(c) { return Math.round(c.hours * 10) / 10 + ' hrs labor'; }
 
+  function paintOrderList(job) {
+    var order = P.paintOrder(job, settings);
+    if (!order.length) return '<p class="muted small">Add rooms (or areas) to see the paint you need.</p>';
+    return '<ul class="paint-order">' + order.map(function (g) {
+      var spec = [g.base === 'oil' ? 'Oil' : g.base === 'latex' ? 'Latex' : '', g.sheen].filter(Boolean).join(' · ');
+      return '<li><div><strong>' + esc(g.product) + '</strong>' + (spec ? ' <span class="muted small">' + esc(spec) + '</span>' : '') +
+        '<div class="small">' + (g.color ? '🎨 ' + esc(g.color) : '<span class="muted">Colour not picked yet</span>') + '</div>' +
+        '<div class="muted small">' + esc(g.where.join(', ')) + '</div></div><div class="buy">' + esc(g.buyText) + '</div></li>';
+    }).join('') + '</ul>';
+  }
+
+  /** Plain-text paint order for the store (email / text / copy). */
+  function paintOrderText(job) {
+    var order = P.paintOrder(job, settings);
+    var lines = ['PAINT ORDER — ' + (settings.businessName || 'Painting contractor'),
+      'Job: ' + job.number + (job.paintPickup ? ' · Pickup: ' + fmtDate(Date.parse(job.paintPickup + 'T12:00:00')) : ''), ''];
+    order.forEach(function (g, n) {
+      var spec = [g.base === 'oil' ? 'Oil' : g.base === 'latex' ? 'Latex' : '', g.sheen].filter(Boolean).join(', ');
+      lines.push((n + 1) + '. ' + g.product + (spec ? ' (' + spec + ')' : '') + ': ' + g.buyText);
+      lines.push('   Colour: ' + (g.color || 'to confirm') + ' · for ' + g.where.join(', '));
+    });
+    lines.push('', 'From: ' + [settings.ownerName, settings.phone, settings.email].filter(Boolean).join(' · '));
+    lines.push('Sent with Coatwright · getcoatwright.com');
+    return lines.join('\n');
+  }
+
+  function paintOrderCard(job) {
+    return '<details class="card paint-card"><summary class="card-title">🧾 Paint order <em class="muted small">(send to your paint store)</em></summary>' +
+      '<div data-out="paint-order">' + paintOrderList(job) + '</div>' +
+      '<p class="muted small">Exact amounts from your measurements, rounded to what you buy (3 quarts → 1 gallon). Same paint in several rooms is combined.</p>' +
+      '<div class="row2"><label class="field"><span>Paint store</span><input data-setting="paintStoreName" value="' + esc(settings.paintStoreName || '') + '" placeholder="Store name" autocomplete="off"></label>' +
+      '<label class="field"><span>Store email</span><input type="email" data-setting="paintStoreEmail" value="' + esc(settings.paintStoreEmail || '') + '" placeholder="orders@store.com" autocapitalize="off"></label></div>' +
+      '<label class="field"><span>Pickup date</span><input type="date" data-field="paintPickup" value="' + esc(job.paintPickup || '') + '"></label>' +
+      '<div class="row2"><button type="button" class="btn btn-primary" data-action="paint-email">✉️ Email store</button>' +
+      '<button type="button" class="btn" data-action="paint-share">💬 Text / Share</button></div>' +
+      '<button type="button" class="btn btn-ghost full" data-action="paint-copy" style="margin-top:8px">📋 Copy order</button></details>';
+  }
+
   function renderJob(job) {
     if (!job.quick) job.quick = P.newQuick();
     if (!job.outside) job.outside = [];
     if (!job.payments) job.payments = [];
     if (!job.actuals) job.actuals = {};
+    (job.rooms || []).forEach(function (r) { r.paint = P.paintFor(r); });
+    job.quick.paint = P.paintFor(job.quick);
     var quick = job.mode === 'quick';
     var calc = P.calcJob(job, settings);
     var cu = job.customer;
@@ -916,6 +978,7 @@
       '<div class="row2"><label class="field"><span>Discount</span><div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" data-field="discount" value="' + esc(job.discount || '') + '" placeholder="0"></div></label></div>' +
       '<label class="field"><span>Notes for customer</span><textarea data-field="notes" rows="3" placeholder="Colors, start date, anything special…">' + esc(job.notes) + '</textarea></label>' +
       '</details>' +
+      paintOrderCard(job) +
       moneyCard(job) +
 
       '<button type="button" class="link danger center" data-action="del-job">Delete this job</button>' +
@@ -943,6 +1006,8 @@
     if (t) t.textContent = money(calc.total);
     var res = app.querySelector('[data-out="result"]');
     if (res) res.innerHTML = resultBox(job);
+    var po = app.querySelector('[data-out="paint-order"]');
+    if (po) po.innerHTML = paintOrderList(job);
   }
 
   function currentJob() {
@@ -1726,6 +1791,24 @@
         else toast('Marked as ' + S.statusInfo(job.status).label);
         return;
       }
+      case 'paint-email': {
+        if (!P.paintOrder(job, settings).length) { toast('Add rooms first'); return; }
+        var to = settings.paintStoreEmail || '';
+        location.href = 'mailto:' + encodeURIComponent(to).replace(/%40/g, '@') + '?subject=' + encodeURIComponent('Paint order ' + job.number + (settings.businessName ? ' — ' + settings.businessName : '')) +
+          '&body=' + encodeURIComponent(paintOrderText(job));
+        if (!to) toast('Tip: add your store\'s email above to fill it in automatically');
+        return;
+      }
+      case 'paint-share': {
+        if (!P.paintOrder(job, settings).length) { toast('Add rooms first'); return; }
+        var ptext = paintOrderText(job);
+        if (navigator.share) navigator.share({ title: 'Paint order ' + job.number, text: ptext }).catch(function () {});
+        else copyText(ptext, 'Paint order');
+        return;
+      }
+      case 'paint-copy':
+        copyText(paintOrderText(job), 'Paint order');
+        return;
       case 'add-payment': {
         var owed = S.balance(job, settings);
         job.payments.push({ id: uid(), date: today(), amount: owed || '', method: S.paymentMethods(settings.currency)[settings.currency === 'CAD' ? 3 : 1] });
@@ -1862,6 +1945,7 @@
       case 'add-room': {
         var room = P.newRoom(P.roomTypesFor(job.jobType, job.propertyType)[+el.dataset.k]);
         var same = job.rooms.filter(function (r) { return r.name.indexOf(room.name) === 0; }).length;
+        if (job.rooms.length) room.paint = JSON.parse(JSON.stringify(P.paintFor(job.rooms[job.rooms.length - 1])));
         if (same) room.name += ' ' + (same + 1);
         job.rooms.push(room);
         touch(job); renderJob(job);
@@ -1965,16 +2049,17 @@
     }
   });
 
-  function copyText(text) {
+  function copyText(text, what) {
+    what = what || 'Quote';
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () { toast('Quote copied — paste it anywhere'); },
-        function () { fallbackCopy(text); });
-    } else fallbackCopy(text);
+      navigator.clipboard.writeText(text).then(function () { toast(what + ' copied — paste it anywhere'); },
+        function () { fallbackCopy(text, what); });
+    } else fallbackCopy(text, what);
   }
-  function fallbackCopy(text) {
+  function fallbackCopy(text, what) {
     var ta = document.createElement('textarea');
     ta.value = text; document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); toast('Quote copied'); } catch (e) { toast('Copy not supported'); }
+    try { document.execCommand('copy'); toast((what || 'Quote') + ' copied'); } catch (e) { toast('Copy not supported'); }
     ta.remove();
   }
 
