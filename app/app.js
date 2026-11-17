@@ -605,10 +605,10 @@
 
   // ---------- Job editor ----------
   function sizeChips(room, i) {
-    var keys = ['S', 'M', 'L', 'custom'];
-    return '<div class="chips" role="group" aria-label="Room size">' + keys.map(function (k) {
-      var label = k === 'custom' ? 'Exact' : P.SIZES[k].label;
-      var sub = k === 'custom' ? 'measure' : P.SIZES[k].length + '×' + P.SIZES[k].width;
+    var keys = ['S', 'M', 'L'];
+    return '<div class="chips size-chips" role="group" aria-label="Room size">' + keys.map(function (k) {
+      var label = P.SIZES[k].label;
+      var sub = P.SIZES[k].length + '×' + P.SIZES[k].width;
       return '<button type="button" class="chip' + (room.size === k ? ' on' : '') + '" data-action="size" data-i="' + i + '" data-v="' + k + '">' +
         label + '<span>' + sub + '</span></button>';
     }).join('') + '</div>';
@@ -670,7 +670,8 @@
       '<div class="room-head"><input class="room-name" data-field="rooms.' + i + '.name" value="' + esc(room.name) + '" aria-label="Room name">' +
       '<div class="room-price" data-out="room-price-' + i + '">' + money0(c.price) + '</div></div>' +
       '<div class="label">Size</div>' + sizeChips(room, i) +
-      '<div class="dims' + (room.size === 'custom' ? '' : ' compact') + '">' +
+      '<div class="label dims-label">Or type the exact size <span class="measured" data-out="measured-' + i + '"' + (room.size === 'custom' ? '' : ' hidden') + '>📏 Measured</span></div>' +
+      '<div class="dims">' +
       numField('rooms.' + i + '.length', room.length, 'Length', 'ft') +
       numField('rooms.' + i + '.width', room.width, 'Width', 'ft') +
       numField('rooms.' + i + '.height', room.height, 'Ceiling height', 'ft') + '</div>' +
@@ -1721,7 +1722,9 @@
       if (room.size !== 'custom') {
         room.size = 'custom';
         var card = el.closest('.room-card');
-        card.querySelectorAll('[data-action="size"]').forEach(function (b) { b.classList.toggle('on', b.dataset.v === 'custom'); });
+        card.querySelectorAll('[data-action="size"]').forEach(function (b) { b.classList.remove('on'); });
+        var ms = card.querySelector('[data-out="measured-' + m[1] + '"]');
+        if (ms) ms.hidden = false;
       }
     }
     if (path === 'startDate' && val && S.statusOf(job) === 'won') {

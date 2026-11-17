@@ -473,3 +473,7 @@ body[data-view="welcome"] .top-actions, body[data-view="signin"] .top-actions { 
 .po-price .with-unit { max-width: 170px; }
 .po-cost { font-weight: 700; }
 .po-total { display: flex; justify-content: space-between; font-size: 16px; padding: 8px 2px; border-top: 1px solid var(--line); margin-top: 4px; }
+
+.dims-label { display: flex; justify-content: space-between; align-items: center; }
+.dims-label .measured { text-transform: none; letter-spacing: 0; font-weight: 700; color: var(--brand); }
+.dims-label .measured[hidden] { display: none; }
