@@ -187,6 +187,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-15 | Owner's Stripe account is in Canada, store prices in USD, payouts to a CAD bank | Owner lives in Canada; identity, payouts and tax forms must match |
 | 2026-11-16 | Register the business name and GST/HST together at about $30K in sales | Keep early costs down; platform verification can wait |
 | 2026-11-16 | Phase 2: partner with independent paint stores ("Coatwright for [Store]"), free pilot first | Each store reaches many contractors; stores gain earlier, bigger, loyal orders. Store names only, no brand names without a licence |
+| 2026-11-17 | Run every task by the owner first; publish only after the owner approves the result | Owner wants to review before anything changes or goes live |
 
 ## Log
 
@@ -267,3 +268,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-17** — Owner asked what "Exact measure" was for (the boxes were always editable). Removed it: Small/Medium/Large presets plus "Or type the exact size"; typing shows "📏 Measured". Cache v28.
 - **2026-11-17** — New explainer video (88 s): sign-up, setup with currency, rooms, paint picks per room, paint tally & order, every job type, quote, win → invoice, stats, founding-member end card with getcoatwright.com. Same Kokoro voice; real app recordings with demo data. Source in `marketing/video-src/`; website and kit links bumped to ?v=3.
 - **2026-11-17** — Owner doesn't want the new video live yet (no paint-store deals; pauses between lines). Restored the original 50 s explainer on the website; the new version is being reworked (existing video + paint features, no store-order claim, tighter pacing).
+- **2026-11-17** — Working agreement added to CLAUDE.md: plans and results are approved by the owner before changes go live. New explainer draft (63 s, original video + paint scenes, no store mentions, no pauses) sent for review; not published.
