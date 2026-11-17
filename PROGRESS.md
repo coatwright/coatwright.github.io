@@ -264,3 +264,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-17** — Owner's idea: pick colour, latex/oil and sheen per room, and the app knows the paint needed. Built paint picks per room and the Paint order (send to store). Cache v25.
 - **2026-11-17** — Owner asked to see paint per room as rooms are added, a final itemized tally with colours, sheen, brand and prices. Built: per-room paint line, by-room tally, brand, per-paint price → quote (new jobs only, older quotes unchanged). Cache v26.
 - **2026-11-17** — Owner saw "CA$" on invoices (phone set to US English). Money now shows the plain local symbol ($, £, €…) on quotes, invoices and stats, whatever the phone language; Coatwright's own plan prices still say US$. Cache v27.
+- **2026-11-17** — Owner asked what "Exact measure" was for (the boxes were always editable). Removed it: Small/Medium/Large presets plus "Or type the exact size"; typing shows "📏 Measured". Cache v28.
