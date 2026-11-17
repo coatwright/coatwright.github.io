@@ -83,11 +83,15 @@
   function formatter(code, decimals, locale) {
     var k = code + decimals + (locale || '');
     if (!cache[k]) {
-      var opts = { style: 'currency', currency: code };
+      // narrowSymbol: "$" not "CA$"/"US$". Painters quote in their own currency, so their customers know which dollar it is.
+      var opts = { style: 'currency', currency: code, currencyDisplay: 'narrowSymbol' };
       if (code !== 'JPY') { opts.minimumFractionDigits = decimals; opts.maximumFractionDigits = decimals; }
       else { opts.minimumFractionDigits = 0; opts.maximumFractionDigits = 0; }
       try { cache[k] = new Intl.NumberFormat(locale || undefined, opts); }
-      catch (e) { cache[k] = new Intl.NumberFormat('en-US', opts); }
+      catch (e) {
+        delete opts.currencyDisplay; // very old browsers
+        try { cache[k] = new Intl.NumberFormat(locale || undefined, opts); } catch (e2) { cache[k] = new Intl.NumberFormat('en-US', opts); }
+      }
     }
     return cache[k];
   }
