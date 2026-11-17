@@ -15,7 +15,7 @@ sensitive. Same answers as `SOCIAL_SETUP.md`, packed into prompts.
    - LinkedIn banner: https://getcoatwright.com/marketing/social/linkedin-banner.png?v=2
    - LinkedIn company cover: https://getcoatwright.com/marketing/social/linkedin-company-cover.png?v=2
    - First post: https://getcoatwright.com/marketing/social/first-post.png?v=2
-   - Explainer video: https://getcoatwright.com/marketing/videos/coatwright-explainer.mp4?v=2
+   - Explainer video: https://getcoatwright.com/marketing/videos/coatwright-explainer.mp4?v=3
    - Demo video: https://getcoatwright.com/marketing/videos/coatwright-demo-quote.mp4?v=2
 3. **Open a new tab** for each prompt. One platform per conversation keeps it reliable.
 4. Platforms sometimes block or slow down sign-ups that look automated. If a site asks for a phone number or shows repeated

@@ -1,0 +1,13 @@
+[
+ {"id":"hook","title":"Price any paint job in minutes.","pill":"Built for painters","text":"Painters: price any paint job in minutes, and finally know what you really made. This is Coatwright."},
+ {"id":"signup","title":"Start free","pill":"14-day trial","text":"Start your free fourteen-day trial with Google or your email. No credit card."},
+ {"id":"setup","title":"Set up once","pill":"Step 1","text":"Add your business, logo and prices once, in your own currency."},
+ {"id":"rooms","title":"Quote room by room","pill":"Step 2","text":"Walk the job and tap in each room. Coatwright works out the walls, trim, coats and labour, using your own rates."},
+ {"id":"paint","title":"Pick the paint","pill":"New","text":"Choose the brand, colour, type and sheen for every room, and see exactly how much paint it needs."},
+ {"id":"tally","title":"Paint tally & order","pill":"New","text":"Your paint tally adds it all up, room by room, prices it into the job, and sends the order straight to your paint store."},
+ {"id":"outside","title":"Every kind of job","pill":"Step 3","text":"Exteriors, decks, cabinets, garage floors and commercial work too."},
+ {"id":"quote","title":"Send a pro quote","pill":"Step 4","text":"Send a clean, itemized quote with your logo, by email or text, in seconds."},
+ {"id":"win","title":"Win it. Get paid.","pill":"Step 5","text":"Win the job, schedule it, turn it into an invoice, and log every payment."},
+ {"id":"stats","title":"Know what you made","pill":"Step 6","text":"And see what you really made: your profit, your real hourly rate, and who still owes you."},
+ {"id":"end","title":"Coatwright","pill":"","text":"Try Coatwright free for fourteen days. Founding members get half price, for life."}
+]
