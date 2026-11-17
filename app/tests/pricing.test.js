@@ -240,5 +240,33 @@ test('paint order groups the same paint across rooms and keeps picks separate', 
   const trims = order.filter(g => g.product === 'Trim & door paint');
   assert.strictEqual(trims.length, 2, 'latex semi-gloss and oil gloss trim stay separate');
   assert.ok(trims.some(t => t.base === 'oil' && t.sheen === 'Gloss'));
-  assert.deepStrictEqual(P.paintFor({}).ceiling, { color: '', base: 'latex', sheen: 'Flat' });
+  assert.deepStrictEqual(P.paintFor({}).ceiling, { brand: '', color: '', base: 'latex', sheen: 'Flat' });
+});
+
+test('paint plan: per room, brand kept apart, priced into new jobs only', () => {
+  const settings = { wallPaintPrice: 50, trimPaintPrice: 60, ceilingPaintPrice: 40 };
+  const a = P.newRoom(P.ROOM_TYPES[0]), b = P.newRoom(P.ROOM_TYPES[0]);
+  a.name = 'Bedroom'; b.name = 'Bedroom 2';
+  a.paint = { walls: { brand: 'Benjamin Moore', color: 'OC-65' } };
+  b.paint = { walls: { brand: 'Behr', color: 'OC-65' } };
+  const job = { mode: 'rooms', rooms: [a, b] };
+  const plan = P.paintPlan(job, settings);
+  assert.strictEqual(plan.rooms.length, 2);
+  assert.ok(plan.rooms[0].items.find(x => x.surface === 'Walls').gallons > 0, 'each room shows its own paint');
+  assert.strictEqual(plan.groups.filter(g => g.product === 'Wall paint').length, 2, 'different brands are separate paints');
+  const wall = plan.groups.find(g => g.brand === 'Benjamin Moore');
+  assert.strictEqual(wall.price, 50, 'Settings price by default');
+  assert.strictEqual(wall.cost, P.containerCost(wall.buy, 50));
+  assert.strictEqual(P.containerCost({ pails: 1, gallons: 2, quarts: 1 }, 40), 294);
+  // custom price per paint
+  const own = P.paintPlan(Object.assign({}, job, { paintPrices: { [wall.key]: 80 } }), settings).groups.find(g => g.brand === 'Benjamin Moore');
+  assert.strictEqual(own.price, 80);
+  assert.ok(own.priceCustom);
+  // quotes: old jobs unchanged, new jobs priced per paint with colour on the line
+  const oldQ = P.calcJob(job, settings), newQ = P.calcJob(Object.assign({ paintByOrder: true }, job), settings);
+  assert.ok(oldQ.materials.some(m => m.key === 'wall'), 'existing jobs keep the old materials lines');
+  const lines = newQ.materials.filter(m => m.key.indexOf('paint-') === 0);
+  assert.strictEqual(lines.length, plan.groups.length);
+  assert.ok(lines.some(m => /Benjamin Moore/.test(m.detail) && /OC-65/.test(m.detail)), 'brand and colour on the quote line');
+  assert.strictEqual(newQ.internal.materialCost >= plan.cost, true);
 });

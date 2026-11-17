@@ -109,7 +109,9 @@
       status: 'draft',
       statusDates: {},
       payments: [],
-      actuals: {}
+      actuals: {},
+      paintByOrder: true, // paint priced per brand/type/sheen/colour (older jobs keep their original totals)
+      paintPrices: {}
     };
     pendingCustomer = null;
     settings.nextNumber = (Number(settings.nextNumber) || 1000) + 1;
@@ -647,7 +649,8 @@
     var rows = P.PAINT_SURFACES.filter(function (sf) { return active[sf[0]]; }).map(function (sf) {
       var k = sf[0], pk = holder.paint[k], f = prefix + '.paint.' + k;
       return '<div class="paint-row"><div class="paint-label">' + sf[1] + '</div>' +
-        '<input data-field="' + f + '.color" value="' + esc(pk.color) + '" placeholder="Colour name / code" aria-label="' + sf[1] + ' colour" autocomplete="off">' +
+        '<div class="row2"><input data-field="' + f + '.brand" value="' + esc(pk.brand) + '" placeholder="Brand / product" list="paint-brands" aria-label="' + sf[1] + ' brand" autocomplete="off">' +
+        '<input data-field="' + f + '.color" value="' + esc(pk.color) + '" placeholder="Colour name / code" aria-label="' + sf[1] + ' colour" autocomplete="off"></div>' +
         '<div class="row2"><select data-field="' + f + '.base" aria-label="' + sf[1] + ' paint type">' + P.PAINT_BASES.map(function (b) {
           return '<option value="' + b[0] + '"' + (pk.base === b[0] ? ' selected' : '') + '>' + b[1] + '</option>';
         }).join('') + '</select>' +
@@ -657,7 +660,7 @@
     }).join('');
     if (!rows) return '';
     var picked = P.PAINT_SURFACES.filter(function (sf) { return active[sf[0]] && holder.paint[sf[0]].color; }).length;
-    return '<details class="paint-box"' + (picked ? '' : '') + '><summary>🎨 Paint: colours, type &amp; sheen' +
+    return '<details class="paint-box"><summary>🎨 Paint: brand, colour, type &amp; sheen' +
       (picked ? ' <span class="muted small">(' + picked + ' picked)</span>' : ' <span class="muted small">(optional)</span>') + '</summary>' + rows + '</details>';
   }
 
@@ -675,11 +678,21 @@
       '<div class="row2">' + stepper(i, 'doors', room.doors, 'Doors') + stepper(i, 'windows', room.windows, 'Windows') + '</div>' +
       '<div class="row2"><div><div class="label">Coats</div>' + segmented(i, 'coats', room.coats, [[1, '1'], [2, '2'], [3, '3']]) + '</div>' +
       '<div><div class="label">Wall condition</div>' + segmented(i, 'condition', room.condition, [['good', 'Good'], ['fair', 'Fair'], ['poor', 'Rough']]) + '</div></div>' +
+      '<div class="room-paint" data-out="room-paint-' + i + '">' + roomPaintLine(calc.paint, i) + '</div>' +
       paintSection(room, 'rooms.' + i, room.surfaces || {}) +
       '<div class="room-foot"><span class="muted small" data-out="room-meta-' + i + '">' + roomMeta(c) + '</span>' +
       '<span><button type="button" class="link" data-action="dup-room" data-i="' + i + '">Copy</button>' +
       '<button type="button" class="link danger" data-action="del-room" data-i="' + i + '">Remove</button></span></div>' +
       '</section>';
+  }
+
+  /** "🪣 Paint for this room: Walls 1 gal + 2 qt · Ceiling 1 gal …" */
+  function roomPaintLine(plan, i) {
+    var ro = plan && plan.rooms[i];
+    if (!ro || !ro.items.length) return '';
+    return '<span class="rp-title">🪣 Paint for this room</span>' + ro.items.map(function (x) {
+      return '<span class="rp-item"><b>' + esc(x.surface) + '</b> ' + esc(x.buyText) + (x.color ? ' <span class="muted">· ' + esc(x.color) + '</span>' : '') + '</span>';
+    }).join('');
   }
 
   function roomMeta(c) {
@@ -713,6 +726,7 @@
       }).join('') + '</div>' +
       '<div class="row2"><div><div class="label">Coats</div>' + qseg('coats', q.coats, [[1, '1'], [2, '2'], [3, '3']]) + '</div>' +
       '<div><div class="label">Wall condition</div>' + qseg('condition', q.condition, [['good', 'Good'], ['fair', 'Fair'], ['poor', 'Rough']]) + '</div></div>' +
+      '<div class="room-paint" data-out="room-paint-0">' + roomPaintLine(calc.paint, 0) + '</div>' +
       paintSection(q, 'quick', q.surfaces || {}) +
       '<div class="room-foot"><span class="muted small" data-out="room-meta-0">' + roomMeta(c) + '</span></div>' +
       '<p class="hint">💡 Ballpark price. Switch to <b>Room by room</b> after a walkthrough for an exact quote.</p>' +
@@ -879,23 +893,36 @@
   function outMeta(c) { return Math.round(c.hours * 10) / 10 + ' hrs labor'; }
 
   function paintOrderList(job) {
-    var order = P.paintOrder(job, settings);
-    if (!order.length) return '<p class="muted small">Add rooms (or areas) to see the paint you need.</p>';
-    return '<ul class="paint-order">' + order.map(function (g) {
-      var spec = [g.base === 'oil' ? 'Oil' : g.base === 'latex' ? 'Latex' : '', g.sheen].filter(Boolean).join(' · ');
-      return '<li><div><strong>' + esc(g.product) + '</strong>' + (spec ? ' <span class="muted small">' + esc(spec) + '</span>' : '') +
-        '<div class="small">' + (g.color ? '🎨 ' + esc(g.color) : '<span class="muted">Colour not picked yet</span>') + '</div>' +
-        '<div class="muted small">' + esc(g.where.join(', ')) + '</div></div><div class="buy">' + esc(g.buyText) + '</div></li>';
-    }).join('') + '</ul>';
+    var plan = P.paintPlan(job, settings);
+    if (!plan.groups.length) return '<p class="muted small">Add rooms (or areas) to see the paint you need.</p>';
+    var priced = !!job.paintByOrder;
+    return '<div class="label">By room</div><div class="paint-rooms">' + plan.rooms.map(function (ro) {
+      return '<div class="pr-room"><strong>' + esc(ro.name) + '</strong>' + ro.items.map(function (x) {
+        return '<div class="pr-line"><span>' + esc(x.surface) + ' <span class="muted small">' + esc([P.paintSpec(x), x.color].filter(Boolean).join(' · ')) + '</span></span>' +
+          '<span class="muted">' + esc(x.gallons) + ' gal</span></div>';
+      }).join('') + '</div>';
+    }).join('') + '</div>' +
+      '<div class="label">What to buy (whole job)</div><ul class="paint-order">' + plan.groups.map(function (g) {
+        var spec = P.paintSpec(g);
+        return '<li><div class="po-main"><div><strong>' + esc(g.product) + '</strong>' + (spec ? ' <span class="muted small">' + esc(spec) + '</span>' : '') +
+          '<div class="small">' + (g.color ? '🎨 ' + esc(g.color) : '<span class="muted">Colour not picked yet</span>') + '</div>' +
+          '<div class="muted small">' + esc(g.where.join(', ')) + '</div></div><div class="buy">' + esc(g.buyText) + '</div></div>' +
+          (priced ? '<div class="po-price"><label class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-field="paintPrices.' + g.key +
+            '" value="' + esc(g.priceCustom ? g.price : '') + '" placeholder="' + esc(g.price) + '" aria-label="Price per gallon"><em>/gal</em></label>' +
+            '<span class="po-cost" data-out="po-cost-' + g.key + '">' + money(g.cost) + '</span></div>' : '') + '</li>';
+      }).join('') + '</ul>' +
+      (priced ? '<div class="po-total"><span>Paint for this job</span><b data-out="po-total">' + money(plan.cost) + '</b></div>' +
+        '<p class="muted small">Prices start from your Settings; type the real price per gallon for each paint. A quart counts as about a third of a gallon\'s price. This is what the quote charges for paint (plus your markup).</p>'
+        : '<p class="muted small">This job was created before per-paint pricing, so its quote keeps your original paint prices.</p>');
   }
 
-  /** Plain-text paint order for the store (email / text / copy). */
+  /** Plain-text paint order for the store (email / text / copy). No prices: the store sets those. */
   function paintOrderText(job) {
-    var order = P.paintOrder(job, settings);
+    var plan = P.paintPlan(job, settings);
     var lines = ['PAINT ORDER — ' + (settings.businessName || 'Painting contractor'),
       'Job: ' + job.number + (job.paintPickup ? ' · Pickup: ' + fmtDate(Date.parse(job.paintPickup + 'T12:00:00')) : ''), ''];
-    order.forEach(function (g, n) {
-      var spec = [g.base === 'oil' ? 'Oil' : g.base === 'latex' ? 'Latex' : '', g.sheen].filter(Boolean).join(', ');
+    plan.groups.forEach(function (g, n) {
+      var spec = P.paintSpec(g);
       lines.push((n + 1) + '. ' + g.product + (spec ? ' (' + spec + ')' : '') + ': ' + g.buyText);
       lines.push('   Colour: ' + (g.color || 'to confirm') + ' · for ' + g.where.join(', '));
     });
@@ -905,9 +932,9 @@
   }
 
   function paintOrderCard(job) {
-    return '<details class="card paint-card"><summary class="card-title">🧾 Paint order <em class="muted small">(send to your paint store)</em></summary>' +
+    return '<details class="card paint-card"><summary class="card-title">🧾 Paint tally &amp; order <em class="muted small">(by room, cost, send to store)</em></summary>' +
       '<div data-out="paint-order">' + paintOrderList(job) + '</div>' +
-      '<p class="muted small">Exact amounts from your measurements, rounded to what you buy (3 quarts → 1 gallon). Same paint in several rooms is combined.</p>' +
+      '<p class="muted small">Exact amounts from your measurements, rounded to what you buy (3 quarts → 1 gallon, 5+ gallons in pails). Same paint in several rooms is combined.</p>' +
       '<div class="row2"><label class="field"><span>Paint store</span><input data-setting="paintStoreName" value="' + esc(settings.paintStoreName || '') + '" placeholder="Store name" autocomplete="off"></label>' +
       '<label class="field"><span>Store email</span><input type="email" data-setting="paintStoreEmail" value="' + esc(settings.paintStoreEmail || '') + '" placeholder="orders@store.com" autocapitalize="off"></label></div>' +
       '<label class="field"><span>Pickup date</span><input type="date" data-field="paintPickup" value="' + esc(job.paintPickup || '') + '"></label>' +
@@ -921,10 +948,12 @@
     if (!job.outside) job.outside = [];
     if (!job.payments) job.payments = [];
     if (!job.actuals) job.actuals = {};
+    if (!job.paintPrices) job.paintPrices = {};
     (job.rooms || []).forEach(function (r) { r.paint = P.paintFor(r); });
     job.quick.paint = P.paintFor(job.quick);
     var quick = job.mode === 'quick';
     var calc = P.calcJob(job, settings);
+    calc.paint = P.paintPlan(job, settings);
     var cu = job.customer;
     var commercial = job.jobType === 'commercial';
     var roomTypes = P.roomTypesFor(job.jobType, job.propertyType);
@@ -937,6 +966,8 @@
       statusCard(job) +
 
       '<section class="card"><h2 class="card-title"><span class="step">1</span> Customer</h2>' +
+      '<datalist id="paint-brands">' + ['Benjamin Moore', 'Sherwin-Williams', 'Behr', 'PPG', 'Dulux', 'Valspar', 'Glidden', 'Farrow & Ball', 'Beauti-Tone', 'Cloverdale', 'General Paint', 'Para']
+        .map(function (b) { return '<option value="' + esc(b) + '">'; }).join('') + '</datalist>' +
       '<datalist id="cust-names">' + S.customersFrom(jobs, settings).map(function (c) { return '<option value="' + esc(c.name) + '">'; }).join('') + '</datalist>' +
       '<label class="field"><span>' + (commercial ? 'Business / contact name' : 'Name') + '</span><input list="cust-names" data-field="customer.name" value="' + esc(cu.name) +
       '" placeholder="' + (commercial ? 'Acme Dental — Dr. Lee' : 'Jane Smith') + '" autocomplete="off"></label>' +
@@ -1006,8 +1037,21 @@
     if (t) t.textContent = money(calc.total);
     var res = app.querySelector('[data-out="result"]');
     if (res) res.innerHTML = resultBox(job);
+    var plan = P.paintPlan(job, settings);
+    app.querySelectorAll('[data-out^="room-paint-"]').forEach(function (el) {
+      el.innerHTML = roomPaintLine(plan, +el.getAttribute('data-out').slice(11));
+    });
     var po = app.querySelector('[data-out="paint-order"]');
-    if (po) po.innerHTML = paintOrderList(job);
+    if (po) {
+      if (po.contains(document.activeElement)) { // typing a price: update numbers only, keep the keyboard
+        plan.groups.forEach(function (g) {
+          var c = po.querySelector('[data-out="po-cost-' + g.key + '"]');
+          if (c) c.textContent = money(g.cost);
+        });
+        var pt = po.querySelector('[data-out="po-total"]');
+        if (pt) pt.textContent = money(plan.cost);
+      } else po.innerHTML = paintOrderList(job);
+    }
   }
 
   function currentJob() {

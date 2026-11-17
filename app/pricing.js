@@ -585,9 +585,9 @@
   var SHEENS = ['Flat', 'Matte', 'Eggshell', 'Satin', 'Semi-gloss', 'Gloss'];
   var PAINT_SURFACES = [['walls', 'Walls'], ['ceiling', 'Ceiling'], ['trim', 'Trim & doors']];
   var DEFAULT_PAINT = {
-    walls: { color: '', base: 'latex', sheen: 'Eggshell' },
-    ceiling: { color: '', base: 'latex', sheen: 'Flat' },
-    trim: { color: '', base: 'latex', sheen: 'Semi-gloss' }
+    walls: { brand: '', color: '', base: 'latex', sheen: 'Eggshell' },
+    ceiling: { brand: '', color: '', base: 'latex', sheen: 'Flat' },
+    trim: { brand: '', color: '', base: 'latex', sheen: 'Semi-gloss' }
   };
 
   /** Room paint picks with defaults filled in (copies, never shares objects). */
@@ -619,49 +619,85 @@
     return { pails: pails, gallons: gal, quarts: qt, text: parts.join(' + ') };
   }
 
+  var PRODUCT_PRICE_KEY = {
+    'Wall paint': 'wallPaintPrice', 'Ceiling paint': 'ceilingPaintPrice', 'Trim & door paint': 'trimPaintPrice', 'Primer': 'primerPrice',
+    'Exterior paint': 'extPaintPrice', 'Deck & fence stain': 'stainPrice', 'Floor paint': 'floorPaintPrice', 'Cabinet primer & enamel': 'cabinetPaintPrice'
+  };
+  /** A quart costs about a third of a gallon at most stores. */
+  var QUART_PRICE_SHARE = 0.35;
+
+  function slug(str) { return String(str).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''); }
+
+  /** What the containers cost at a price per gallon. */
+  function containerCost(buy, price) {
+    var p = num(price);
+    return round2((buy.pails * 5 + buy.gallons) * p + buy.quarts * p * QUART_PRICE_SHARE);
+  }
+
   /**
-   * Paint order for a job: every room's walls, ceiling and trim paint grouped by
-   * product + type + sheen + colour, with exact gallons and what to buy.
+   * Paint plan for a job:
+   *   rooms: paint needed in each room/area (surface, picks, exact gallons, what to buy for that room alone)
+   *   groups: what to buy for the whole job: same product + brand + type + sheen + colour combined,
+   *           with the price per gallon (job override or your Settings price) and the cost.
    */
-  function paintOrder(job, settings) {
+  function paintPlan(job, settings) {
     var s = Object.assign({}, DEFAULT_SETTINGS, settings);
-    var groups = {}, order = [];
-    function add(product, spec, gallons, where) {
+    var prices = job.paintPrices || {};
+    var groups = {}, order = [], roomsOut = [];
+    function add(roomOut, product, spec, gallons, surface) {
       if (!(gallons > 0)) return;
-      var color = String(spec.color || '').trim();
-      var key = [product, spec.base || '', spec.sheen || '', color.toLowerCase()].join('|');
+      var color = String(spec.color || '').trim(), brand = String(spec.brand || '').trim();
+      var item = { surface: surface, product: product, brand: brand, base: spec.base || '', sheen: spec.sheen || '', color: color,
+        gallons: round2(gallons), buyText: containers(gallons).text };
+      roomOut.items.push(item);
+      var key = slug([product, brand, item.base, item.sheen, color].join(' '));
       var g = groups[key];
       if (!g) {
-        g = groups[key] = { product: product, base: spec.base || '', sheen: spec.sheen || '', color: color, gallons: 0, where: [] };
+        g = groups[key] = { key: key, product: product, brand: brand, base: item.base, sheen: item.sheen, color: color, gallons: 0, where: [] };
         order.push(g);
       }
       g.gallons += gallons;
-      if (where && g.where.indexOf(where) === -1) g.where.push(where);
+      if (g.where.indexOf(roomOut.name) === -1) g.where.push(roomOut.name);
     }
     var rooms = job.mode === 'quick'
       ? [{ name: job.jobType === 'commercial' ? 'Whole space' : 'Whole home', calc: calcQuick(job.quick, s, job.jobType, job.propertyType), paint: paintFor(job.quick) }]
       : (job.rooms || []).map(function (r) { return { name: r.name || 'Room', calc: calcRoom(r, s), paint: paintFor(r) }; });
     rooms.forEach(function (r) {
-      var gl = r.calc.gallons || {};
-      add('Wall paint', r.paint.walls, gl.wall, r.name);
-      add('Ceiling paint', r.paint.ceiling, gl.ceiling, r.name);
-      add('Trim & door paint', r.paint.trim, gl.trim, r.name);
-      add('Primer', { base: 'latex', sheen: '', color: '' }, gl.primer, r.name);
+      var gl = r.calc.gallons || {}, ro = { name: r.name, items: [] };
+      add(ro, 'Wall paint', r.paint.walls, gl.wall, 'Walls');
+      add(ro, 'Ceiling paint', r.paint.ceiling, gl.ceiling, 'Ceiling');
+      add(ro, 'Trim & door paint', r.paint.trim, gl.trim, 'Trim & doors');
+      add(ro, 'Primer', { base: 'latex' }, gl.primer, 'Primer');
+      roomsOut.push(ro);
     });
     var outsideProducts = { ext: 'Exterior paint', stain: 'Deck & fence stain', floor: 'Floor paint', cabinet: 'Cabinet primer & enamel', primer: 'Primer' };
     (job.outside || []).forEach(function (item) {
-      var c = calcOutside(item, s);
+      var c = calcOutside(item, s), ro = { name: item.name || 'Exterior', items: [] };
       Object.keys(c.gallons || {}).forEach(function (k) {
-        if (outsideProducts[k]) add(outsideProducts[k], { base: k === 'stain' ? '' : 'latex', sheen: '', color: '' }, c.gallons[k], item.name || 'Exterior');
+        if (outsideProducts[k]) add(ro, outsideProducts[k], { base: k === 'stain' ? '' : 'latex' }, c.gallons[k], outsideProducts[k]);
       });
+      if (ro.items.length) roomsOut.push(ro);
     });
+    var total = 0;
     order.forEach(function (g) {
       g.gallons = round2(g.gallons);
-      var cont = containers(g.gallons);
-      g.buy = cont;
-      g.buyText = cont.text;
+      g.buy = containers(g.gallons);
+      g.buyText = g.buy.text;
+      var own = num(prices[g.key]);
+      g.priceCustom = own > 0;
+      g.price = own > 0 ? own : num(s[PRODUCT_PRICE_KEY[g.product]]);
+      g.cost = containerCost(g.buy, g.price);
+      total += g.cost;
     });
-    return order;
+    return { rooms: roomsOut, groups: order, cost: round2(total) };
+  }
+
+  /** What to buy for the whole job (see paintPlan). */
+  function paintOrder(job, settings) { return paintPlan(job, settings).groups; }
+
+  /** "Benjamin Moore · Latex · Eggshell" */
+  function paintSpec(x) {
+    return [x.brand, x.base === 'oil' ? 'Oil-based' : x.base === 'latex' ? 'Latex' : '', x.sheen].filter(Boolean).join(' · ');
   }
 
   /** Full itemized quote for a job. */
@@ -712,6 +748,15 @@
     ];
     var materials = [];
     var paintCost = 0;
+    if (job.paintByOrder) {
+      // Newer jobs: one line per paint (brand, type, sheen, colour) with real containers and prices.
+      paintPlan(job, s).groups.forEach(function (g) {
+        paintCost += g.cost;
+        materials.push({ key: 'paint-' + g.key, label: g.product, detail: [paintSpec(g), g.color, g.buyText].filter(Boolean).join(' · '),
+          qty: round2(g.buy.pails * 5 + g.buy.gallons + g.buy.quarts / 4), cost: g.cost, price: round2(g.cost * mk) });
+      });
+      products = [];
+    }
     products.forEach(function (p) {
       var g = totalGallons[p[0]];
       if (g <= 0) return;
@@ -795,7 +840,7 @@
     COMMERCIAL_AREAS: COMMERCIAL_AREAS,
     findProperty: findProperty,
     PAINT_BASES: PAINT_BASES, SHEENS: SHEENS, PAINT_SURFACES: PAINT_SURFACES, DEFAULT_PAINT: DEFAULT_PAINT,
-    paintFor: paintFor, containers: containers, paintOrder: paintOrder,
+    paintFor: paintFor, containers: containers, containerCost: containerCost, paintPlan: paintPlan, paintOrder: paintOrder, paintSpec: paintSpec,
     JOB_TYPES: JOB_TYPES,
     roomTypesFor: roomTypesFor,
     propertyLabel: propertyLabel,
