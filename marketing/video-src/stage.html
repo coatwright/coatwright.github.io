@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{margin:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;font-family:Inter,"Helvetica Neue",Arial,sans-serif;color:#fff;
+ background:radial-gradient(circle at 70% 30%,#3d7dff 0%,#1f5eff 42%,#1440b8 100%)}
+.top{position:absolute;left:0;right:0;top:64px;text-align:center;transition:opacity .35s}
+.brand{display:inline-flex;align-items:center;gap:16px;font-weight:800;font-size:40px}
+.brand img{width:56px;height:56px}
+h1{font-size:78px;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin-top:26px;padding:0 50px}
+.pill{display:inline-block;margin-top:22px;padding:10px 26px;border-radius:999px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.4);font-weight:700;font-size:30px}
+.pill.new{background:#ffc94d;color:#0f1b3d;border-color:#ffc94d}
+.pill:empty{display:none}
+.phone{position:absolute;left:50%;top:430px;width:690px;height:1430px;transform:translateX(-50%);border-radius:78px;background:#0f1b3d;padding:22px;
+ box-shadow:0 40px 90px rgba(0,0,0,.4);transition:opacity .4s, transform .4s}
+.screen{width:100%;height:100%;border-radius:58px;overflow:hidden;background:#f4f6fb;position:relative}
+iframe{border:0;width:390px;height:834px;transform:scale(1.6615);transform-origin:0 0;position:absolute;left:0;top:0}
+.end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0;transition:opacity .5s;padding:0 80px}
+.end img{width:190px;height:190px}
+.end h2{font-size:110px;font-weight:800;letter-spacing:-.03em;margin-top:30px}
+.end p{font-size:48px;font-weight:600;margin-top:24px;opacity:.95}
+.end .btn{margin-top:56px;background:#fff;color:#1f5eff;font-weight:800;font-size:52px;padding:30px 60px;border-radius:28px}
+.end .found{margin-top:40px;background:#ffc94d;color:#0f1b3d;font-weight:800;font-size:36px;padding:16px 34px;border-radius:999px}
+.end .small{font-size:34px;opacity:.85;margin-top:30px}
+body.ending .top,body.ending .phone{opacity:0}
+body.ending .end{opacity:1}
+body.hook h1{font-size:96px}
+</style></head><body>
+<div class="top" id="top"><div class="brand"><img src="app/icon.svg" alt="">Coatwright</div><h1 id="title"></h1><div class="pill" id="pill"></div></div>
+<div class="phone" id="phone"><div class="screen"><iframe id="app" src="about:blank"></iframe></div></div>
+<div class="end"><img src="app/icon.svg" alt=""><h2>Coatwright</h2><p>Try it free for 14 days</p><div class="btn">getcoatwright.com</div>
+<div class="found">🔥 Founding members: half price for life</div><div class="small">No credit card · Cancel anytime</div></div>
+<script>
+window.setScene=function(title,pill,isNew,cls){var t=document.getElementById('top');t.style.opacity=0;setTimeout(function(){
+ document.getElementById('title').textContent=title;var p=document.getElementById('pill');p.textContent=pill||'';p.className='pill'+(isNew?' new':'');
+ document.body.className=cls||'';t.style.opacity=1;},350);};
+</script></body></html>
