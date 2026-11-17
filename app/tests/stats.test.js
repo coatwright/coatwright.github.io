@@ -132,3 +132,15 @@ test('schedule: start/end dates from job length, late and unscheduled jobs', () 
   assert.strictEqual(sch.items[1].days, 3);
   assert.deepStrictEqual(sch.unscheduled, [j2]);
 });
+
+test('payment methods match the painter\'s country', () => {
+  const S = require('../stats.js');
+  assert.ok(S.paymentMethods('USD').includes('Zelle'));
+  const ca = S.paymentMethods('CAD');
+  assert.ok(ca.includes('Interac e-Transfer') && ca.includes('Cheque'));
+  assert.ok(!ca.includes('Zelle') && !ca.includes('Venmo'), 'US-only apps not offered in Canada');
+  assert.ok(!S.paymentMethods('GBP').includes('Venmo'));
+  assert.deepStrictEqual(S.paymentMethods('CAD', 'Venmo').slice(-2), ['Venmo', 'Other'], 'an old saved method still shows');
+  assert.match(S.paymentExample('CAD'), /e-Transfer/);
+  assert.match(S.paymentExample(), /Zelle/);
+});
