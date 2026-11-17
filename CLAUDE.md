@@ -12,6 +12,10 @@ from `main` (anything merged into `main` goes live).
   Complimentary (free Pro) access by email: `supabase/comp.sql` (table `comp_access`, granted only from the SQL Editor).
   When switching billing on, set `startDate` to that day so existing users get a full 14-day trial, and bump the cache name in `app/sw.js`.
 
+**Working agreement (owner's rule):** before doing any task that changes the app, website, marketing files or settings,
+explain the plan and get the owner's approval. After building, show the result (screenshots, video, file or preview) and
+publish to `main` (live site) only when the owner says so. Answering questions and giving advice needs no approval.
+
 **Project tracking:** `PROGRESS.md` is the step-by-step tracker. Read it at the start of every
 session. Whenever work is finished or a decision is made, update it in the same commit:
 - tick off steps (✅ done, 🔄 in progress, ⬜ not started)
