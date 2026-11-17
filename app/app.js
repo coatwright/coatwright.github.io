@@ -743,7 +743,7 @@
       (job.payments.length ? job.payments.map(function (p, i) {
         return '<div class="pay-row"><input type="date" data-field="payments.' + i + '.date" value="' + esc(p.date) + '" aria-label="Payment date">' +
           '<div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-field="payments.' + i + '.amount" value="' + esc(p.amount) + '" aria-label="Amount"></div>' +
-          '<select data-field="payments.' + i + '.method" aria-label="Payment method">' + S.PAYMENT_METHODS.map(function (m) {
+          '<select data-field="payments.' + i + '.method" aria-label="Payment method">' + S.paymentMethods(settings.currency, p.method).map(function (m) {
             return '<option' + (p.method === m ? ' selected' : '') + '>' + m + '</option>';
           }).join('') + '</select>' +
           '<button type="button" class="icon-btn" data-action="del-payment" data-i="' + i + '" aria-label="Remove payment">✕</button></div>';
@@ -1116,7 +1116,7 @@
       '<button class="btn" data-action="print">📄 Save PDF</button>' +
       '<button class="btn" data-action="copy">📋 Copy</button></div>' +
       (!settings.paymentInstructions ? '<a class="setup-banner no-print" href="#/settings"><span>💡</span><div><strong>Add how customers can pay you</strong>' +
-        '<div class="small">e.g. "Zelle 555-123-4567 or checks to Smith Painting". Shows on every invoice.</div></div><span>›</span></a>' : '') +
+        '<div class="small">' + esc(S.paymentExample(settings.currency)) + '. Shows on every invoice.</div></div><span>›</span></a>' : '') +
       quoteDocument(job, q, 'invoice') +
       (due === 0 ? '<p class="muted center-text no-print">✅ Paid in full</p>' : '');
   }
@@ -1728,7 +1728,7 @@
       }
       case 'add-payment': {
         var owed = S.balance(job, settings);
-        job.payments.push({ id: uid(), date: today(), amount: owed || '', method: 'Check' });
+        job.payments.push({ id: uid(), date: today(), amount: owed || '', method: S.paymentMethods(settings.currency)[settings.currency === 'CAD' ? 3 : 1] });
         touch(job); renderJob(job);
         var amts = app.querySelectorAll('.pay-row input[type=number]');
         if (amts.length) amts[amts.length - 1].focus();

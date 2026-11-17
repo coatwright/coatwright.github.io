@@ -20,6 +20,26 @@
   var WON_STATUSES = ['won', 'scheduled', 'completed', 'paid'];
 
   var PAYMENT_METHODS = ['Cash', 'Check', 'Card', 'Zelle', 'Venmo', 'Bank transfer', 'Other'];
+
+  /** Ways customers pay painters, by the painter's currency (Zelle/Venmo are US-only, Interac e-Transfer is Canadian). */
+  function paymentMethods(currency, current) {
+    var list;
+    if (!currency || currency === 'USD') list = ['Cash', 'Check', 'Card', 'Zelle', 'Venmo', 'Bank transfer', 'Other'];
+    else if (currency === 'CAD') list = ['Cash', 'Cheque', 'Card', 'Interac e-Transfer', 'Bank transfer', 'Other'];
+    else if (currency === 'INR') list = ['Cash', 'UPI', 'Card', 'Bank transfer', 'Cheque', 'Other'];
+    else if (currency === 'AUD') list = ['Cash', 'Card', 'Bank transfer', 'PayID', 'Other'];
+    else if (currency === 'EUR') list = ['Cash', 'Card', 'Bank transfer', 'Other'];
+    else list = ['Cash', 'Cheque', 'Card', 'Bank transfer', 'Other'];
+    if (current && list.indexOf(current) === -1) list = list.slice(0, -1).concat([current, 'Other']);
+    return list;
+  }
+
+  /** Example text for "How customers can pay you", by currency. */
+  function paymentExample(currency) {
+    if (!currency || currency === 'USD') return 'e.g. "Zelle 555-123-4567 or checks to Smith Painting"';
+    if (currency === 'CAD') return 'e.g. "Interac e-Transfer to you@email.com or cheques to Smith Painting"';
+    return 'e.g. "Bank transfer to Smith Painting (account details) or cash on completion"';
+  }
   var EXPENSE_CATEGORIES = ['Gas & vehicle', 'Equipment & tools', 'Insurance', 'Marketing', 'Phone & software',
     'Licenses & fees', 'Office', 'Other'];
 
@@ -321,7 +341,7 @@
   var api = {
     STATUSES: STATUSES,
     WON_STATUSES: WON_STATUSES,
-    PAYMENT_METHODS: PAYMENT_METHODS,
+    PAYMENT_METHODS: PAYMENT_METHODS, paymentMethods: paymentMethods, paymentExample: paymentExample,
     EXPENSE_CATEGORIES: EXPENSE_CATEGORIES,
     isoDate: isoDate,
     statusOf: statusOf,
