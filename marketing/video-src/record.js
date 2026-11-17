@@ -2,12 +2,14 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const V = process.argv[2];
-const BASE = 'http://localhost:8766';
+const BASE = 'http://localhost:8767';
 const script = JSON.parse(fs.readFileSync(V + '/script.json'));
 const dur = JSON.parse(fs.readFileSync(V + '/durations.json'));
 const seed = JSON.parse(fs.readFileSync(V + '/seed.json'));
-const PAD = { hook: 1.6, signup: 2.2, setup: 2.6, rooms: 3.2, paint: 3.2, tally: 3.6, outside: 2.8, quote: 2.6, win: 3.2, stats: 3.2, end: 3.4 };
+const PAD = { hook: 0.35, setup: 0.35, quote: 0.35, paint: 0.35, tally: 0.35, send: 0.35, track: 0.35, stats: 0.35, end: 1.6 };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+let deadline = Infinity;
+const late = () => Date.now() / 1000 > deadline;
 
 (async () => {
   fs.rmSync(V + '/frames', { recursive: true, force: true });
@@ -33,9 +35,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     localStorage.setItem('pq.session', JSON.stringify({ accessToken: 'x', refreshToken: 'r', expiresAt: Date.now() + 864e5 }));
   }, seed);
   const frameEl = await page.$('#app');
+  const HIDE = '.paint-card summary em, .paint-card .row2:has([data-setting]), .paint-card label:has([data-field=paintPickup]), .paint-card [data-action^="paint-"], .paint-card .row2:has([data-action^="paint-"]) { display: none !important; }';
   const go = async hash => {
     await page.evaluate(h => { document.getElementById('app').src = 'app/index.html?v=' + Date.now() + h; }, hash);
     await sleep(900);
+    const f = await frameEl.contentFrame();
+    await f.addStyleTag({ content: HIDE }).catch(() => {});
   };
   const app = () => frameEl.contentFrame();
   const tap = async (sel, opts) => {
@@ -72,103 +77,84 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   });
 
   await go('#/');
-  await page.evaluate(() => setScene('', '', false, 'hook'));
+  await page.evaluate(() => setScene('Price any paint job in minutes', '', false, 'hook'));
   await sleep(600);
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 88, maxWidth: 1080, maxHeight: 1920, everyNthFrame: 1 });
   await sleep(300);
 
   const scenes = [];
+  const curId = async () => { const f = await app(); return (f.url().match(/#\/(?:job|quote|invoice)\/([^/?]+)/) || [])[1] || 'demojob'; };
   const actions = {
-    hook: async () => { await scrollBy(260); await sleep(1800); await scrollBy(-260); },
-    signup: async () => {
-      await page.evaluate(() => localStorage.removeItem('pq.session'));
-      await go('#/signin');
-      await sleep(500);
-      const f = await app();
-      await tap('#si-email');
-      await f.locator('#si-email').type('luis@riverapainting.com', { delay: 45 });
-      await page.evaluate(() => localStorage.setItem('pq.session', JSON.stringify({ accessToken: 'x', refreshToken: 'r', expiresAt: Date.now() + 864e5 })));
+    hook: async () => { await sleep(1200); await scrollBy(300); await sleep(1800); await scrollBy(-300); },
+    setup: async () => {
+      await go('#/welcome/2'); await sleep(1100);
+      await tap('[data-action=preset][data-v=pro]'); await sleep(1200);
+      await scrollBy(300); await sleep(900);
+      if (!late()) await go('#/welcome/3');
     },
-    setup: async () => { await go('#/welcome/2'); await sleep(1400); await tap('[data-action=preset][data-v=pro]'); await sleep(900); await scrollBy(320); },
-    rooms: async () => {
+    quote: async () => {
+      await go('#/new'); await sleep(350);
+      await tap('a[href="#/new/residential"]'); await sleep(550);
+      await tap('[data-action=create-job][data-prop=house]'); await sleep(150);
       await page.evaluate(d => { const js = JSON.parse(localStorage.getItem('pq.jobs')); js.unshift(d); localStorage.setItem('pq.jobs', JSON.stringify(js)); }, demoJob);
       await go('#/job/demojob');
-      await sleep(300);
-      await scrollTo('.add-room', 'center');
-      await sleep(900);
-      await tap('[data-action=add-room][data-k="1"]'); await sleep(1300);
-      await tap('[data-action=add-room][data-k="0"]'); await sleep(1300);
+      await scrollTo('.mode-switch', 'start'); await sleep(450);
+      await tap('[data-action=mode][data-v=quick]'); await sleep(300);
       const f = await app();
-      const len = f.locator('.room-card').nth(1).locator('[data-field$=".length"]');
-      await tap(len); await len.fill(''); await len.type('13', { delay: 120 });
-      await sleep(500);
-      await tap('[data-action=add-room][data-k="2"]');
+      const sq = f.locator('[data-field="quick.sqft"]');
+      await sq.type('2200', { delay: 70 }); await sleep(500);
+      await tap('[data-action=mode][data-v=rooms]'); await sleep(250);
+      await scrollTo('.add-room', 'center'); await sleep(250);
+      await tap('[data-action=add-room][data-k="1"]'); await sleep(500);
+      await tap('[data-action=add-room][data-k="0"]'); await sleep(450);
+      await scrollTo('[data-action=add-out]', 'center'); await sleep(250);
+      await tap('[data-action=add-out][data-k="0"]');
     },
     paint: async () => {
-      await scrollTo('.room-card .room-paint', 'center');
-      await sleep(1200);
+      await scrollTo('.room-card .paint-box', 'center'); await sleep(450);
       const f = await app();
       const box = f.locator('.room-card').first().locator('.paint-box');
-      await tap(box.locator('summary'));
-      await sleep(400);
-      await scrollTo('.room-card .paint-box', 'start');
-      await sleep(500);
+      await tap(box.locator('summary')); await sleep(250);
       const brand = box.locator('[data-field$="walls.brand"]');
-      await tap(brand); await brand.type('Benjamin Moore Regal', { delay: 40 });
+      await tap(brand); await brand.type('Benjamin Moore', { delay: 22 });
       const col = box.locator('[data-field$="walls.color"]');
-      await tap(col); await col.type('Chantilly Lace OC-65', { delay: 40 });
+      await tap(col); await col.type('Chantilly Lace', { delay: 22 });
       await box.locator('[data-field$="walls.sheen"]').selectOption('Matte');
       await f.evaluate(() => document.activeElement && document.activeElement.blur());
-      await sleep(300);
+      await sleep(200);
       await scrollTo('.room-card .room-paint', 'center');
     },
     tally: async () => {
-      await scrollTo('.paint-card', 'start');
-      await sleep(900);
-      await tap('.paint-card summary');
-      await sleep(900);
+      await scrollTo('.paint-card', 'start'); await sleep(450);
+      await tap('.paint-card summary'); await sleep(700);
+      await scrollBy(480); await sleep(1100);
+      await scrollTo('.po-total', 'center');
+    },
+    send: async () => {
+      const id = await curId();
+      await go('#/quote/' + id); await sleep(1500);
+      await scrollBy(420); await sleep(1500);
       await scrollBy(520); await sleep(1500);
-      await scrollBy(560); await sleep(1500);
-      await scrollBy(480);
+      await scrollBy(560);
     },
-    outside: async () => {
-      await scrollTo('[data-action=add-out]', 'center');
-      await sleep(700);
-      await tap('[data-action=add-out][data-k="0"]'); await sleep(1300);
-      await scrollTo('[data-action=add-out]', 'center'); await sleep(500);
-      await tap('[data-action=add-out][data-k="9"]');
+    track: async () => {
+      const id = await curId();
+      await go('#/job/' + id); await sleep(250);
+      await tap('[data-action=status][data-v=won]'); await sleep(800);
+      await scrollTo('.money-card', 'start'); await sleep(500);
+      await tap('[data-action=add-payment]'); await sleep(700);
+      if (!late()) { await go('#/invoice/' + id); await scrollBy(380); }
     },
-    quote: async () => {
-      await go('#/quote/demojob');
-      await sleep(1100);
-      await scrollBy(420); await sleep(1100);
-      await scrollBy(520); await sleep(1100);
-      await scrollBy(600);
-    },
-    win: async () => {
-      await go('#/job/demojob');
-      await sleep(600);
-      await tap('[data-action=status][data-v=won]');
-      await sleep(900);
-      await scrollTo('.money-card', 'start'); await sleep(700);
-      await tap('[data-action=add-payment]'); await sleep(900);
-      await go('#/invoice/demojob'); await sleep(500); await scrollBy(500);
-    },
-    stats: async () => {
-      await go('#/stats');
-      await sleep(1600);
-      await scrollBy(560); await sleep(1500);
-      await scrollBy(620);
-    },
+    stats: async () => { await go('#/stats'); await sleep(1500); await scrollBy(560); await sleep(1500); await scrollBy(600); },
     end: async () => { await page.evaluate(() => { document.body.className = 'ending'; }); }
   };
 
   for (const s of script) {
     const D = dur[s.id] + PAD[s.id];
     const start = Date.now() / 1000;
+    deadline = start + D - 0.6;
     scenes.push({ id: s.id, start, dur: D });
     if (s.id !== 'end') await page.evaluate(([t, p, n, c]) => setScene(t, p, n, c), [s.title, s.pill, s.pill === 'New', s.id === 'hook' ? 'hook' : '']);
-    await sleep(300);
     try { await actions[s.id](); } catch (e) { errs.push(s.id + ': ' + e.message); }
     const left = start + D - Date.now() / 1000;
     if (left > 0) await sleep(left * 1000);

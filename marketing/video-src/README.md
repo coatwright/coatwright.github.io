@@ -1,6 +1,6 @@
 # Explainer video source
 
-How `marketing/videos/coatwright-explainer.mp4` is made (about 88 s, 1080×1920):
+How `marketing/videos/coatwright-explainer.mp4` is made (about 63 s, 1080×1920):
 
 1. `script.json`: scenes, on-screen titles and narration.
 2. `tts.py`: narration with Kokoro (voice `af_heart`, Apache-2.0) → one WAV per scene and `durations.json`.

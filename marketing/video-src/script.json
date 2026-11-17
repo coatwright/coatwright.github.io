@@ -1,13 +1,11 @@
 [
- {"id":"hook","title":"Price any paint job in minutes.","pill":"Built for painters","text":"Painters: price any paint job in minutes, and finally know what you really made. This is Coatwright."},
- {"id":"signup","title":"Start free","pill":"14-day trial","text":"Start your free fourteen-day trial with Google or your email. No credit card."},
- {"id":"setup","title":"Set up once","pill":"Step 1","text":"Add your business, logo and prices once, in your own currency."},
- {"id":"rooms","title":"Quote room by room","pill":"Step 2","text":"Walk the job and tap in each room. Coatwright works out the walls, trim, coats and labour, using your own rates."},
- {"id":"paint","title":"Pick the paint","pill":"New","text":"Choose the brand, colour, type and sheen for every room, and see exactly how much paint it needs."},
- {"id":"tally","title":"Paint tally & order","pill":"New","text":"Your paint tally adds it all up, room by room, prices it into the job, and sends the order straight to your paint store."},
- {"id":"outside","title":"Every kind of job","pill":"Step 3","text":"Exteriors, decks, cabinets, garage floors and commercial work too."},
- {"id":"quote","title":"Send a pro quote","pill":"Step 4","text":"Send a clean, itemized quote with your logo, by email or text, in seconds."},
- {"id":"win","title":"Win it. Get paid.","pill":"Step 5","text":"Win the job, schedule it, turn it into an invoice, and log every payment."},
- {"id":"stats","title":"Know what you made","pill":"Step 6","text":"And see what you really made: your profit, your real hourly rate, and who still owes you."},
- {"id":"end","title":"Coatwright","pill":"","text":"Try Coatwright free for fourteen days. Founding members get half price, for life."}
+ {"id":"hook","title":"Price any paint job in minutes","pill":"","text":"Painters! Still pricing jobs on a napkin? Meet Coatwright, the app that prices any paint job in minutes."},
+ {"id":"setup","title":"Set up once","pill":"Step 1","text":"Set it up once. Add your business name, your logo, and your rates. Pick a starting point, and you're ready to go."},
+ {"id":"quote","title":"Quote any job, fast","pill":"Step 2","text":"Start a quote. Pick the property, enter the square footage, or go room by room. Add exterior, cabinets, or a garage floor. The price updates with every tap."},
+ {"id":"paint","title":"Pick the paint","pill":"New","text":"For every room, pick the brand, colour and sheen, and see exactly how much paint it needs."},
+ {"id":"tally","title":"Know what to buy","pill":"New","text":"Your paint tally adds it all up, room by room, so you know exactly what to buy, and what it costs."},
+ {"id":"send","title":"Send a pro quote","pill":"Step 3","text":"Your customer gets a clean, itemized quote with your logo. Email it, text it, or save a P D F, before you even leave the driveway."},
+ {"id":"track","title":"Win it. Track it. Get paid.","pill":"Step 4","text":"Won the job? Log the deposit and payments, and turn it into an invoice with one tap."},
+ {"id":"stats","title":"Know what you really make","pill":"Step 5","text":"Then see what you really made this year. Your profit, your real hourly rate, and the money still owed to you."},
+ {"id":"end","title":"","pill":"","text":"Coatwright. Try it free for fourteen days, no credit card needed. Send your first quote today."}
 ]

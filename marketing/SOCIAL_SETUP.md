@@ -39,7 +39,7 @@ If you saved any of these before Nov 14, 2026, delete the old copies first (the 
 | First post | https://getcoatwright.com/marketing/social/first-post.png?v=2 | Instagram & Facebook |
 | Demo video 1 | https://getcoatwright.com/marketing/videos/coatwright-demo-quote.mp4?v=2 | Posts on every platform (no sound: add music in the app) |
 | Demo video 2 | https://getcoatwright.com/marketing/videos/coatwright-demo-stats.mp4?v=2 | Posts on every platform (no sound: add music in the app) |
-| **Explainer (with voiceover)** | https://getcoatwright.com/marketing/videos/coatwright-explainer.mp4?v=4 | **Pinned post on every platform** |
+| **Explainer (with voiceover)** | https://getcoatwright.com/marketing/videos/coatwright-explainer.mp4?v=5 | **Pinned post on every platform** |
 
 Also have your **password manager** ready (iPhone Passwords app or Google Password Manager) to save each new password.
 
