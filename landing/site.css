@@ -155,6 +155,8 @@ details p { margin: 12px 0 0; color: var(--body); }
 .foot-cols h5 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 12px; }
 .foot-cols a { display: block; color: var(--body); font-size: 15px; margin-bottom: 8px; }
 .foot-cols a:hover { color: var(--text); }
+.foot-cols a.soc { display: flex; align-items: center; gap: 8px; }
+.foot-cols .soc-ic { flex: none; color: var(--brand); }
 .foot-bottom { border-top: 1px solid var(--line); padding: 20px; color: var(--muted); font-size: 14px; }
 
 .demo { display: flex; justify-content: center; margin: -16px 0 48px; }
@@ -221,5 +223,6 @@ details p { margin: 12px 0 0; color: var(--body); }
   .plan { padding: 26px 22px; }
   .ticks.cols { grid-template-columns: 1fr; }
   .pro-includes { padding: 22px 20px; }
-  .foot-cols { gap: 40px; }
+  .foot-cols { gap: 28px 40px; flex-wrap: wrap; }
+  .foot-cols > div { min-width: 130px; }
 }
