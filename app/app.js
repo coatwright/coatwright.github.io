@@ -1592,7 +1592,8 @@
       '<section class="card"><h2 class="card-title">💬 Help & feedback</h2>' +
       '<p class="muted small" style="margin-top:0">Questions, a bug, or a feature you want? We read every message.</p>' +
       '<a class="btn btn-ghost full" href="mailto:coatwrightapp@gmail.com?subject=Coatwright%20feedback">✉️ Email coatwrightapp@gmail.com</a></section>' +
-      '<p class="center-text muted small"><a href="#/welcome/1">Run setup again</a> · <a href="../privacy.html">Privacy Policy</a> · <a href="../terms.html">Terms</a></p>';
+      '<p class="center-text muted small"><a href="#/welcome/1">Run setup again</a> · <a href="../privacy.html">Privacy Policy</a> · <a href="../terms.html">Terms</a></p>' +
+      '<p class="center-text muted small">© ' + new Date().getFullYear() + ' Coatwright. All rights reserved.</p>';
 
     var input = document.getElementById('logo-input');
     if (input) input.addEventListener('change', onLogo);
