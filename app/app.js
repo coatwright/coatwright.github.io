@@ -305,7 +305,7 @@
     }
     app.innerHTML = '<div class="welcome">' + head + (st.error ? '<div class="inst-warn">' + esc(st.error) + '</div>' : '') + body +
       '<p class="center-text muted small">By continuing you agree to our <a href="../terms.html">Terms</a> and <a href="../privacy.html">Privacy Policy</a>.<br>' +
-      'Questions? <a href="mailto:coatwrightapp@gmail.com">coatwrightapp@gmail.com</a></p></div>';
+      'Questions? <a href="mailto:hello@getcoatwright.com">hello@getcoatwright.com</a></p></div>';
     var focus = app.querySelector('#si-code') || (!st.email && app.querySelector('#si-email'));
     if (focus) focus.focus();
   }
@@ -471,7 +471,7 @@
           '<button class="btn full" data-action="sub-check"' + (BC.enabled ? '' : ' disabled') + '>🔄 Check my subscription</button>' +
           (portal ? '<a class="btn btn-ghost full" style="margin-top:10px" href="' + esc(portal) + '" target="_blank" rel="noopener">Manage or cancel</a>' : '')) +
       '</section>' +
-      '<p class="center-text muted small">Questions? <a href="mailto:coatwrightapp@gmail.com?subject=Coatwright%20subscription">coatwrightapp@gmail.com</a></p>';
+      '<p class="center-text muted small">Questions? <a href="mailto:hello@getcoatwright.com?subject=Coatwright%20subscription">hello@getcoatwright.com</a></p>';
     if (BC.enabled && BC.checkout.monthly && accountsOn() && founderLeft === null) {
       founderLeft = -1; // asking
       AC.founderSpotsLeft(CFG).then(function (n) { founderLeft = isFinite(n) ? n : null; })
@@ -1591,7 +1591,7 @@
       '<button class="link danger center" data-action="reset-settings">Reset prices to defaults</button>' +
       '<section class="card"><h2 class="card-title">💬 Help & feedback</h2>' +
       '<p class="muted small" style="margin-top:0">Questions, a bug, or a feature you want? We read every message.</p>' +
-      '<a class="btn btn-ghost full" href="mailto:coatwrightapp@gmail.com?subject=Coatwright%20feedback">✉️ Email coatwrightapp@gmail.com</a></section>' +
+      '<a class="btn btn-ghost full" href="mailto:hello@getcoatwright.com?subject=Coatwright%20feedback">✉️ Email hello@getcoatwright.com</a></section>' +
       '<p class="center-text muted small"><a href="#/welcome/1">Run setup again</a> · <a href="../privacy.html">Privacy Policy</a> · <a href="../terms.html">Terms</a></p>' +
       '<p class="center-text muted small">© ' + new Date().getFullYear() + ' Coatwright. All rights reserved.</p>';
 
