@@ -138,6 +138,13 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 
 ---
 
+## Next up (approved plan, in order; each shown to the owner before going live)
+
+- ⬜ Cloud backup & sync: jobs, customers, expenses, settings and logo saved to the painter's own account (Supabase, read/write own rows only), works offline, restore on a new device, safe first sync; Privacy/Terms/app wording updated. Owner runs one SQL script
+- ⬜ Commercial "takeoff totals" entry (for blueprint estimators): type measured wall/ceiling sq ft, trim LF, doors per area → hours, paint, materials, quote. Maybe import a Bluebeam/Adobe measurement export. Beta tester (commercial painter) to send a sample blueprint, his measurements and his actual bid
+- ⬜ Usage analytics (actions only) + private owner dashboard (sign-ups, trials, trial→paid, founder spots, usage); website analytics (Cloudflare or Plausible); Privacy Policy updated
+- ⬜ Later: measure blueprints inside Coatwright (PDF + scale + trace); AI auto-takeoff only if commercial grows
+
 ## Phase 2 — Paint store partnerships (after the first painters)
 
 - ✅ Pitch deck for paint stores: `marketing/store-pitch/Coatwright-Paint-Store-Pitch.pptx` (problem, how it works, store and contractor benefits, illustrative sales maths, store-branded version, free 60-day pilot, pricing, next steps; speaker notes on every slide)
@@ -271,3 +278,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-17** — Working agreement added to CLAUDE.md: plans and results are approved by the owner before changes go live. New explainer draft (63 s, original video + paint scenes, no store mentions, no pauses) sent for review; not published.
 - **2026-11-17** — Owner approved the new explainer: published on the website (63 s: original video + paint picks and paint tally, continuous narration, no store mentions). Poster and kit links updated (?v=5); source in marketing/video-src/.
 - **2026-11-18** — Owner approved: LICENSE (All rights reserved) and a copyright line at the bottom of Settings. Plan agreed: customers first; repository private via GitHub Team when the owner has 5 minutes; trademark after the first paying customers. Owner set up hello@getcoatwright.com forwarding (Porkbun), LinkedIn Page + Founder profile, and a Google Calendar booking page.
+- **2026-11-19** — Owner's first beta tester: a commercial painter who prices from blueprints (measures in Adobe). Plan: cloud backup first, then a takeoff-totals entry for blueprint estimators, then analytics + owner dashboard.
