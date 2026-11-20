@@ -1,12 +1,52 @@
 [
- {"id":"hook","chapter":"","text":"Bidding commercial jobs from blueprints? Coatwright now does the takeoff and the bid, in one place. Start a new commercial job and choose Price from blueprints."},
- {"id":"open","chapter":"1 · Open the plans","text":"Open the PDF drawings, straight from your computer. It works on a tablet or phone too."},
- {"id":"scale","chapter":"2 · Set the scale","text":"Coatwright reads the scale printed on the sheet. One click, and you're measuring. If a plan is printed smaller, just measure a known dimension instead."},
- {"id":"walls","chapter":"3 · Measure walls","text":"Pick a paint system, like walls in eggshell, and click around each room. Close the shape, and it multiplies the walls by the height. Square feet, done, and the bid updates as you go."},
- {"id":"ceil","chapter":"4 · Ceilings & floors","text":"Ceilings and floors are areas. Outline them, and the square footage adds up."},
- {"id":"count","chapter":"5 · Count doors & frames","text":"Doors and frames? Just click each one to count it."},
- {"id":"typed","chapter":"Already measured in Adobe?","text":"Already measured in Adobe or Bluebeam? Type your totals instead. You get the same bid."},
- {"id":"bid","chapter":"6 · The bid","text":"Here's a full office, measured. The bid builds itself: labour hours from your production rates, paint by the pail, extra costs like a lift rental, then overhead and profit. Prefer unit prices? Switch to price per square foot."},
- {"id":"proposal","chapter":"7 · Send the proposal","text":"Then send a professional proposal: scope by paint system, alternates, inclusions and exclusions, ready to sign, email, or save as a PDF."},
- {"id":"end","chapter":"","text":"Blueprint to bid, in minutes. Coatwright Commercial, now in beta."}
+ {
+  "id": "hook",
+  "chapter": "",
+  "text": "Bidding commercial jobs from blueprints? Coatwright now does the takeoff and the bid, in one place. Start a new commercial job, and choose I have the drawings."
+ },
+ {
+  "id": "open",
+  "chapter": "1 \u00b7 Open the plans",
+  "text": "Open the PDF drawings, straight from your computer. It works on a tablet or phone too."
+ },
+ {
+  "id": "scale",
+  "chapter": "2 \u00b7 Set the scale",
+  "text": "Coatwright reads the scale printed on the sheet. One click, and you're measuring. If a plan is printed smaller, just measure a known dimension instead."
+ },
+ {
+  "id": "walls",
+  "chapter": "3 \u00b7 Measure walls",
+  "text": "Pick a paint system, like walls in eggshell, and click around each room. Close the shape, and it multiplies the walls by the height. Square feet, done, and the bid updates as you go."
+ },
+ {
+  "id": "ceil",
+  "chapter": "4 \u00b7 Ceilings & floors",
+  "text": "Ceilings and floors are areas. Outline them, and the square footage adds up."
+ },
+ {
+  "id": "count",
+  "chapter": "5 \u00b7 Count doors & frames",
+  "text": "Doors and frames? Just click each one to count it."
+ },
+ {
+  "id": "typed",
+  "chapter": "Already measured in Adobe?",
+  "text": "Already measured in Adobe or Bluebeam? Type your totals instead. You get the same bid."
+ },
+ {
+  "id": "bid",
+  "chapter": "6 \u00b7 The bid",
+  "text": "Here's a full office, measured. The bid builds itself: labour hours from your production rates, paint by the pail, extra costs like a lift rental, then overhead and profit. Prefer unit prices? Switch to price per square foot."
+ },
+ {
+  "id": "proposal",
+  "chapter": "7 \u00b7 Send the proposal",
+  "text": "Then send a professional proposal: scope by paint system, alternates, inclusions and exclusions, ready to sign, email, or save as a PDF."
+ },
+ {
+  "id": "end",
+  "chapter": "",
+  "text": "Blueprint to bid, in minutes. Coatwright Commercial, now in beta."
+ }
 ]

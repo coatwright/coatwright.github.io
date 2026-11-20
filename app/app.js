@@ -762,7 +762,7 @@
       '<div class="page-head"><a href="#/new" class="back">‹ Back</a><span class="muted small">Step 2 of 2</span></div>' +
       '<div class="tag">' + t.icon + ' ' + t.label + '</div>' +
       (type === 'commercial' && T ? '<button type="button" class="pick big to-pick" data-action="create-takeoff" data-prop="office"><span class="pick-icon">📄</span>' +
-        '<span><strong>Price from blueprints <span class="beta">BETA</span></strong><span class="muted small">Open the PDF plans, measure walls, ceilings and doors on screen, get the bid</span></span><span class="chev">›</span></button>' +
+        '<span><strong>I have the drawings</strong><span class="muted small"><b>(Blueprint takeoff)</b> <span class="beta">BETA</span><br>Open the PDF plans, measure walls, ceilings and doors on screen, get the bid</span></span><span class="chev">›</span></button>' +
         '<button type="button" class="link to-demo-link" data-action="to-demo">👀 See a demo: a sample office plan, already measured</button>' : '') +
       '<h1 class="ask">What type of property?</h1>' +
       '<div class="pick-list' + (t.properties.length > 6 ? ' grid' : '') + '">' + t.properties.map(function (p) {
@@ -1168,9 +1168,9 @@
 
       '<h2 class="section-title"><span class="step">2</span> ' + (takeoff ? 'Measure from blueprints' : quick ? 'Inside: size of the job' : 'Inside: rooms') + '</h2>' +
       '<div class="segmented mode-switch' + (commercial ? ' three' : '') + '">' +
-      '<button type="button" class="' + (quick ? 'on' : '') + '" data-action="mode" data-v="quick">⚡ Quick (by sq ft)</button>' +
-      '<button type="button" class="' + (!quick && !takeoff ? 'on' : '') + '" data-action="mode" data-v="rooms">📐 Room by room</button>' +
-      (commercial && T ? '<button type="button" class="' + (takeoff ? 'on' : '') + '" data-action="mode" data-v="takeoff">📄 Blueprint takeoff</button>' : '') + '</div>' +
+      '<button type="button" class="' + (quick ? 'on' : '') + '" data-action="mode" data-v="quick">⚡ Ballpark by size<small>(square-foot estimate)</small></button>' +
+      '<button type="button" class="' + (!quick && !takeoff ? 'on' : '') + '" data-action="mode" data-v="rooms">📐 I walked the site<small>(room-by-room measure)</small></button>' +
+      (commercial && T ? '<button type="button" class="' + (takeoff ? 'on' : '') + '" data-action="mode" data-v="takeoff">📄 I have the drawings<small>(blueprint takeoff)</small></button>' : '') + '</div>' +
       (takeoff ? takeoffCard(job, calc) : quick ? quickCard(job, calc) :
         job.rooms.map(function (r, i) { return roomCard(r, i, calc); }).join('') +
         '<section class="card add-room"><div class="label">' + (job.rooms.length ? 'Add another room' : 'Tap a room to add it') + '</div>' +
