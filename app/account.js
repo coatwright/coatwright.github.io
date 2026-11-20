@@ -55,7 +55,7 @@
     var headers = { apikey: cfg.supabaseKey, 'Content-Type': 'application/json', Accept: 'application/json' };
     if (opts.token) headers.Authorization = 'Bearer ' + opts.token;
     if (opts.prefer) headers.Prefer = opts.prefer;
-    return fetch(cfg.supabaseUrl + path, { method: opts.method || 'GET', headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined })
+    return fetch(cfg.supabaseUrl + path, { method: opts.method || 'GET', headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined, keepalive: !!opts.keepalive })
       .then(function (r) {
         return r.text().then(function (txt) {
           var json = null;
@@ -129,6 +129,16 @@
       .then(function (rows) { return rows && rows[0] ? rows[0] : null; });
   }
 
+  /** Usage counts: actions only (see supabase/analytics.sql). Kept alive so they still send when the page closes. */
+  function sendEvents(cfg, session, rows) {
+    return call(cfg, '/rest/v1/events', { method: 'POST', token: session.accessToken, prefer: 'return=minimal', body: rows, keepalive: true });
+  }
+
+  /** The owner's dashboard summary (the database refuses anyone else). */
+  function ownerStats(cfg, session) {
+    return call(cfg, '/rest/v1/rpc/owner_stats', { method: 'POST', token: session.accessToken, body: {} });
+  }
+
   /** How many founding-member spots are left (public). */
   function founderSpotsLeft(cfg) {
     return call(cfg, '/rest/v1/rpc/founder_spots_left', { method: 'POST', body: {} }).then(function (n) { return Number(n); });
@@ -146,7 +156,7 @@
   var api = {
     normalizeEmail: normalizeEmail, validEmail: validEmail, parseAuthFragment: parseAuthFragment, sessionFrom: sessionFrom,
     needsRefresh: needsRefresh, sendCode: sendCode, verifyCode: verifyCode, refresh: refresh, getUser: getUser,
-    getProfile: getProfile, getSubscriptions: getSubscriptions, getComp: getComp, getUserData: getUserData, insertUserData: insertUserData, updateUserData: updateUserData, founderSpotsLeft: founderSpotsLeft, signOut: signOut, googleUrl: googleUrl
+    getProfile: getProfile, getSubscriptions: getSubscriptions, getComp: getComp, getUserData: getUserData, insertUserData: insertUserData, updateUserData: updateUserData, sendEvents: sendEvents, ownerStats: ownerStats, founderSpotsLeft: founderSpotsLeft, signOut: signOut, googleUrl: googleUrl
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.Account = api;

@@ -304,6 +304,7 @@
     else if (view === 'new' && !access().canCreate) { location.hash = '#/upgrade'; return; }
     else if (view === 'new') renderNewJob(P.JOB_TYPES[id] ? id : null);
     else if (view === 'settings') renderSettings();
+    else if (view === 'owner') renderOwner();
     else if (view === 'stats') renderStats(+id || new Date().getFullYear());
     else if (view === 'welcome' && !id && settings.onboarded) { location.hash = '#/'; return; }
     else if (view === 'welcome') renderWelcome(+id || 0);
@@ -595,6 +596,7 @@
   }
 
   function renderUpgrade() {
+    track('upgrade_viewed', null, true);
     var a = access(), deal = BL.annualDeal(BC);
     var thanks = (location.hash.split('/')[2] || '') === 'thanks';
     var portal = BL.portalUrl(BC, settings.account && settings.account.email);
@@ -1432,7 +1434,7 @@
   }
   // ---------- Invoice ----------
   function renderInvoice(job) {
-    if (!job.invoiceDate) { job.invoiceDate = today(); saveJobs(); }
+    if (!job.invoiceDate) { job.invoiceDate = today(); saveJobs(); track('invoice_created', { type: job.jobType }); }
     var q = P.calcJob(job, settings);
     var due = Math.max(0, q.total - S.paidAmount(job));
     app.innerHTML =
@@ -1798,6 +1800,8 @@
           : a.mode === 'trial' ? 'Free trial · <b>' + a.daysLeft + (a.daysLeft === 1 ? ' day' : ' days') + ' left</b> · ends ' + esc(fmtDate(a.ends))
             : a.mode === 'recheck' ? 'Pro · needs a quick online check' : (a.lapsed ? 'Subscription ended' : 'Free trial ended') + ' · view and export only') + '</p>';
       })() + '<a class="btn ' + (access().mode === 'active' ? '' : 'btn-primary') + ' full" href="#/upgrade">' + (access().mode === 'active' ? 'View plan' : 'See plans') + '</a></section>' : '') +
+      (CFG.analytics && isOwnerHint() ? '<section class="card"><h2 class="card-title">📊 Owner dashboard</h2><p class="muted small" style="margin-top:0">Sign-ups, trials, paying customers and what painters use. Only you can see it.</p>' +
+        '<a class="btn btn-primary full" href="#/owner">Open owner dashboard</a></section>' : '') +
       '<section class="card"><h2 class="card-title">🔒 Your data</h2>' +
       (syncReady() && accountsOn() && signedIn() ? '<p class="muted small" style="margin-top:0">☁️ <b>Cloud backup is on.</b> Your jobs, customers, expenses and settings are saved privately to your account and ' +
         'stay in sync on every phone, tablet or computer you sign in on. They\'re private: never sold or shared. It works offline too: changes upload when you\'re back online.</p>' +
@@ -1913,6 +1917,7 @@
       if (to.viewer) to.viewer.destroy();
       to = Object.assign(to, { jobId: job.id, viewer: null, pdf: null, planId: t.plans[0] ? t.plans[0].id : null, page: 1,
         tool: 'measure', selected: null, countMark: null, history: [], missing: false, foundScale: null, editSys: null, mtab: t.plans.length ? 'plan' : 'takeoff' });
+      track('takeoff_opened', { demo: !!job.sample }, true);
     }
     if (!toSys(t, to.systemId)) to.systemId = t.systems[0] ? t.systems[0].id : null;
     if (!t.zones.some(function (z) { return z.id === to.zoneId; })) to.zoneId = t.zones[0].id;
@@ -2046,6 +2051,7 @@
           touch(job);
           app.querySelector('.to').dataset.mtab = 'plan';
           openCurrentPlan();
+          if (!existing) track('takeoff_plan_added', { pages: pdf.numPages });
           toast(existing ? 'Plan reconnected' : 'Plan added: ' + pdf.numPages + (pdf.numPages === 1 ? ' page' : ' pages'));
         });
       });
@@ -2083,6 +2089,7 @@
           planId: to.planId, page: to.page, pts: m.pts.map(function (p) { return [Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100]; }) };
         if (s.measure === 'wall') mark.h = Number(t.wallHeight) || 10;
         t.marks.push(mark); to.history.push({ id: mark.id }); to.selected = null;
+        track('takeoff_measure', { kind: mark.kind }, true);
         touch(job); to.viewer.draw(); toRefresh();
         var q = T.markQty(t, mark, s);
         toast('✓ ' + fmtN(q.qty) + ' ' + T.MEASURES[s.measure].unit + ' added to ' + s.name);
@@ -2096,6 +2103,7 @@
           t.marks.push(mk); to.countMark = mk.id;
         }
         mk.pts.push([Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100]);
+        track('takeoff_measure', { kind: 'count' }, true);
         to.history.push({ id: mk.id, pt: true });
         touch(job); to.viewer.draw(); toRefresh();
       },
@@ -2452,6 +2460,7 @@
         var s3 = toSys(t, to.systemId); if (!s3) return true;
         var m = { id: T.uid(), systemId: s3.id, zoneId: to.zoneId, kind: 'typed', qty: '' };
         t.marks.push(m); touch(job); toRefresh(true);
+        track('takeoff_typed', null, true);
         var inp = app.querySelector('[data-to="mark.' + m.id + '.qty"]'); if (inp) inp.focus();
         return true;
       }
@@ -2515,6 +2524,7 @@
         t.alternates = demo.alternates.map(function (a) { return Object.assign({ id: T.uid() }, a); });
         job.takeoff = t;
         job.notes = 'Demo project: a made-up office used to show the blueprint takeoff. Delete it any time.';
+        track('demo_opened');
         return PlanStore.put('demo-office-v1', { name: t.plans[0].name, size: buf.byteLength, data: buf }).then(function () {
           touch(job);
           to.jobId = null;
@@ -2534,10 +2544,124 @@
       '<a class="btn btn-primary full" href="#/takeoff/' + job.id + '">' + (active.length ? 'Open takeoff ›' : '📐 Start the takeoff ›') + '</a></section>';
   }
 
+  // ---------- Usage counts (actions only) & owner dashboard ----------
+  // The app records which features are used (never customer names, addresses, prices or job details) so the owner can see
+  // trials, conversions and feature use. Queued on the device, sent when signed in and online. Off until CW_CONFIG.analytics.
+  var evq = load('pq.events', null) || [];
+  var ev = { timer: null, busy: false, off: false };
+  function analyticsOn() { return !!(CFG.analytics && AC && AC.sendEvents && accountsOn() && signedIn() && !ev.off); }
+  /** track('quote_created', { type: 'commercial' }); merge=true folds repeats on the same day into one event with a count. */
+  function track(name, props, merge) {
+    if (!CFG.analytics) return;
+    var day = today();
+    if (merge) {
+      var same = evq.find(function (e) { return e.name === name && e.day === day; });
+      if (same) { same.props.n = (same.props.n || 1) + 1; save('pq.events', evq); scheduleEvents(); return; }
+    }
+    evq.push({ name: name, props: Object.assign(merge ? { n: 1 } : {}, props || {}), day: day });
+    if (evq.length > 300) evq = evq.slice(-300);
+    save('pq.events', evq);
+    scheduleEvents();
+  }
+  function scheduleEvents(ms) {
+    if (!analyticsOn()) return;
+    clearTimeout(ev.timer);
+    ev.timer = setTimeout(flushEvents, ms == null ? 8000 : ms);
+  }
+  function flushEvents() {
+    if (!analyticsOn() || ev.busy || !evq.length || navigator.onLine === false) return Promise.resolve();
+    ev.busy = true;
+    var batch = evq.slice(0, 50);
+    return freshSession()
+      .then(function () { return AC.sendEvents(CFG, session, batch.map(function (e) { return { name: e.name, props: e.props }; })); })
+      .then(function () { evq = evq.slice(batch.length); save('pq.events', evq); if (evq.length) scheduleEvents(1500); },
+        function (e) { if (e && (e.status === 404 || e.code === 'PGRST205' || e.code === '42P01')) ev.off = true; })
+      .then(function () { ev.busy = false; });
+  }
+  if (CFG.analytics) {
+    window.addEventListener('online', function () { scheduleEvents(2000); });
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushEvents(); });
+    document.addEventListener('click', function (e) { // checkout links leave the app: count the click on the way out
+      var a = e.target.closest && e.target.closest('a[href^="https://buy.stripe.com"]');
+      if (a) { track('checkout_clicked', { plan: a.closest('.plan-card') ? (a.closest('.plan-card').querySelector('h3') || {}).textContent : '' }); flushEvents(); }
+    }, true);
+  }
+
+  var EVENT_LABELS = {
+    app_opened: 'Opened the app', quote_created: 'Quotes started', status_sent: 'Quotes sent', status_won: 'Jobs won', status_scheduled: 'Jobs scheduled',
+    status_completed: 'Jobs completed', status_paid: 'Jobs marked paid', status_lost: 'Quotes lost', invoice_created: 'Invoices made',
+    quote_email: 'Quotes emailed', quote_share: 'Quotes texted/shared', quote_print: 'Quote PDFs saved', quote_copy: 'Quotes copied',
+    invoice_email: 'Invoices emailed', invoice_share: 'Invoices shared', invoice_print: 'Invoice PDFs saved', invoice_copy: 'Invoices copied',
+    payment_added: 'Payments logged', expense_added: 'Expenses logged', takeoff_started: 'Takeoffs started', takeoff_opened: 'Takeoff opened',
+    takeoff_plan_added: 'Plans added (PDF)', takeoff_measure: 'Takeoff measurements', takeoff_typed: 'Typed totals (Adobe/Bluebeam)',
+    demo_opened: 'Demo plan opened', upgrade_viewed: 'Plans page viewed', checkout_clicked: 'Checkout clicked', sample_created: 'Sample quote opened'
+  };
+  function isOwnerHint() { return !!(settings.comp && /^owner$/i.test(String(settings.comp.note || '').trim())); }
+
+  var ownerData = null, ownerErr = '', ownerFilter = '';
+  function renderOwner() {
+    app.innerHTML = '<div class="page-head"><a href="#/settings" class="back">‹ Settings</a><span class="muted small">Owner dashboard</span></div>' +
+      '<h1 class="ask" style="margin-top:0">📊 Owner dashboard</h1><div id="owner-body"><p class="muted">Loading…</p></div>';
+    if (!CFG.analytics || !accountsOn() || !signedIn()) { document.getElementById('owner-body').innerHTML = '<p class="muted">Sign in with the owner account to see the dashboard.</p>'; return; }
+    freshSession().then(function () { return AC.ownerStats(CFG, session); })
+      .then(function (d) { ownerData = d; ownerErr = ''; }, function (e) { ownerErr = e && e.status === 403 || /not allowed/i.test(e && e.message) ? 'This dashboard is only for the Coatwright owner account.' : friendlyAuthError(e); })
+      .then(function () { var b = document.getElementById('owner-body'); if (b && location.hash.indexOf('#/owner') === 0) b.innerHTML = ownerBody(); });
+  }
+  function ownerBody() {
+    if (ownerErr) return '<div class="inst-warn">' + esc(ownerErr) + '</div>';
+    var d = ownerData || {}, n = function (x) { return Number(x) || 0; };
+    var conv = n(d.paying) + n(d.endedTrials) ? Math.round(n(d.paying) / (n(d.paying) + n(d.endedTrials)) * 100) + '%' : '—';
+    var plans = d.byPlan || {};
+    var days = d.signupsByDay || [], max = Math.max(1, Math.max.apply(null, days.map(function (x) { return n(x.n); })));
+    var W = 600, H = 120, bw = W / Math.max(1, days.length);
+    var bars = days.map(function (x, i) {
+      var h = Math.round(n(x.n) / max * (H - 18));
+      return '<rect x="' + (i * bw + 2).toFixed(1) + '" y="' + (H - h) + '" width="' + (bw - 4).toFixed(1) + '" height="' + h + '" rx="3" fill="#1f5eff"><title>' + esc(x.day) + ': ' + n(x.n) + '</title></rect>' +
+        (n(x.n) ? '<text x="' + (i * bw + bw / 2).toFixed(1) + '" y="' + (H - h - 4) + '" text-anchor="middle" font-size="11" fill="#16203a">' + n(x.n) + '</text>' : '');
+    }).join('');
+    var events = Object.keys(d.events30 || {}).sort(function (a, b) { return n(d.events30[b]) - n(d.events30[a]); });
+    var people = (d.people || []).filter(function (p) { return !ownerFilter || String(p.email || '').toLowerCase().indexOf(ownerFilter.toLowerCase()) !== -1; });
+    var pill = function (p) {
+      if (p.comp) return '<span class="pill">🎁 ' + esc(p.comp) + '</span>';
+      if (p.paying) return '<span class="pill st-paid">⭐ ' + esc(BL.planName(p.plan || '')) + (p.founder ? ' #' + p.founder : '') + (p.cancelling ? ' · cancelling' : '') + (p.status === 'past_due' ? ' · payment problem' : '') + '</span>';
+      var ends = Date.parse(p.trialEnds);
+      return ends > Date.now() ? '<span class="pill">⏳ Trial · ends ' + esc(fmtShort(S.isoDate(ends))) + '</span>' : '<span class="pill late">Trial ended</span>';
+    };
+    return '<div class="stats owner-kpis">' +
+      stat('Painters signed up', n(d.users)) + stat('New this week', n(d.signups7) + ' <small>(' + n(d.signups30) + ' in 30 days)</small>') +
+      stat('Active trials', n(d.activeTrials)) + stat('Paying customers', n(d.paying) + (n(d.cancelling) ? ' <small>(' + n(d.cancelling) + ' cancelling)</small>' : '')) +
+      stat('Monthly revenue', 'US$' + n(d.mrrUsd).toLocaleString('en-US', { maximumFractionDigits: 0 })) + stat('Trial → paid', conv) +
+      stat('Founding spots', n(d.founders) + ' <small>of 100</small>') + stat('Active this week', n(d.active7) + ' <small>(' + n(d.active30) + ' this month)</small>') +
+      stat('Complimentary', n(d.comp)) + stat('Plans', ['founder', 'monthly', 'annual'].map(function (k) { return n(plans[k]) + ' ' + BL.planName(k).toLowerCase(); }).join('<br>')) + '</div>' +
+      '<section class="card"><h2 class="card-title">Sign-ups, last 30 days</h2><svg class="owner-chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Sign-ups per day">' + bars + '</svg>' +
+      '<div class="owner-axis muted small"><span>' + esc(days[0] ? fmtShort(days[0].day) : '') + '</span><span>Today</span></div></section>' +
+      '<section class="card"><h2 class="card-title">What painters used (last 30 days)</h2>' +
+      (events.length ? '<table class="to-bid"><tbody>' + events.map(function (k) {
+        return '<tr><td>' + esc(EVENT_LABELS[k] || k) + '</td><td class="amt"><b>' + n(d.events30[k]) + '</b></td></tr>';
+      }).join('') + '</tbody></table>' : '<p class="muted small">No activity recorded yet. Counts start when painters use the updated app.</p>') +
+      '<p class="muted small">Counts actions, not people.</p></section>' +
+      '<section class="card"><h2 class="card-title">Painters (' + (d.people || []).length + ')</h2>' +
+      '<input type="search" class="search" data-owner-search placeholder="Search by email…" value="' + esc(ownerFilter) + '">' +
+      '<div id="owner-people">' + people.map(function (p) {
+        return '<div class="owner-person"><div class="op-top"><b>' + esc(p.email || '—') + '</b>' + pill(p) + '</div>' +
+          '<div class="muted small">Signed up ' + esc(fmtShort(S.isoDate(Date.parse(p.signedUp)))) + ' · last active ' + (p.lastActive ? esc(ago(Date.parse(p.lastActive))) : '—') + '</div>' +
+          '<div class="small op-use">' + n(p.quotes) + ' quotes · ' + n(p.sent) + ' sent · ' + n(p.won) + ' won · ' + n(p.invoices) + ' invoices' + (n(p.takeoff) ? ' · 📄 ' + n(p.takeoff) + ' takeoff' : '') + '</div></div>';
+      }).join('') + '</div></section>' +
+      '<p class="center-text muted small">Updated ' + esc(ago(Date.parse(d.generatedAt) || Date.now())) + ' · <button type="button" class="link" data-action="owner-refresh">Refresh</button></p>' +
+      '<p class="center-text muted small">Only your account can see this page. Customer names, addresses and prices are never collected.</p>';
+  }
+
   // ---------- Events ----------
   app.addEventListener('input', function (e) {
     var el = e.target;
     if (el.dataset && el.dataset.to !== undefined && el.closest('.to')) { onToInput(el); return; }
+    if (el.hasAttribute('data-owner-search')) {
+      ownerFilter = el.value;
+      var tmp = document.createElement('div'); tmp.innerHTML = ownerBody();
+      var list = document.getElementById('owner-people'), fresh = tmp.querySelector('#owner-people');
+      if (list && fresh) list.innerHTML = fresh.innerHTML;
+      return;
+    }
     if (el.hasAttribute('data-home-search')) {
       homeSearch = el.value;
       document.getElementById('job-list').innerHTML = jobCards();
@@ -2637,9 +2761,11 @@
     if (!el) return;
     var action = el.dataset.action;
     if (action === 'to-demo') { startDemo(); return; }
+    if (action === 'owner-refresh') { renderOwner(); return; }
     if (action === 'create-takeoff') {
       var tj = newJob('commercial', el.dataset.prop || 'office');
       tj.mode = 'takeoff'; ensureTakeoff(tj); touch(tj);
+      track('quote_created', { type: 'commercial', mode: 'takeoff' }); track('takeoff_started');
       location.hash = '#/takeoff/' + tj.id;
       return;
     }
@@ -2683,6 +2809,7 @@
       case 'si-signout':
         if (!confirm('Sign out? Your jobs and quotes stay saved on this phone' + (syncOn() ? ' and in your account.' : '.'))) return;
         (syncOn() ? runSync(true) : Promise.resolve()).then(function () {
+          evq = []; save('pq.events', evq);
           AC.signOut(CFG, session);
           session = null; save('pq.session', null); delete settings.account; saveSettings();
           location.hash = '#/signin';
@@ -2741,6 +2868,8 @@
           }
         }
         touch(job); renderJob(job);
+        if (prev !== job.status) track('status_' + job.status, { type: job.jobType, mode: job.mode || 'rooms' });
+        if (logged) track('payment_added', null, true);
         if (logged) toast('💰 Paid! ' + money(logged) + ' logged. Change the method or date below if needed');
         else if (S.isWon(job) && ['draft', 'sent', 'lost'].indexOf(prev) !== -1) toast('🎉 Won! Log payments and real costs below');
         else toast('Marked as ' + S.statusInfo(job.status).label);
@@ -2767,6 +2896,7 @@
       case 'add-payment': {
         var owed = S.balance(job, settings);
         job.payments.push({ id: uid(), date: today(), amount: owed || '', method: S.paymentMethods(settings.currency)[settings.currency === 'CAD' ? 3 : 1] });
+        track('payment_added', null, true);
         touch(job); renderJob(job);
         var amts = app.querySelectorAll('.pay-row input[type=number]');
         if (amts.length) amts[amts.length - 1].focus();
@@ -2780,6 +2910,7 @@
         var amt = parseFloat(document.getElementById('ex-amount').value);
         var date = document.getElementById('ex-date').value;
         if (!(amt > 0) || !date) { toast('Enter a date and an amount'); return; }
+        track('expense_added', null, true);
         expenses.push({ id: uid(), date: date, label: document.getElementById('ex-label').value.trim(),
           category: document.getElementById('ex-cat').value, amount: amt });
         saveExpenses();
@@ -2838,6 +2969,7 @@
       }
       case 'create-job':
         location.hash = '#/job/' + newJob(el.dataset.type, el.dataset.prop).id;
+        track('quote_created', { type: el.dataset.type, property: el.dataset.prop });
         return;
       case 'jobtype':
         if (job.jobType === el.dataset.v) return;
@@ -3001,8 +3133,10 @@
     if (kind === 'quote' && ['email', 'share', 'print', 'copy'].indexOf(action) !== -1 && S.statusOf(qjob) === 'draft') {
       S.setStatus(qjob, 'sent');
       saveJobs();
+      track('status_sent', { type: qjob.jobType, mode: qjob.mode || 'rooms' });
       setTimeout(function () { toast('Marked as Sent 📨'); }, 2400);
     }
+    if (['email', 'share', 'print', 'copy'].indexOf(action) !== -1) track(kind + '_' + action, { mode: qjob.mode || 'rooms' }, true);
     if (action === 'email') {
       location.href = 'mailto:' + encodeURIComponent(qjob.customer.email || '') +
         '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text);
@@ -3033,4 +3167,5 @@
 
   if (!handleAuthReturn()) route();
   syncAccount().then(function () { scheduleSync(0); });
+  try { if (CFG.analytics && localStorage.getItem('pq.opened') !== today()) { localStorage.setItem('pq.opened', today()); track('app_opened', { installed: isInstalled() }); } } catch (e) { /* storage blocked */ }
 })();
