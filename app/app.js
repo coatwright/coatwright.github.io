@@ -171,6 +171,7 @@
     syncMeta.deleted = m.doc.deleted; syncMeta.lastSync = Date.now(); saveMeta();
     if (m.changedLocal && location.hash.indexOf('#/signin') !== 0 && !editing()) {
       if (settings.onboarded && /^#\/welcome/.test(location.hash)) location.hash = '#/';
+      else if (document.body.dataset.view === 'takeoff') { if (findJob(to.jobId)) { toRefresh(true); if (to.viewer) to.viewer.draw(); } else route(); }
       else route();
     }
   }
@@ -288,8 +289,10 @@
     document.body.dataset.view = view;
     if (accountsOn() && !signedIn() && view !== 'signin') { location.hash = '#/signin'; return; }
     if (view === 'signin') { if (!accountsOn() || signedIn()) { location.hash = '#/'; return; } renderSignin(); return; }
-    if ((view === 'job' || view === 'quote' || view === 'invoice') && !job) { location.hash = '#/'; return; }
-    if (view === 'job') renderJob(job);
+    if ((view === 'job' || view === 'quote' || view === 'invoice' || view === 'takeoff') && !job) { location.hash = '#/'; return; }
+    if (view === 'takeoff' && (job.mode !== 'takeoff' || !job.takeoff)) { location.hash = '#/job/' + job.id; return; }
+    if (view === 'takeoff') renderTakeoff(job);
+    else if (view === 'job') renderJob(job);
     else if (view === 'quote') renderQuote(job);
     else if (view === 'invoice' && !job.invoiceDate && !access().canCreate) { location.hash = '#/upgrade'; return; }
     else if (view === 'invoice') renderInvoice(job);
@@ -758,6 +761,9 @@
     app.innerHTML =
       '<div class="page-head"><a href="#/new" class="back">‹ Back</a><span class="muted small">Step 2 of 2</span></div>' +
       '<div class="tag">' + t.icon + ' ' + t.label + '</div>' +
+      (type === 'commercial' && T ? '<button type="button" class="pick big to-pick" data-action="create-takeoff" data-prop="office"><span class="pick-icon">📄</span>' +
+        '<span><strong>I have the drawings</strong><span class="muted small"><b>(Blueprint takeoff)</b> <span class="beta">BETA</span><br>Open the PDF plans, measure walls, ceilings and doors on screen, get the bid</span></span><span class="chev">›</span></button>' +
+        '<button type="button" class="link to-demo-link" data-action="to-demo">👀 See a demo: a sample office plan, already measured</button>' : '') +
       '<h1 class="ask">What type of property?</h1>' +
       '<div class="pick-list' + (t.properties.length > 6 ? ' grid' : '') + '">' + t.properties.map(function (p) {
         return '<button type="button" class="pick" data-action="create-job" data-type="' + type + '" data-prop="' + p.id + '">' +
@@ -1132,6 +1138,9 @@
     (job.rooms || []).forEach(function (r) { r.paint = P.paintFor(r); });
     job.quick.paint = P.paintFor(job.quick);
     var quick = job.mode === 'quick';
+    if (job.mode === 'takeoff' && job.jobType !== 'commercial') job.mode = 'rooms';
+    var takeoff = job.mode === 'takeoff' && T;
+    if (takeoff) ensureTakeoff(job);
     var calc = P.calcJob(job, settings);
     calc.paint = P.paintPlan(job, settings);
     var cu = job.customer;
@@ -1157,11 +1166,12 @@
       propertyPicker(job) +
       '</section>' +
 
-      '<h2 class="section-title"><span class="step">2</span> ' + (quick ? 'Inside: size of the job' : 'Inside: rooms') + '</h2>' +
-      '<div class="segmented mode-switch">' +
-      '<button type="button" class="' + (quick ? 'on' : '') + '" data-action="mode" data-v="quick">⚡ Quick (by sq ft)</button>' +
-      '<button type="button" class="' + (quick ? '' : 'on') + '" data-action="mode" data-v="rooms">📐 Room by room</button></div>' +
-      (quick ? quickCard(job, calc) :
+      '<h2 class="section-title"><span class="step">2</span> ' + (takeoff ? 'Measure from blueprints' : quick ? 'Inside: size of the job' : 'Inside: rooms') + '</h2>' +
+      '<div class="segmented mode-switch' + (commercial ? ' three' : '') + '">' +
+      '<button type="button" class="' + (quick ? 'on' : '') + '" data-action="mode" data-v="quick">⚡ Ballpark by size<small>(square-foot estimate)</small></button>' +
+      '<button type="button" class="' + (!quick && !takeoff ? 'on' : '') + '" data-action="mode" data-v="rooms">📐 I walked the site<small>(room-by-room measure)</small></button>' +
+      (commercial && T ? '<button type="button" class="' + (takeoff ? 'on' : '') + '" data-action="mode" data-v="takeoff">📄 I have the drawings<small>(blueprint takeoff)</small></button>' : '') + '</div>' +
+      (takeoff ? takeoffCard(job, calc) : quick ? quickCard(job, calc) :
         job.rooms.map(function (r, i) { return roomCard(r, i, calc); }).join('') +
         '<section class="card add-room"><div class="label">' + (job.rooms.length ? 'Add another room' : 'Tap a room to add it') + '</div>' +
         '<div class="room-types">' + roomTypes.map(typeBtn).filter(function (_, k) { return !roomTypes[k].more; }).join('') + '</div>' +
@@ -1169,7 +1179,7 @@
           '<div class="room-types">' + moreTypes.join('') + '</div></details>' : '') +
         '</section>') +
 
-      '<h2 class="section-title"><span class="step">3</span> Exterior, floors & specialty <em class="muted small">(optional)</em></h2>' +
+      (takeoff ? '' : '<h2 class="section-title"><span class="step">3</span> Exterior, floors & specialty <em class="muted small">(optional)</em></h2>' +
       job.outside.map(function (it, i) { return outsideCard(it, i, calc.outside[i]); }).join('') +
       '<section class="card add-room">' + P.OUTSIDE_GROUPS.map(function (g) {
         return '<div class="label">' + g[1] + '</div><div class="room-types">' + P.OUTSIDE_TYPES.map(function (t, k) {
@@ -1177,7 +1187,7 @@
           var nm = (commercial && t.commercialName) || t.name;
           return '<button type="button" data-action="add-out" data-k="' + k + '"><span>' + t.icon + '</span>' + esc(nm) + '</button>';
         }).join('') + '</div>';
-      }).join('') + '</section>' +
+      }).join('') + '</section>') +
 
       '<details class="card"' + (job.extras.length || job.discount || job.notes ? ' open' : '') + '><summary class="card-title"><span class="step">4</span> Extras, discount & notes <em class="muted small">(optional)</em></summary>' +
       job.extras.map(function (e, i) {
@@ -1189,7 +1199,7 @@
       '<div class="row2"><label class="field"><span>Discount</span><div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" data-field="discount" value="' + esc(job.discount || '') + '" placeholder="0"></div></label></div>' +
       '<label class="field"><span>Notes for customer</span><textarea data-field="notes" rows="3" placeholder="Colors, start date, anything special…">' + esc(job.notes) + '</textarea></label>' +
       '</details>' +
-      paintOrderCard(job) +
+      (takeoff ? '' : paintOrderCard(job)) +
       moneyCard(job) +
 
       '<button type="button" class="link danger center" data-action="del-job">Delete this job</button>' +
@@ -1267,7 +1277,7 @@
       if (!r.lines.length) return;
       rows += '<tr class="group"><td colspan="2">' + esc(r.name) + '<span class="muted small"> · ' +
         esc(r.summary) + '</span></td></tr>';
-      r.lines.forEach(function (l) { rows += lineRow(l.label, l.detail, money(l.price)); });
+      r.lines.forEach(function (l) { rows += lineRow(l.label, l.detail, l.included ? 'Included' : money(l.price)); });
     });
     if (q.materials.length) {
       rows += '<tr class="group"><td colspan="2">Paint & materials</td></tr>';
@@ -1290,7 +1300,7 @@
       totals += lineRow('Balance due', '', money(Math.max(0, q.total - S.paidAmount(job))), 'grand');
     } else {
       totals += lineRow('Total', '', money(q.total), 'grand');
-      if (q.deposit) totals += lineRow('Deposit to book (' + s.depositPct + '%)', '', money(q.deposit), 'sub');
+      if (q.deposit && !q.takeoff) totals += lineRow('Deposit to book (' + s.depositPct + '%)', '', money(q.deposit), 'sub');
     }
 
     var biz = [s.ownerName, s.phone, s.email, s.website].filter(Boolean).map(esc).join('<br>');
@@ -1302,23 +1312,38 @@
       (inv
         ? '<div class="doc-meta"><div class="doc-title">INVOICE</div><div>' + esc(invoiceNumber(job)) + '</div>' +
           '<div class="muted small">' + fmtDate(new Date((job.invoiceDate || today()) + 'T12:00:00').getTime()) + '<br>' + invoiceDue(job) + '</div></div></header>'
-        : '<div class="doc-meta"><div class="doc-title">ESTIMATE</div><div>' + esc(job.number) + '</div>' +
+        : '<div class="doc-meta"><div class="doc-title">' + (q.takeoff ? 'PROPOSAL' : 'ESTIMATE') + '</div><div>' + esc(job.number) + '</div>' +
           '<div class="muted small">' + fmtDate(job.updatedAt) + '<br>Valid until ' + fmtDate(valid) + '</div></div></header>') +
       '<div class="doc-to"><div><div class="label">' + (inv ? 'Bill to' : 'Prepared for') + '</div><strong>' + esc(cu.name || '—') + '</strong>' +
       '<div class="muted small">' + [cu.address, cu.phone, cu.email].filter(Boolean).map(esc).join('<br>') + '</div></div>' +
-      (P.propertyLabel(job) ? '<div><div class="label">Property</div><strong>' + esc(P.propertyLabel(job)) + '</strong></div>' : '') + '</div>' +
+      (q.takeoff ? '<div><div class="label">Project</div><strong>' + esc(q.takeoff.takeoff.project || P.propertyLabel(job)) + '</strong>' +
+        (q.takeoff.takeoff.plans.length ? '<div class="muted small">Drawings: ' + q.takeoff.takeoff.plans.map(function (pl) { return esc(pl.name.replace(/\.pdf$/i, '')); }).join(', ') + '</div>' : '') + '</div>'
+        : P.propertyLabel(job) ? '<div><div class="label">Property</div><strong>' + esc(P.propertyLabel(job)) + '</strong></div>' : '') + '</div>' +
       '<table class="lines"><tbody>' + (rows || '<tr><td class="muted">Add rooms to build the estimate.</td><td></td></tr>') + '</tbody>' +
       '<tfoot>' + totals + '</tfoot></table>' +
       (inv
         ? (s.paymentInstructions ? '<div class="doc-notes"><div class="label">How to pay</div>' + esc(s.paymentInstructions).replace(/\n/g, '<br>') + '</div>' : '') +
           '<div class="doc-notes"><b>Thank you for your business!</b></div>' +
           '<div class="doc-made">Invoice made with Coatwright</div>'
-        : (q.quick ? '<div class="doc-notes"><b>' + esc(QUICK_NOTE) + '</b></div>' : '') +
+        : (q.quick ? '<div class="doc-notes"><b>' + esc(QUICK_NOTE) + '</b></div>' : '') + (q.takeoff ? proposalExtras(q.takeoff) : '') +
           (job.notes ? '<div class="doc-notes"><div class="label">Notes</div>' + esc(job.notes).replace(/\n/g, '<br>') + '</div>' : '') +
-          (s.terms ? '<div class="doc-terms">' + esc(s.terms) + '</div>' : '') +
+          (s.terms && !q.takeoff ? '<div class="doc-terms">' + esc(s.terms) + '</div>' : '') +
           '<div class="doc-sign"><div>Customer signature</div><div>Date</div></div>' +
-          '<div class="doc-made">Estimate made with Coatwright</div>') +
+          '<div class="doc-made">' + (q.takeoff ? 'Proposal' : 'Estimate') + ' made with Coatwright</div>') +
       '</article>';
+  }
+
+  /** Alternates and the scope wording on a commercial proposal. */
+  function proposalExtras(c) {
+    var t = c.takeoff, list = function (txt) {
+      var items = String(txt || '').split('\n').map(function (x) { return x.replace(/^[-•*]\s*/, '').trim(); }).filter(Boolean);
+      return items.length ? '<ul>' + items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '';
+    };
+    return (c.alternates.length ? '<div class="doc-notes"><div class="label">Alternates (add to the base bid if accepted)</div><table class="lines alt"><tbody>' +
+        c.alternates.map(function (a, i) { return lineRow('Alternate ' + (i + 1) + ': ' + a.label, '', 'Add ' + money(a.price)); }).join('') + '</tbody></table></div>' : '') +
+      (list(t.inclusions) ? '<div class="doc-notes"><div class="label">Inclusions</div>' + list(t.inclusions) + '</div>' : '') +
+      (list(t.exclusions) ? '<div class="doc-notes"><div class="label">Exclusions</div>' + list(t.exclusions) + '</div>' : '') +
+      (list(t.clarifications) ? '<div class="doc-notes"><div class="label">Clarifications</div>' + list(t.clarifications) + '</div>' : '');
   }
 
   function quoteText(job, q, kind) {
@@ -1326,13 +1351,13 @@
     var pad = function (label, amt) { return label + ': ' + amt; };
     out.push('Hi ' + (cu.name ? cu.name.split(' ')[0] : 'there') + ',', '');
     out.push(inv ? 'Thank you for choosing us! Here is your invoice (' + invoiceNumber(job) + '). ' + invoiceDue(job) + '.'
-      : 'Thank you for the opportunity! Here is your painting estimate (' + job.number + ').');
+      : 'Thank you for the opportunity! Here is our painting ' + (q.takeoff ? 'proposal' : 'estimate') + ' (' + job.number + ').');
     if (P.propertyLabel(job)) out.push('Property: ' + P.propertyLabel(job) + (cu.address ? ' — ' + cu.address : ''));
     out.push('');
     q.rooms.concat(q.outside || []).forEach(function (r) {
       if (!r.lines.length) return;
       out.push(r.name.toUpperCase() + ' — ' + money(r.price));
-      r.lines.forEach(function (l) { out.push('  • ' + l.label + ' (' + l.detail + '): ' + money(l.price)); });
+      r.lines.forEach(function (l) { out.push('  • ' + l.label + ' (' + l.detail + '): ' + (l.included ? 'included' : money(l.price))); });
       out.push('');
     });
     if (q.materials.length) {
@@ -1357,15 +1382,24 @@
       out.push('Thank you for your business!', '');
     } else {
       out.push(pad('TOTAL', money(q.total)));
-      if (q.deposit) out.push(pad('Deposit to book', money(q.deposit)));
+      if (q.deposit && !q.takeoff) out.push(pad('Deposit to book', money(q.deposit)));
       out.push('');
       if (q.quick) out.push(QUICK_NOTE, '');
+      if (q.takeoff) {
+        var tk = q.takeoff.takeoff;
+        q.takeoff.alternates.forEach(function (a, i) { out.push('Alternate ' + (i + 1) + ' (add): ' + a.label + ': ' + money(a.price)); });
+        if (q.takeoff.alternates.length) out.push('');
+        [['INCLUSIONS', tk.inclusions], ['EXCLUSIONS', tk.exclusions], ['CLARIFICATIONS', tk.clarifications]].forEach(function (x) {
+          var items = String(x[1] || '').split('\n').map(function (y) { return y.trim(); }).filter(Boolean);
+          if (items.length) out.push(x[0] + ':', items.map(function (y) { return '  • ' + y.replace(/^[-•*]\s*/, ''); }).join('\n'), '');
+        });
+      }
       if (job.notes) out.push('Notes: ' + job.notes, '');
-      if (s.terms) out.push(s.terms, '');
+      if (s.terms && !q.takeoff) out.push(s.terms, '');
       out.push('Reply to this email to accept or with any questions.', '');
     }
     out.push([s.ownerName, s.businessName, s.phone, s.email].filter(Boolean).join('\n'));
-    out.push('', '—', (inv ? 'Invoice' : 'Estimate') + ' made with Coatwright');
+    out.push('', '—', (inv ? 'Invoice' : q.takeoff ? 'Proposal' : 'Estimate') + ' made with Coatwright');
     return out.join('\n');
   }
 
@@ -1377,7 +1411,7 @@
       .map(function (k) { return k + ' ' + Math.round(g[k] * 10) / 10; }).join(', ') || '—';
 
     app.innerHTML =
-      '<div class="page-head no-print"><a href="#/job/' + job.id + '" class="back">‹ Edit</a><span class="muted">' + esc(job.number) + '</span></div>' +
+      '<div class="page-head no-print"><a href="#/' + (q.takeoff ? 'takeoff' : 'job') + '/' + job.id + '" class="back">‹ ' + (q.takeoff ? 'Takeoff' : 'Edit') + '</a><span class="muted">' + esc(job.number) + '</span></div>' +
       '<div class="actions no-print">' +
       '<button class="btn btn-primary" data-action="email">✉️ Email</button>' +
       '<button class="btn" data-action="share">💬 Text / Share</button>' +
@@ -1390,7 +1424,11 @@
       stat('Labor hours', i.hours) + stat('Crew days', i.crewDays + ' <small>(1 painter)</small>') +
       stat('Your labor', money0(i.laborCost)) + stat('Materials cost', money0(i.materialCost)) +
       stat('Profit', money0(i.profit)) + stat('Margin', i.margin + '%') +
-      '</div><div class="muted small">Exact paint needed (gal): ' + esc(gal) + '</div></section>';
+      '</div>' + (q.takeoff ? '<table class="to-bid internal-tbl"><tbody>' + q.takeoff.systems.filter(function (r) { return r.qty > 0; }).map(function (r) {
+        return '<tr><td>' + esc(r.name) + '<div class="muted small">' + fmtN(r.qty) + ' ' + r.unit + ' · ' + fmtN(r.hours, 1) + ' hrs · buy ' + esc(r.buyText || '—') +
+          (r.primerGallons ? ' + primer ' + fmtN(r.primerGallons, 1) + ' gal' : '') + '</div></td><td class="amt">' + money0(r.price) + '<div class="muted small">cost ' + money0(r.cost) + '</div></td></tr>';
+      }).join('') + '</tbody></table><a class="btn full" href="#/takeoff/' + job.id + '">📐 Back to the takeoff</a>'
+        : '<div class="muted small">Exact paint needed (gal): ' + esc(gal) + '</div>') + '</section>';
   }
   // ---------- Invoice ----------
   function renderInvoice(job) {
@@ -1838,9 +1876,668 @@
     reader.readAsText(file);
   }
 
+  // ---------- Commercial blueprint takeoff ----------
+  // Screen: #/takeoff/<jobId>. Plan viewer (plan.js) on the left, takeoff list and bid on the right
+  // (on a phone: tabs). Pricing in takeoff.js; quotes, invoices and stats use the same calcJob.
+  var T = window.Takeoff;
+  var to = { jobId: null, viewer: null, pdf: null, planId: null, page: 1, tool: 'measure', systemId: null, zoneId: null,
+    selected: null, panel: 'takeoff', mtab: 'plan', ortho: false, countMark: null, history: [], missing: false, loading: false,
+    foundScale: null, editSys: null };
+
+  function toJob() { return findJob(to.jobId); }
+  function toSys(t, id) { return (t.systems || []).find(function (s) { return s.id === id; }); }
+  function toPlan(t) { return (t.plans || []).find(function (p) { return p.id === to.planId; }); }
+  function fmtN(n, d) { return (Math.round(n * Math.pow(10, d || 0)) / Math.pow(10, d || 0)).toLocaleString('en-US'); }
+  function feetText(ft) {
+    var neg = ft < 0, a = Math.abs(ft), f = Math.floor(a), inch = Math.round((a - f) * 12);
+    if (inch === 12) { f++; inch = 0; }
+    return (neg ? '−' : '') + f + '′' + (inch ? ' ' + inch + '″' : '');
+  }
+  /** "12", "12.5", "12'6", "12' 6\"", "12 ft 6 in" → feet */
+  function parseFeet(s) {
+    var m = String(s || '').trim().replace(/ft|feet/gi, "'").replace(/in(ches)?/gi, '"').match(/^(\d+(?:\.\d+)?)\s*'?\s*(?:-?\s*(\d+(?:\.\d+)?)\s*"?)?$/);
+    if (!m) return 0;
+    return parseFloat(m[1]) + (m[2] ? parseFloat(m[2]) / 12 : 0);
+  }
+  function ensureTakeoff(job) {
+    if (!job.takeoff) job.takeoff = T.newTakeoff(settings);
+    var t = job.takeoff;
+    ['systems', 'zones', 'marks', 'plans', 'adds', 'alternates'].forEach(function (k) { if (!Array.isArray(t[k])) t[k] = []; });
+    if (!t.zones.length) t.zones.push({ id: T.uid(), name: 'Level 1' });
+    return t;
+  }
+
+  function renderTakeoff(job) {
+    var t = ensureTakeoff(job);
+    if (to.jobId !== job.id) {
+      if (to.viewer) to.viewer.destroy();
+      to = Object.assign(to, { jobId: job.id, viewer: null, pdf: null, planId: t.plans[0] ? t.plans[0].id : null, page: 1,
+        tool: 'measure', selected: null, countMark: null, history: [], missing: false, foundScale: null, editSys: null, mtab: t.plans.length ? 'plan' : 'takeoff' });
+    }
+    if (!toSys(t, to.systemId)) to.systemId = t.systems[0] ? t.systems[0].id : null;
+    if (!t.zones.some(function (z) { return z.id === to.zoneId; })) to.zoneId = t.zones[0].id;
+    var title = job.customer.name || job.number;
+    app.innerHTML = '<div class="to" data-mtab="' + to.mtab + '">' +
+      '<div class="to-bar"><a class="back" href="#/job/' + job.id + '">‹ Job</a>' +
+      '<div class="to-title"><b>' + esc(title) + '</b><span class="muted small">Blueprint takeoff <span class="beta">BETA</span></span></div>' +
+      '<div class="to-total"><span class="muted small">Bid total</span><b data-out="to-total"></b></div>' +
+      '<a class="btn btn-primary to-proposal" href="#/quote/' + job.id + '">Proposal ›</a></div>' +
+      '<div class="to-mtabs" role="tablist">' + [['plan', '📄 Plan'], ['takeoff', '📏 Takeoff'], ['bid', '💲 Bid']].map(function (x) {
+        return '<button type="button" role="tab" data-action="to-mtab" data-v="' + x[0] + '" class="' + (to.mtab === x[0] ? 'on' : '') + '">' + x[1] + '</button>';
+      }).join('') + '</div>' +
+      '<div class="to-body"><section class="to-planwrap">' +
+      '<div class="to-plantools" data-out="to-plantools"></div>' +
+      '<div class="to-stage" id="to-stage"></div>' +
+      '<div class="to-hint" data-out="to-hint"></div></section>' +
+      '<aside class="to-panel" id="to-panel"></aside></div>' +
+      '<input type="file" id="to-file" accept="application/pdf,.pdf" hidden>' +
+      '<div class="to-dropzone"><div>📄 Drop the PDF to add it</div></div></div>';
+    sizeTakeoff();
+    document.getElementById('to-file').addEventListener('change', onPlanFile);
+    bindPlanDrop(app.querySelector('.to'));
+    toRefresh(true);
+    openCurrentPlan();
+  }
+
+  function sizeTakeoff() {
+    var box = app.querySelector('.to');
+    if (!box) return;
+    var top = document.querySelector('.topbar');
+    box.style.height = Math.max(420, window.innerHeight - (top ? top.offsetHeight : 0)) + 'px';
+  }
+  window.addEventListener('resize', function () { if (document.body.dataset.view === 'takeoff') sizeTakeoff(); });
+
+  // ----- Plans -----
+  function openCurrentPlan() {
+    var job = toJob(), t = job && job.takeoff, stage = document.getElementById('to-stage');
+    if (!stage) return;
+    var plan = t && toPlan(t);
+    if (!plan) { stage.innerHTML = emptyStage(); to.viewer = null; toRefresh(); return; }
+    stage.innerHTML = '<div class="to-loading">Opening ' + esc(plan.name) + '…</div>';
+    to.loading = true;
+    PlanStore.get(plan.id).then(function (file) {
+      if (!file || !file.data) { to.missing = true; to.loading = false; stage.innerHTML = missingStage(plan); toRefresh(); return; }
+      to.missing = false;
+      return PlanPdf.open(file.data).then(function (pdf) {
+        if (!document.getElementById('to-stage') || to.jobId !== job.id) return;
+        to.pdf = pdf;
+        if (!plan.pages) { plan.pages = pdf.numPages; touch(job); }
+        if (to.page > pdf.numPages) to.page = 1;
+        if (!to.viewer || !document.body.contains(to.viewer.c)) { if (to.viewer) to.viewer.destroy(); to.viewer = makeViewer(document.getElementById('to-stage')); }
+        return showPlanPage();
+      });
+    }).catch(function (e) {
+      to.loading = false;
+      stage.innerHTML = '<div class="to-empty"><p>⚠️ ' + esc(e.message || 'Couldn\'t open this plan.') + '</p></div>';
+    });
+  }
+  function showPlanPage() {
+    var job = toJob(), t = job.takeoff;
+    to.loading = true; to.countMark = null; to.foundScale = null;
+    return to.viewer.showPage(to.pdf, to.page).then(function () {
+      to.loading = false;
+      applyTool();
+      toRefresh();
+      var plan = toPlan(t);
+      if (plan && !(plan.scales && plan.scales[to.page])) detectScale();
+    });
+  }
+  /** Most drawings print their scale ("SCALE: 1/8" = 1'-0""); offer it so the painter doesn't have to look. */
+  function detectScale() {
+    var page = to.viewer && to.viewer.page;
+    if (!page) return;
+    page.getTextContent().then(function (tc) {
+      var text = tc.items.map(function (i) { return i.str; }).join(' ').replace(/[“”″]/g, '"').replace(/[‘’′]/g, "'");
+      var found = null;
+      T.SCALES.forEach(function (s) {
+        var esc2 = s.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s*').replace(/-/g, '\\s*-?\\s*').replace(/=/g, '\\s*=\\s*');
+        if (!found && new RegExp('(^|[^\\d/])' + esc2).test(text)) found = s;
+      });
+      to.foundScale = found;
+      toRefresh();
+    }).catch(function () {});
+  }
+  function emptyStage() {
+    return '<div class="to-empty"><div class="to-empty-icon">📄</div><h2>Add your blueprint</h2>' +
+      '<p class="muted">Open the PDF drawing set. Measure walls, ceilings and doors right on the plan, and the bid builds itself.</p>' +
+      '<button type="button" class="btn btn-primary" data-action="to-add-plan">📂 Choose PDF blueprint</button>' +
+      '<p class="muted small to-drop-tip">or drag the PDF file here</p>' +
+      '<p class="muted small">Measured in Adobe or Bluebeam already? Type your totals in the <b>Takeoff</b> list instead.</p>' +
+      '<button type="button" class="link" data-action="to-demo">👀 Or try the demo office plan</button></div>';
+  }
+  function missingStage(plan) {
+    return '<div class="to-empty"><div class="to-empty-icon">📄</div><h2>Plan file not on this device</h2>' +
+      '<p class="muted">Your measurements are saved. To see <b>' + esc(plan.name) + '</b> here, open the same PDF on this device once.</p>' +
+      '<button type="button" class="btn btn-primary" data-action="to-add-plan">📂 Choose ' + esc(plan.name) + '</button></div>';
+  }
+  function onPlanFile(e) {
+    var file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    addPlanFile(file);
+  }
+  /** Drag a PDF from the computer onto the takeoff screen to add it. */
+  function bindPlanDrop(box) {
+    var depth = 0;
+    var hasFile = function (e) { return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') !== -1; };
+    box.addEventListener('dragenter', function (e) { if (!hasFile(e)) return; e.preventDefault(); depth++; box.classList.add('to-dropping'); });
+    box.addEventListener('dragover', function (e) { if (!hasFile(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+    box.addEventListener('dragleave', function () { if (--depth <= 0) { depth = 0; box.classList.remove('to-dropping'); } });
+    box.addEventListener('drop', function (e) {
+      if (!hasFile(e)) return;
+      e.preventDefault(); depth = 0; box.classList.remove('to-dropping');
+      var files = Array.prototype.filter.call(e.dataTransfer.files || [], function (f) { return /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name); });
+      if (!files.length) { toast('Drop a PDF blueprint'); return; }
+      files.reduce(function (p, f) { return p.then(function () { return addPlanFile(f); }); }, Promise.resolve());
+    });
+  }
+  function addPlanFile(file) {
+    if (!file) return Promise.resolve();
+    if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) { toast('Please choose a PDF file'); return Promise.resolve(); }
+    var job = toJob(), t = job.takeoff, stage = document.getElementById('to-stage');
+    if (stage) stage.innerHTML = '<div class="to-loading">Opening ' + esc(file.name) + '…</div>';
+    return file.arrayBuffer().then(function (buf) {
+      return PlanPdf.open(buf).then(function (pdf) {
+        var existing = t.plans.find(function (p) { return p.name === file.name && p.size === file.size; }) ||
+          (to.missing && toPlan(t) && confirm('Use "' + file.name + '" for "' + toPlan(t).name + '"?') ? toPlan(t) : null);
+        var plan = existing || { id: T.uid(), name: file.name, size: file.size, pages: pdf.numPages, scales: {} };
+        if (!existing) t.plans.push(plan);
+        return PlanStore.put(plan.id, { name: file.name, size: file.size, data: buf }).then(function () {
+          to.planId = plan.id; to.page = 1; to.pdf = null; to.mtab = 'plan';
+          touch(job);
+          app.querySelector('.to').dataset.mtab = 'plan';
+          openCurrentPlan();
+          toast(existing ? 'Plan reconnected' : 'Plan added: ' + pdf.numPages + (pdf.numPages === 1 ? ' page' : ' pages'));
+        });
+      });
+    }).catch(function (err) {
+      toast('Couldn\'t open that PDF' + (err && err.message ? ': ' + err.message : ''));
+      openCurrentPlan();
+    });
+  }
+
+  function makeViewer(stage) {
+    return new PlanViewer(stage, {
+      marks: function () {
+        var job = toJob(); if (!job) return [];
+        var t = job.takeoff;
+        return t.marks.filter(function (m) { return m.planId === to.planId && m.page === to.page && m.kind !== 'typed'; }).map(function (m) {
+          var s = toSys(t, m.systemId);
+          return { id: m.id, kind: m.kind, pts: m.pts, closed: m.closed, color: s ? s.color : '#888', selected: m.id === to.selected };
+        });
+      },
+      onDraft: function () { toRefreshHint(); },
+      draftColor: function () { var s = toSys(toJob().takeoff, to.systemId); return s ? s.color : '#1f5eff'; },
+      liveLabel: function (kind, pts) {
+        var t = toJob().takeoff, f = T.scaleOf(t, to.planId, to.page), s = toSys(t, to.systemId);
+        if (kind === 'calibrate') return pts.length > 1 ? 'Tap the other end' : '';
+        if (!f) return 'Set the scale first';
+        if (kind === 'area') return pts.length > 2 ? fmtN(T.polygonArea(pts) * f * f) + ' sq ft' : feetText(T.pathLength(pts) * f);
+        var lf = T.pathLength(pts) * f;
+        return feetText(lf) + (s && s.measure === 'wall' ? ' × ' + fmtN(Number(t.wallHeight) || 10, 1) + '′ = ' + fmtN(lf * (Number(t.wallHeight) || 10)) + ' sq ft' : '');
+      },
+      onMeasure: function (m) {
+        var job = toJob(), t = job.takeoff, s = toSys(t, to.systemId);
+        if (!s) return;
+        if (!T.scaleOf(t, to.planId, to.page)) { toast('Set the drawing scale first (📐 Scale)'); return; }
+        var mark = { id: T.uid(), systemId: s.id, zoneId: to.zoneId, kind: m.kind === 'area' ? 'area' : 'line', closed: !!m.closed,
+          planId: to.planId, page: to.page, pts: m.pts.map(function (p) { return [Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100]; }) };
+        if (s.measure === 'wall') mark.h = Number(t.wallHeight) || 10;
+        t.marks.push(mark); to.history.push({ id: mark.id }); to.selected = null;
+        touch(job); to.viewer.draw(); toRefresh();
+        var q = T.markQty(t, mark, s);
+        toast('✓ ' + fmtN(q.qty) + ' ' + T.MEASURES[s.measure].unit + ' added to ' + s.name);
+      },
+      onCount: function (p) {
+        var job = toJob(), t = job.takeoff, s = toSys(t, to.systemId);
+        if (!s) return;
+        var mk = t.marks.find(function (m) { return m.id === to.countMark; });
+        if (!mk || mk.systemId !== s.id || mk.zoneId !== to.zoneId || mk.page !== to.page || mk.planId !== to.planId) {
+          mk = { id: T.uid(), systemId: s.id, zoneId: to.zoneId, kind: 'count', planId: to.planId, page: to.page, pts: [] };
+          t.marks.push(mk); to.countMark = mk.id;
+        }
+        mk.pts.push([Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100]);
+        to.history.push({ id: mk.id, pt: true });
+        touch(job); to.viewer.draw(); toRefresh();
+      },
+      onCalibrate: function (pts) {
+        var job = toJob(), t = job.takeoff, plan = toPlan(t);
+        var ans = prompt('How long is that line in real life? (e.g. 20 or 12\'6")', '');
+        var ftv = parseFeet(ans);
+        if (!ftv) { if (ans !== null) toast('Type a length in feet, like 20 or 12\'6"'); return; }
+        var d = T.dist(pts[0], pts[1]);
+        if (!(d > 0)) return;
+        setScale(job, plan, { ftPerPt: ftv / d, label: 'Measured: ' + feetText(ftv) });
+      },
+      onSelect: function (id) {
+        to.selected = id;
+        if (id) { var m = toJob().takeoff.marks.find(function (x) { return x.id === id; }); if (m) { to.systemId = m.systemId; to.zoneId = m.zoneId; } }
+        to.viewer.draw(); toRefresh(true);
+      }
+    });
+  }
+  function setScale(job, plan, sc) {
+    plan.scales = plan.scales || {};
+    plan.scales[to.page] = sc;
+    to.foundScale = null;
+    touch(job);
+    to.tool = 'measure'; applyTool(); toRefresh(true);
+    toast('📐 Scale set: ' + sc.label);
+  }
+  function applyTool() {
+    if (!to.viewer) return;
+    var s = toSys(toJob().takeoff, to.systemId);
+    var vt = to.tool === 'measure' ? (s ? T.MEASURES[s.measure].tool : 'pan') : to.tool === 'scale' ? 'calibrate' : to.tool;
+    to.viewer.ortho = to.ortho;
+    if (to.viewer.tool !== vt) to.viewer.setTool(vt);
+    to.countMark = null;
+  }
+
+  // ----- Panel & toolbar -----
+  function toolbarHtml(t) {
+    var plan = toPlan(t), pages = plan && plan.pages || 1, sc = plan && plan.scales && plan.scales[to.page];
+    var tb = function (tool, icon, label, title) {
+      return '<button type="button" class="to-tool' + (to.tool === tool ? ' on' : '') + '" data-action="to-tool" data-v="' + tool + '" title="' + title + '">' +
+        '<span>' + icon + '</span>' + label + '</button>';
+    };
+    return '<div class="to-tb-row">' +
+      (t.plans.length ? '<select data-to="plan" aria-label="Plan">' + t.plans.map(function (p) {
+        return '<option value="' + p.id + '"' + (p.id === to.planId ? ' selected' : '') + '>' + esc(p.name.replace(/\.pdf$/i, '')) + '</option>';
+      }).join('') + '</select>' : '') +
+      '<button type="button" class="to-tool sm" data-action="to-add-plan" title="Add a PDF plan">＋ Plan</button>' +
+      (plan && pages > 1 ? '<div class="to-pages"><button type="button" class="to-tool sm" data-action="to-page" data-v="-1" aria-label="Previous page">‹</button>' +
+        '<span>Page ' + to.page + ' / ' + pages + '</span><button type="button" class="to-tool sm" data-action="to-page" data-v="1" aria-label="Next page">›</button></div>' : '') +
+      (plan ? '<button type="button" class="to-scale' + (sc ? '' : ' warn') + '" data-action="to-tool" data-v="scale">📐 ' + (sc ? esc(sc.label) : 'Set scale') + '</button>' : '') +
+      '</div>' +
+      (plan && !to.missing ? '<div class="to-tb-row">' + tb('measure', '✏️', 'Measure', 'Measure with the selected paint system (M)') + tb('select', '👆', 'Select', 'Pick a measurement to edit or delete (V)') +
+        tb('pan', '✋', 'Move', 'Drag to move around the plan (H)') +
+        '<button type="button" class="to-tool' + (to.ortho ? ' on' : '') + '" data-action="to-ortho" title="Straight lines only (or hold Shift)"><span>📏</span>Straight</button>' +
+        '<button type="button" class="to-tool" data-action="to-undo" title="Undo last measurement (Ctrl+Z)"><span>↶</span>Undo</button>' +
+        '<span class="to-zoom"><button type="button" class="to-tool sm" data-action="to-zoom" data-v="out" aria-label="Zoom out">−</button>' +
+        '<button type="button" class="to-tool sm" data-action="to-zoom" data-v="fit" aria-label="Fit page">⤢</button>' +
+        '<button type="button" class="to-tool sm" data-action="to-zoom" data-v="in" aria-label="Zoom in">＋</button></span></div>' : '');
+  }
+
+  function hintHtml(t) {
+    var plan = toPlan(t), s = toSys(t, to.systemId), v = to.viewer;
+    if (!plan || to.missing || !v) return '';
+    var sc = plan.scales && plan.scales[to.page];
+    if (to.tool === 'scale' || !sc) {
+      return '<div class="to-hint-row"><b>📐 Drawing scale for this page</b>' +
+        (to.foundScale ? '<button type="button" class="btn btn-primary sm" data-action="to-scale-found">Use ' + esc(to.foundScale.label) + ' (found on sheet)</button>' : '') +
+        '<select data-to="scale" aria-label="Drawing scale"><option value="">Pick the scale…</option>' + T.SCALES.map(function (x, i) {
+          return '<option value="' + i + '"' + (sc && sc.label === x.label ? ' selected' : '') + '>' + esc(x.label) + '</option>';
+        }).join('') + '</select>' +
+        '<span class="muted small">or tap both ends of a known dimension on the plan.' + (sc ? '' : ' Plans printed smaller than full size: use a known dimension.') + '</span>' +
+        (sc && to.tool === 'scale' ? '<button type="button" class="link" data-action="to-tool" data-v="measure">Done</button>' : '') + '</div>';
+    }
+    var drawing = v.drawing();
+    var how = !s ? 'Add a paint system to start measuring.' : to.tool === 'select' ? 'Tap a measurement on the plan to select it.' : to.tool === 'pan' ? 'Drag to move. Pinch or scroll to zoom.'
+      : s.measure === 'count' ? 'Tap each one on the plan to count it. (' + esc(s.name) + ')'
+        : s.measure === 'area' ? 'Tap the corners of the area. Tap the first point (or double-click) to finish.'
+          : 'Tap along the walls. Tap the first point to close a room, or double-click / Finish to end a run.';
+    return '<div class="to-hint-row">' + (s && to.tool === 'measure' ? '<span class="dot" style="background:' + esc(s.color) + '"></span>' : '') +
+      '<span>' + how + '</span>' +
+      (drawing ? '<button type="button" class="btn btn-primary sm" data-action="to-finish">✓ Finish</button><button type="button" class="btn sm" data-action="to-backpt">⌫ Point</button>' +
+        '<button type="button" class="btn sm" data-action="to-cancel">Cancel</button>' : '') +
+      (to.selected ? '<button type="button" class="btn sm danger-btn" data-action="to-del-mark" data-id="' + to.selected + '">🗑 Delete selected</button>' : '') + '</div>';
+  }
+
+  function markText(t, m, s) {
+    var q = T.markQty(t, m, s), u = T.MEASURES[s.measure].unit;
+    if (q.noScale) return 'Needs the page scale';
+    var plan = (t.plans || []).find(function (p) { return p.id === m.planId; });
+    var where = (m.label ? '<b>' + esc(m.label) + '</b> · ' : '') + (plan && (t.plans.length > 1 || plan.pages > 1) ? esc(plan.name.replace(/\.pdf$/i, '')) + (plan.pages > 1 ? ' p.' + m.page : '') + ' · ' : '');
+    if (m.kind === 'count') return where + q.qty + ' counted';
+    if (s.measure === 'wall') return where + (m.label ? '' : m.closed ? 'Room ' : 'Wall run ') + feetText(q.lf) + ' × ' + fmtN(Number(m.h) || Number(t.wallHeight) || 10, 1) + '′ = <b>' + fmtN(q.qty) + ' ' + u + '</b>';
+    return where + (m.label ? '' : m.kind === 'area' ? 'Area ' : m.closed ? 'Perimeter ' : 'Run ') + '<b>' + fmtN(q.qty) + ' ' + u + '</b>';
+  }
+
+  function systemEditor(t, s) {
+    var meas = T.MEASURES[s.measure], count = s.measure === 'count';
+    return '<div class="to-sysedit">' +
+      '<label class="field"><span>Name on the proposal</span><input data-to="sys.' + s.id + '.name" value="' + esc(s.name) + '"></label>' +
+      '<div class="row2"><label class="field"><span>Measured as</span><select data-to="sys.' + s.id + '.measure">' + Object.keys(T.MEASURES).map(function (k) {
+        return '<option value="' + k + '"' + (k === s.measure ? ' selected' : '') + '>' + T.MEASURES[k].label + '</option>';
+      }).join('') + '</select></label>' +
+      (count ? '' : '<label class="field"><span>Coats</span><input type="number" inputmode="numeric" min="1" data-to="sys.' + s.id + '.coats" value="' + esc(s.coats) + '"></label>') + '</div>' +
+      (count ? '' : '<label class="check"><input type="checkbox" data-to="sys.' + s.id + '.primer"' + (s.primer ? ' checked' : '') + '> Add a primer / block filler coat</label>') +
+      '<div class="row2"><label class="field"><span>Production</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + s.id + '.rate" value="' + esc(s.rate) + '"><em>' + (count ? 'hrs each' : meas.unit + '/hr') + '</em></div>' +
+      '<small class="muted">' + meas.rateUnit + '</small></label>' +
+      '<label class="field"><span>Paint use</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + s.id + '.coverage" value="' + esc(s.coverage) + '"><em>' + (count ? 'gal each' : meas.unit + '/gal') + '</em></div>' +
+      '<small class="muted">' + meas.coverUnit + '</small></label></div>' +
+      '<div class="row2"><label class="field"><span>Paint price</span><div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + s.id + '.price" value="' + esc(s.price) + '"></div><small class="muted">per gallon</small></label>' +
+      '<label class="field"><span>Sheen</span><select data-to="sys.' + s.id + '.sheen"><option value=""></option>' + P.SHEENS.map(function (x) {
+        return '<option' + (s.sheen === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label></div>' +
+      '<div class="row2"><label class="field"><span>Brand</span><input list="paint-brands-to" data-to="sys.' + s.id + '.brand" value="' + esc(s.brand) + '" placeholder="Sherwin-Williams"></label>' +
+      '<label class="field"><span>Product</span><input data-to="sys.' + s.id + '.product" value="' + esc(s.product) + '" placeholder="ProMar 200"></label></div>' +
+      '<label class="field"><span>Colour(s)</span><input data-to="sys.' + s.id + '.paintColor" value="' + esc(s.paintColor) + '" placeholder="e.g. Agreeable Gray SW 7029"></label>' +
+      '<div class="label">Colour on the plan</div><div class="to-swatches">' + T.COLORS.map(function (c) {
+        return '<button type="button" class="to-swatch' + (c === s.color ? ' on' : '') + '" style="background:' + c + '" data-action="to-sys-color" data-id="' + s.id + '" data-v="' + c + '" aria-label="Colour"></button>';
+      }).join('') + '</div>' +
+      '<div class="to-sysedit-foot"><button type="button" class="link danger" data-action="to-sys-del" data-id="' + s.id + '">Delete system</button>' +
+      '<button type="button" class="btn sm" data-action="to-sys-edit" data-id="">Done</button></div></div>';
+  }
+
+  function takeoffPanel(t, c) {
+    var zoneSel = '<select data-to="zone" aria-label="Floor or area">' + t.zones.map(function (z) {
+      return '<option value="' + z.id + '"' + (z.id === to.zoneId ? ' selected' : '') + '>' + esc(z.name) + '</option>'; }).join('') + '</select>';
+    var rows = c.systems.map(function (r) {
+      var s = r.sys, on = s.id === to.systemId, marks = t.marks.filter(function (m) { return m.systemId === s.id; });
+      var body = '';
+      if (on) {
+        body = '<div class="to-sysbody">' + (to.editSys === s.id ? systemEditor(t, s) : '') +
+          (marks.length ? '<ul class="to-marks">' + marks.map(function (m) {
+            var z = t.zones.find(function (x) { return x.id === m.zoneId; });
+            var zl = '<span class="to-zone">' + esc(z ? z.name : t.zones[0].name) + '</span>';
+            if (m.kind === 'typed') {
+              return '<li class="typed">' + zl + '<span class="to-typed">' +
+                '<input type="number" inputmode="decimal" step="any" data-to="mark.' + m.id + '.qty" value="' + esc(m.qty) + '" aria-label="Quantity" placeholder="0">' +
+                (s.measure === 'wall' ? '<em>' + (Number(m.h) > 0 ? 'lin ft ×' : 'sq ft') + '</em><input type="number" inputmode="decimal" step="any" class="h" data-to="mark.' + m.id + '.h" value="' + esc(m.h || '') + '" placeholder="height" aria-label="Wall height (optional)">' +
+                  (Number(m.h) > 0 ? '<em>ft</em>' : '') : '<em>' + T.MEASURES[s.measure].unit + '</em>') +
+                '<input class="note" data-to="mark.' + m.id + '.note" value="' + esc(m.note || '') + '" placeholder="note (e.g. Suite 200)" aria-label="Note"></span>' +
+                '<label class="ded" title="Subtract this amount"><input type="checkbox" data-to="mark.' + m.id + '.deduct"' + (m.deduct ? ' checked' : '') + '> −</label>' +
+                '<button type="button" class="icon-btn sm" data-action="to-del-mark" data-id="' + m.id + '" aria-label="Delete">✕</button></li>';
+            }
+            return '<li class="' + (m.id === to.selected ? 'sel' : '') + '" data-action="to-pick-mark" data-id="' + m.id + '">' + zl + '<span class="to-mtext">' + (m.deduct ? '− ' : '') + markText(t, m, s) + '</span>' +
+              '<button type="button" class="icon-btn sm" data-action="to-del-mark" data-id="' + m.id + '" aria-label="Delete">✕</button></li>';
+          }).join('') + '</ul>' : '<p class="muted small">Nothing measured yet. ' + (t.plans.length ? 'Measure on the plan, or type a number.' : 'Add a plan, or type the total from Adobe/Bluebeam.') + '</p>') +
+          '<div class="to-sysactions"><button type="button" class="btn btn-ghost sm" data-action="to-type">⌨️ Type a number</button>' +
+          (to.editSys === s.id ? '' : '<button type="button" class="btn sm" data-action="to-sys-edit" data-id="' + s.id + '">⚙️ Rates & paint</button>') + '</div></div>';
+      }
+      return '<div class="to-sys' + (on ? ' on' : '') + '"><button type="button" class="to-syshead" data-action="to-sys" data-id="' + s.id + '">' +
+        '<span class="dot" style="background:' + esc(s.color) + '"></span><span class="to-sysname">' + esc(s.name) +
+        (r.noScale ? '<span class="warn small"> · ' + r.noScale + ' need scale</span>' : '') + '</span>' +
+        '<span class="to-sysqty" data-out="to-q-' + s.id + '">' + (r.qty ? fmtN(r.qty) + ' ' + r.unit : '—') + '</span>' +
+        '<span class="to-sysprice" data-out="to-p-' + s.id + '">' + (r.price ? money0(r.price) : '') + '</span></button>' + body + '</div>';
+    }).join('');
+    return '<div class="to-ptop"><label class="to-inline"><span>Floor / area</span>' + zoneSel + '</label>' +
+      '<button type="button" class="to-tool sm" data-action="to-zone-add" title="Add a floor or area">＋</button>' +
+      '<button type="button" class="to-tool sm" data-action="to-zone-rename" title="Rename">✎</button>' +
+      '<label class="to-inline"><span>Wall height</span><div class="with-unit"><input type="number" inputmode="decimal" min="1" step="any" data-to="t.wallHeight" value="' + esc(t.wallHeight) + '"><em>ft</em></div></label></div>' +
+      '<div class="to-syslist">' + rows + '</div>' +
+      '<div class="to-addsys"><select data-to="add-system" aria-label="Add a paint system"><option value="">＋ Add a paint system…</option>' +
+      T.SYSTEM_PRESETS.map(function (p) { return '<option value="' + p.key + '">' + esc(p.name) + '</option>'; }).join('') + '</select></div>';
+  }
+
+  function bidPanel(t, c) {
+    var unit = t.method === 'unit', tt = c.totals;
+    var sysRows = c.systems.filter(function (r) { return r.qty > 0 || unit; }).map(function (r) {
+      return '<tr><td><span class="dot" style="background:' + esc(r.color) + '"></span>' + esc(r.name) + '<div class="muted small">' + fmtN(r.qty) + ' ' + r.unit +
+        ' · ' + fmtN(r.hours, 1) + ' hrs · ' + (r.gallons ? fmtN(r.gallons + r.primerGallons, 1) + ' gal' : '') + '</div></td>' +
+        (unit ? '<td class="amt"><div class="with-unit pre sm"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + r.id + '.unitPrice" value="' + esc(r.sys.unitPrice) + '" placeholder="' + r.perUnit + '"></div>' +
+          '<div class="muted small">per ' + (r.unit === 'each' ? 'each' : r.unit.replace('sq ft', 'sq ft').replace('lin ft', 'lin ft')) + '</div></td>' : '') +
+        '<td class="amt" data-out="to-bp-' + r.id + '"><b>' + money0(r.price) + '</b><div class="muted small">cost ' + money0(r.cost) + '</div></td></tr>';
+    }).join('');
+    return '<div class="label" style="margin-top:0">Price by</div><div class="segmented">' +
+      '<button type="button" class="' + (unit ? '' : 'on') + '" data-action="to-method" data-v="hours">⏱ Labour hours</button>' +
+      '<button type="button" class="' + (unit ? 'on' : '') + '" data-action="to-method" data-v="unit">📐 Unit prices</button></div>' +
+      '<p class="muted small">' + (unit ? 'Your price per sq ft, lin ft or each. The grey number is what your hours, paint and markup work out to.' : 'Hours from your production rates × labour rate, plus paint, supplies, overhead and profit.') + '</p>' +
+      '<div class="row3"><label class="field"><span>Labour rate</span><div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="t.laborRate" value="' + esc(t.laborRate) + '" placeholder="' + esc(settings.laborRate) + '"></div><small class="muted">per hour</small></label>' +
+      '<label class="field"><span>Overhead</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="t.overheadPct" value="' + esc(t.overheadPct) + '"><em>%</em></div></label>' +
+      '<label class="field"><span>Profit</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="t.profitPct" value="' + esc(t.profitPct) + '"><em>%</em></div></label></div>' +
+      '<table class="to-bid"><tbody>' + (sysRows || '<tr><td class="muted">Measure something in the Takeoff list first.</td></tr>') + '</tbody></table>' +
+      '<div class="label">Extra costs <span class="muted small">(lifts, mobilization… marked up like the rest)</span></div>' +
+      t.adds.map(function (a) {
+        return '<div class="extra-row"><input data-to="add.' + a.id + '.label" value="' + esc(a.label) + '" placeholder="e.g. Scissor lift rental" aria-label="Cost item">' +
+          '<div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="add.' + a.id + '.cost" value="' + esc(a.cost) + '" aria-label="Your cost"></div>' +
+          '<button type="button" class="icon-btn" data-action="to-del-add" data-id="' + a.id + '" aria-label="Remove">✕</button></div>';
+      }).join('') +
+      '<select data-to="add-cost" class="to-addsel" aria-label="Add a cost"><option value="">＋ Add a cost…</option>' + T.ADD_PRESETS.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('') + '<option value="__other">Other…</option></select>' +
+      '<div class="label">Alternates <span class="muted small">(optional add-ons, shown on the proposal, not in the total)</span></div>' +
+      t.alternates.map(function (a) {
+        return '<div class="extra-row"><input data-to="alt.' + a.id + '.label" value="' + esc(a.label) + '" placeholder="e.g. Paint stairwell B" aria-label="Alternate">' +
+          '<div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="alt.' + a.id + '.price" value="' + esc(a.price) + '" aria-label="Price"></div>' +
+          '<button type="button" class="icon-btn" data-action="to-del-alt" data-id="' + a.id + '" aria-label="Remove">✕</button></div>';
+      }).join('') +
+      '<button type="button" class="btn btn-ghost sm" data-action="to-add-alt">＋ Add alternate</button>' +
+      '<div class="to-totals" data-out="to-totals">' + totalsHtml(c) + '</div>' +
+      '<div class="label">Proposal shows</div><div class="segmented">' + [['system', 'Each paint system'], ['zone', 'Each floor / area'], ['lump', 'One lump sum']].map(function (x) {
+        return '<button type="button" class="' + ((t.breakdown || 'system') === x[0] ? 'on' : '') + '" data-action="to-breakdown" data-v="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      '<details class="to-words"><summary>Inclusions, exclusions & clarifications</summary>' +
+      '<label class="field"><span>Project name (optional)</span><input data-to="t.project" value="' + esc(t.project || '') + '" placeholder="e.g. Harbour Point Offices — Level 2 fit-out"></label>' +
+      '<label class="field"><span>Inclusions</span><textarea rows="5" data-to="t.inclusions">' + esc(t.inclusions) + '</textarea></label>' +
+      '<label class="field"><span>Exclusions</span><textarea rows="5" data-to="t.exclusions">' + esc(t.exclusions) + '</textarea></label>' +
+      '<label class="field"><span>Clarifications</span><textarea rows="4" data-to="t.clarifications">' + esc(t.clarifications) + '</textarea></label></details>' +
+      '<a class="btn btn-primary full" href="#/quote/' + to.jobId + '">📄 Preview & send proposal ›</a>';
+  }
+  function totalsHtml(c) {
+    var tt = c.totals, job = toJob(), q = P.calcJob(job, settings);
+    var row = function (l, v, cls) { return '<div class="' + (cls || '') + '"><span>' + l + '</span><b>' + v + '</b></div>'; };
+    return row('Labour (' + fmtN(tt.hours, 1) + ' hrs · ' + fmtN(tt.crewDays, 1) + ' crew-days)', money0(tt.labor)) +
+      row('Paint & supplies', money0(tt.materials)) + (tt.addsCost ? row('Extra costs', money0(tt.addsCost)) : '') +
+      row('Your cost', money0(tt.cost), 'sub') + row('Overhead & profit', money0(tt.systemsPrice + tt.addsPrice - tt.cost)) +
+      (q.tax ? row('Tax', money0(q.tax)) : '') + row('Bid total', money0(q.total), 'grand') +
+      (c.alternates.length ? row('Alternates offered', c.alternates.length + ' · ' + money0(c.alternates.reduce(function (a, x) { return a + x.price; }, 0)), 'sub') : '');
+  }
+
+  /** Re-render the panel and toolbar; keeps the field you're typing in (only its numbers update). */
+  function toRefresh(full) {
+    var job = toJob(), panel = document.getElementById('to-panel');
+    if (!job || !panel) return;
+    var t = job.takeoff, c = T.calc(job, settings);
+    var html = '<div class="to-ptabs" role="tablist">' + [['takeoff', '📏 Takeoff'], ['bid', '💲 Bid']].map(function (x) {
+      return '<button type="button" role="tab" data-action="to-panel" data-v="' + x[0] + '" class="' + (to.panel === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="to-pbody">' + (to.panel === 'bid' ? bidPanel(t, c) : takeoffPanel(t, c)) + '</div>' +
+      '<datalist id="paint-brands-to">' + ['Sherwin-Williams', 'Benjamin Moore', 'PPG', 'Behr', 'Dulux', 'Cloverdale', 'General Paint', 'Rust-Oleum', 'Tnemec', 'Carboline']
+        .map(function (b) { return '<option value="' + esc(b) + '">'; }).join('') + '</datalist>';
+    var focusInside = panel.contains(document.activeElement) && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+    if (full || !focusInside) {
+      var st = panel.querySelector('.to-pbody'), keep = st ? st.scrollTop : 0;
+      panel.innerHTML = html;
+      var nb = panel.querySelector('.to-pbody'); if (nb) nb.scrollTop = keep;
+    } else {
+      var tmp = document.createElement('div'); tmp.innerHTML = html;
+      tmp.querySelectorAll('[data-out]').forEach(function (n) {
+        var cur = panel.querySelector('[data-out="' + n.getAttribute('data-out') + '"]');
+        if (cur && !cur.contains(document.activeElement)) cur.innerHTML = n.innerHTML;
+      });
+    }
+    var tot = app.querySelector('[data-out="to-total"]'); if (tot) tot.textContent = money0(P.calcJob(job, settings).total);
+    var tb = app.querySelector('[data-out="to-plantools"]'); if (tb && !tb.contains(document.activeElement)) tb.innerHTML = toolbarHtml(t);
+    var hint = app.querySelector('[data-out="to-hint"]'); if (hint && !hint.contains(document.activeElement)) hint.innerHTML = hintHtml(t);
+  }
+
+  function onToInput(el) {
+    var job = toJob(); if (!job) return;
+    var t = job.takeoff, key = el.dataset.to, v = el.type === 'checkbox' ? el.checked : el.value;
+    var parts = key.split('.');
+    if (key === 'zone') { to.zoneId = v; to.countMark = null; toRefresh(true); return; }
+    if (key === 'plan') { to.planId = v; to.page = 1; to.selected = null; openCurrentPlan(); toRefresh(true); return; }
+    if (key === 'scale') { if (v !== '') setScale(job, toPlan(t), T.SCALES[+v]); return; }
+    if (key === 'add-system') {
+      if (!v) return;
+      var s = T.newSystem(v, settings, t.systems.length);
+      t.systems.push(s); to.systemId = s.id; to.editSys = null; to.tool = 'measure';
+      touch(job); applyTool(); toRefresh(true); toast('Added: ' + s.name);
+      return;
+    }
+    if (key === 'add-cost') {
+      if (!v) return;
+      t.adds.push({ id: T.uid(), label: v === '__other' ? '' : v, cost: '' });
+      touch(job); toRefresh(true);
+      var inputs = app.querySelectorAll('[data-to^="add."][data-to$=".cost"]'); if (inputs.length) inputs[inputs.length - 1].focus();
+      return;
+    }
+    var target = null, field = parts[parts.length - 1];
+    if (parts[0] === 't') target = t;
+    else if (parts[0] === 'sys') target = toSys(t, parts[1]);
+    else if (parts[0] === 'mark') target = t.marks.find(function (m) { return m.id === parts[1]; });
+    else if (parts[0] === 'add') target = t.adds.find(function (a) { return a.id === parts[1]; });
+    else if (parts[0] === 'alt') target = t.alternates.find(function (a) { return a.id === parts[1]; });
+    if (!target) return;
+    var numeric = el.type === 'number';
+    target[field] = numeric ? (v === '' ? '' : Number(v)) : v;
+    if (parts[0] === 'sys' && field === 'measure') { to.tool = 'measure'; applyTool(); touch(job); toRefresh(true); return; }
+    touch(job);
+    if (el.type === 'checkbox' || el.tagName === 'SELECT' || (parts[0] === 'mark' && field === 'h')) toRefresh(true); else toRefresh();
+    if (to.viewer && parts[0] === 't' && field === 'wallHeight') to.viewer.draw();
+  }
+
+  function toKey(e) {
+    if (document.body.dataset.view !== 'takeoff' || !to.viewer) return;
+    var tag = (document.activeElement && document.activeElement.tagName) || '';
+    if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
+    var v = to.viewer;
+    if (e.key === 'Enter' && v.drawing()) { e.preventDefault(); v.finish(); }
+    else if (e.key === 'Escape') { if (v.drawing()) v.cancel(); else { to.selected = null; v.draw(); } toRefresh(); }
+    else if ((e.key === 'Backspace' || e.key === 'Delete') && v.drawing()) { e.preventDefault(); v.undoPoint(); }
+    else if ((e.key === 'Backspace' || e.key === 'Delete') && to.selected) { e.preventDefault(); toClick('to-del-mark', { dataset: { id: to.selected } }); }
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); toClick('to-undo', { dataset: {} }); }
+    else if (e.key === 'Shift') { v.shift = true; }
+    else if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+      var k = e.key.toLowerCase(), map = { m: 'measure', v: 'select', h: 'pan' };
+      if (map[k]) { to.tool = map[k]; applyTool(); toRefresh(); }
+      else if (k === '+' || k === '=') v.zoomAt(1.25);
+      else if (k === '-') v.zoomAt(0.8);
+      else if (k === '0') v.fit();
+    }
+    toRefreshHint();
+  }
+  function toRefreshHint() { var job = toJob(), h = app.querySelector('[data-out="to-hint"]'); if (job && h) h.innerHTML = hintHtml(job.takeoff); }
+  document.addEventListener('keydown', toKey);
+  document.addEventListener('keyup', function (e) { if (e.key === 'Shift' && to.viewer) to.viewer.shift = false; });
+
+  /** Returns true if it handled a takeoff action. */
+  function toClick(action, el) {
+    var job = toJob(); if (!job) return false;
+    var t = job.takeoff, v = to.viewer, d = el.dataset || {};
+    switch (action) {
+      case 'to-mtab':
+        to.mtab = d.v; if (d.v !== 'plan') to.panel = d.v;
+        app.querySelector('.to').dataset.mtab = d.v;
+        app.querySelectorAll('.to-mtabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === d.v); });
+        toRefresh(true);
+        if (d.v === 'plan' && v) setTimeout(function () { v.fit(); }, 30);
+        return true;
+      case 'to-panel': to.panel = d.v; toRefresh(true); return true;
+      case 'to-add-plan': document.getElementById('to-file').click(); return true;
+      case 'to-page': {
+        var plan = toPlan(t); if (!plan || !to.pdf) return true;
+        var np = Math.max(1, Math.min(to.pdf.numPages, to.page + Number(d.v)));
+        if (np !== to.page) { to.page = np; to.selected = null; showPlanPage(); }
+        return true;
+      }
+      case 'to-tool': to.tool = d.v; if (v && v.drawing()) v.cancel(); applyTool(); toRefresh(); return true;
+      case 'to-ortho': to.ortho = !to.ortho; applyTool(); toRefresh(); return true;
+      case 'to-zoom': if (v) { if (d.v === 'fit') v.fit(); else v.zoomAt(d.v === 'in' ? 1.4 : 1 / 1.4); } return true;
+      case 'to-finish': if (v) v.finish(); toRefresh(); return true;
+      case 'to-backpt': if (v) v.undoPoint(); toRefresh(); return true;
+      case 'to-cancel': if (v) v.cancel(); toRefresh(); return true;
+      case 'to-scale-found': if (to.foundScale) setScale(job, toPlan(t), to.foundScale); return true;
+      case 'to-undo': {
+        var h = to.history.pop();
+        if (!h) { toast('Nothing to undo'); return true; }
+        var mk = t.marks.find(function (m) { return m.id === h.id; });
+        if (mk && h.pt && mk.pts.length > 1) mk.pts.pop();
+        else t.marks = t.marks.filter(function (m) { return m.id !== h.id; });
+        touch(job); if (v) v.draw(); toRefresh(true);
+        return true;
+      }
+      case 'to-sys':
+        to.systemId = d.id; to.editSys = to.editSys === d.id ? d.id : null; to.selected = null; to.tool = 'measure';
+        applyTool(); if (v) v.draw(); toRefresh(true);
+        return true;
+      case 'to-sys-edit': to.editSys = d.id || null; toRefresh(true); return true;
+      case 'to-sys-color': { var s1 = toSys(t, d.id); if (s1) { s1.color = d.v; touch(job); if (v) v.draw(); toRefresh(true); } return true; }
+      case 'to-sys-del': {
+        var s2 = toSys(t, d.id), n = t.marks.filter(function (m) { return m.systemId === d.id; }).length;
+        if (!s2 || !confirm('Delete "' + s2.name + '"' + (n ? ' and its ' + n + ' measurement' + (n === 1 ? '' : 's') : '') + '?')) return true;
+        t.systems = t.systems.filter(function (s) { return s.id !== d.id; });
+        t.marks = t.marks.filter(function (m) { return m.systemId !== d.id; });
+        to.systemId = t.systems[0] ? t.systems[0].id : null; to.editSys = null;
+        touch(job); applyTool(); if (v) v.draw(); toRefresh(true);
+        return true;
+      }
+      case 'to-type': {
+        var s3 = toSys(t, to.systemId); if (!s3) return true;
+        var m = { id: T.uid(), systemId: s3.id, zoneId: to.zoneId, kind: 'typed', qty: '' };
+        t.marks.push(m); touch(job); toRefresh(true);
+        var inp = app.querySelector('[data-to="mark.' + m.id + '.qty"]'); if (inp) inp.focus();
+        return true;
+      }
+      case 'to-pick-mark': {
+        var pm = t.marks.find(function (x) { return x.id === d.id; }); if (!pm) return true;
+        to.selected = pm.id; to.tool = 'select';
+        if (pm.planId && (pm.planId !== to.planId || pm.page !== to.page)) { to.planId = pm.planId; to.page = pm.page; openCurrentPlan(); }
+        else { applyTool(); if (v) v.draw(); }
+        if (to.mtab !== 'plan' && window.innerWidth < 900) toClick('to-mtab', { dataset: { v: 'plan' } });
+        toRefresh(true);
+        return true;
+      }
+      case 'to-del-mark': {
+        t.marks = t.marks.filter(function (m) { return m.id !== d.id; });
+        if (to.selected === d.id) to.selected = null;
+        touch(job); if (v) v.draw(); toRefresh(true);
+        return true;
+      }
+      case 'to-zone-add': {
+        var name = prompt('Name of the floor or area (e.g. Level 2, Suite 200, Stairwell A)', 'Level ' + (t.zones.length + 1));
+        if (!name || !name.trim()) return true;
+        var z = { id: T.uid(), name: name.trim() }; t.zones.push(z); to.zoneId = z.id; to.countMark = null;
+        touch(job); toRefresh(true); return true;
+      }
+      case 'to-zone-rename': {
+        var zz = t.zones.find(function (x) { return x.id === to.zoneId; }); if (!zz) return true;
+        var nn = prompt('Rename this floor or area', zz.name);
+        if (nn && nn.trim()) { zz.name = nn.trim(); touch(job); toRefresh(true); }
+        return true;
+      }
+      case 'to-method': t.method = d.v; touch(job); toRefresh(true); return true;
+      case 'to-breakdown': t.breakdown = d.v; touch(job); toRefresh(true); return true;
+      case 'to-del-add': t.adds = t.adds.filter(function (a) { return a.id !== d.id; }); touch(job); toRefresh(true); return true;
+      case 'to-add-alt': {
+        var a = { id: T.uid(), label: '', price: '' }; t.alternates.push(a); touch(job); toRefresh(true);
+        var ai = app.querySelector('[data-to="alt.' + a.id + '.label"]'); if (ai) ai.focus();
+        return true;
+      }
+      case 'to-del-alt': t.alternates = t.alternates.filter(function (a) { return a.id !== d.id; }); touch(job); toRefresh(true); return true;
+    }
+    return false;
+  }
+
+  /** The demo: a made-up office floor plan, already measured and priced. */
+  function startDemo() {
+    if (!access().canCreate) { location.hash = '#/upgrade'; return; }
+    toast('Loading the demo…');
+    Promise.all([fetch('demo/sample-office-plan.pdf').then(function (r) { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); }),
+      fetch('demo/sample-office-takeoff.json').then(function (r) { if (!r.ok) throw new Error('missing'); return r.json(); })])
+      .then(function (res) {
+        var buf = res[0], demo = res[1];
+        pendingCustomer = { name: 'Harbour Point Offices (demo)', phone: '', email: '', address: '100 Demo Way, Suite 200' };
+        var job = newJob('commercial', 'office');
+        job.sample = true; job.mode = 'takeoff';
+        var t = T.newTakeoff(settings);
+        t.systems = demo.systems.map(function (s, i) { var ns = T.newSystem(s.preset, settings, i); return Object.assign(ns, { id: s.id, name: s.name || ns.name, color: s.color || ns.color }); });
+        t.zones = demo.zones; t.wallHeight = demo.wallHeight; t.project = demo.project;
+        t.plans = [{ id: 'demo-office-v1', name: 'A-101 Sample Office Floor Plan.pdf', size: buf.byteLength, pages: 1, scales: demo.scales }];
+        t.marks = demo.marks.map(function (m) { return Object.assign({ planId: 'demo-office-v1', page: 1 }, m); });
+        t.adds = demo.adds.map(function (a) { return Object.assign({ id: T.uid() }, a); });
+        t.alternates = demo.alternates.map(function (a) { return Object.assign({ id: T.uid() }, a); });
+        job.takeoff = t;
+        job.notes = 'Demo project: a made-up office used to show the blueprint takeoff. Delete it any time.';
+        return PlanStore.put('demo-office-v1', { name: t.plans[0].name, size: buf.byteLength, data: buf }).then(function () {
+          touch(job);
+          to.jobId = null;
+          location.hash = '#/takeoff/' + job.id;
+        });
+      }).catch(function () { toast('Couldn\'t load the demo. Check your connection.'); });
+  }
+
+  /** Card on the job screen for takeoff jobs. */
+  function takeoffCard(job, calc) {
+    var c = calc.takeoff, active = c.systems.filter(function (r) { return r.qty > 0; });
+    return '<section class="card to-card"><h2 class="card-title">📄 Blueprint takeoff <span class="beta">BETA</span></h2>' +
+      (active.length ? '<ul class="to-sum">' + active.map(function (r) {
+        return '<li><span class="dot" style="background:' + esc(r.color) + '"></span><span>' + esc(r.name) + '<span class="muted small"> · ' + fmtN(r.qty) + ' ' + r.unit + '</span></span><b>' + money0(r.price) + '</b></li>';
+      }).join('') + '</ul><p class="muted small">' + fmtN(c.totals.hours, 1) + ' labour hours · ' + (job.takeoff.plans.length ? job.takeoff.plans.length + ' plan' + (job.takeoff.plans.length === 1 ? '' : 's') : 'typed totals') + '</p>'
+        : '<p class="muted small" style="margin-top:0">Open your PDF blueprint and measure walls, ceilings, doors and frames right on the plan. Or type the totals you measured in Adobe.</p>') +
+      '<a class="btn btn-primary full" href="#/takeoff/' + job.id + '">' + (active.length ? 'Open takeoff ›' : '📐 Start the takeoff ›') + '</a></section>';
+  }
+
   // ---------- Events ----------
   app.addEventListener('input', function (e) {
     var el = e.target;
+    if (el.dataset && el.dataset.to !== undefined && el.closest('.to')) { onToInput(el); return; }
     if (el.hasAttribute('data-home-search')) {
       homeSearch = el.value;
       document.getElementById('job-list').innerHTML = jobCards();
@@ -1939,6 +2636,14 @@
     var el = e.target.closest('[data-action]');
     if (!el) return;
     var action = el.dataset.action;
+    if (action === 'to-demo') { startDemo(); return; }
+    if (action === 'create-takeoff') {
+      var tj = newJob('commercial', el.dataset.prop || 'office');
+      tj.mode = 'takeoff'; ensureTakeoff(tj); touch(tj);
+      location.hash = '#/takeoff/' + tj.id;
+      return;
+    }
+    if (action.indexOf('to-') === 0 && document.body.dataset.view === 'takeoff' && toClick(action, el)) return;
     var job = currentJob();
     var i = el.dataset.i != null ? +el.dataset.i : null;
 
@@ -2138,6 +2843,7 @@
         if (job.jobType === el.dataset.v) return;
         job.jobType = el.dataset.v;
         job.propertyType = P.JOB_TYPES[job.jobType].properties[0].id;
+        if (job.jobType !== 'commercial' && job.mode === 'takeoff') job.mode = 'rooms';
         touch(job); renderJob(job);
         return;
       case 'prop':
@@ -2147,6 +2853,7 @@
         return;
       case 'mode':
         job.mode = el.dataset.v;
+        if (job.mode === 'takeoff') ensureTakeoff(job);
         touch(job); renderJob(job);
         if (job.mode === 'quick') {
           var sq = app.querySelector('[data-field="quick.sqft"]');

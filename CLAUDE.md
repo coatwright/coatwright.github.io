@@ -14,6 +14,9 @@ from `main` (anything merged into `main` goes live).
 - Cloud backup & sync: `app/config.js` `sync` switch, merge rules in `app/sync.js`, network calls in `app/account.js` (`user_data` table),
   database in `supabase/sync.sql`; owner steps in `CLOUD_BACKUP_SETUP.md`. Every job change must go through `saveJobs()` (it stamps `syncAt`),
   and deletions must call `forget(kind, id)` so they don't come back from another device.
+- Commercial blueprint takeoff (beta): pricing in `app/takeoff.js` (`job.mode === 'takeoff'`, data in `job.takeoff`; `Pricing.calcJob` hands off to it),
+  PDF viewer in `app/plan.js` (pdf.js 3.11 in `app/vendor/`; PDFs stay on the device in IndexedDB, only measurements sync), screen `#/takeoff/<id>` in `app/app.js`.
+  Demo plan + pre-measured takeoff: `app/demo/` (regenerate with `python3 app/demo/make_demo.py`).
 
 **Working agreement (owner's rule):** before doing any task that changes the app, website, marketing files or settings,
 explain the plan and get the owner's approval. After building, show the result (screenshots, video, file or preview) and
@@ -26,6 +29,6 @@ session. Whenever work is finished or a decision is made, update it in the same 
 - add any decision to "Decisions made"
 - add a dated entry to the "Log"
 
-Tests: `node --test app/tests/pricing.test.js app/tests/stats.test.js app/tests/billing.test.js app/tests/timezone.test.js app/tests/account.test.js app/tests/currency.test.js app/tests/webhook.test.js app/tests/sync.test.js`
+Tests: `node --test app/tests/pricing.test.js app/tests/stats.test.js app/tests/billing.test.js app/tests/timezone.test.js app/tests/account.test.js app/tests/currency.test.js app/tests/webhook.test.js app/tests/sync.test.js app/tests/takeoff.test.js`
 
 The project started in the owner's `Nbarmash/Nbarmash` repository; that address now forwards here.
