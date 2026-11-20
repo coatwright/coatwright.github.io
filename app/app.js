@@ -1930,9 +1930,11 @@
       '<div class="to-stage" id="to-stage"></div>' +
       '<div class="to-hint" data-out="to-hint"></div></section>' +
       '<aside class="to-panel" id="to-panel"></aside></div>' +
-      '<input type="file" id="to-file" accept="application/pdf,.pdf" hidden></div>';
+      '<input type="file" id="to-file" accept="application/pdf,.pdf" hidden>' +
+      '<div class="to-dropzone"><div>📄 Drop the PDF to add it</div></div></div>';
     sizeTakeoff();
     document.getElementById('to-file').addEventListener('change', onPlanFile);
+    bindPlanDrop(app.querySelector('.to'));
     toRefresh(true);
     openCurrentPlan();
   }
@@ -1999,6 +2001,7 @@
     return '<div class="to-empty"><div class="to-empty-icon">📄</div><h2>Add your blueprint</h2>' +
       '<p class="muted">Open the PDF drawing set. Measure walls, ceilings and doors right on the plan, and the bid builds itself.</p>' +
       '<button type="button" class="btn btn-primary" data-action="to-add-plan">📂 Choose PDF blueprint</button>' +
+      '<p class="muted small to-drop-tip">or drag the PDF file here</p>' +
       '<p class="muted small">Measured in Adobe or Bluebeam already? Type your totals in the <b>Takeoff</b> list instead.</p>' +
       '<button type="button" class="link" data-action="to-demo">👀 Or try the demo office plan</button></div>';
   }
@@ -2010,11 +2013,29 @@
   function onPlanFile(e) {
     var file = e.target.files && e.target.files[0];
     e.target.value = '';
-    if (!file) return;
-    if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) { toast('Please choose a PDF file'); return; }
+    addPlanFile(file);
+  }
+  /** Drag a PDF from the computer onto the takeoff screen to add it. */
+  function bindPlanDrop(box) {
+    var depth = 0;
+    var hasFile = function (e) { return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') !== -1; };
+    box.addEventListener('dragenter', function (e) { if (!hasFile(e)) return; e.preventDefault(); depth++; box.classList.add('to-dropping'); });
+    box.addEventListener('dragover', function (e) { if (!hasFile(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+    box.addEventListener('dragleave', function () { if (--depth <= 0) { depth = 0; box.classList.remove('to-dropping'); } });
+    box.addEventListener('drop', function (e) {
+      if (!hasFile(e)) return;
+      e.preventDefault(); depth = 0; box.classList.remove('to-dropping');
+      var files = Array.prototype.filter.call(e.dataTransfer.files || [], function (f) { return /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name); });
+      if (!files.length) { toast('Drop a PDF blueprint'); return; }
+      files.reduce(function (p, f) { return p.then(function () { return addPlanFile(f); }); }, Promise.resolve());
+    });
+  }
+  function addPlanFile(file) {
+    if (!file) return Promise.resolve();
+    if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) { toast('Please choose a PDF file'); return Promise.resolve(); }
     var job = toJob(), t = job.takeoff, stage = document.getElementById('to-stage');
     if (stage) stage.innerHTML = '<div class="to-loading">Opening ' + esc(file.name) + '…</div>';
-    file.arrayBuffer().then(function (buf) {
+    return file.arrayBuffer().then(function (buf) {
       return PlanPdf.open(buf).then(function (pdf) {
         var existing = t.plans.find(function (p) { return p.name === file.name && p.size === file.size; }) ||
           (to.missing && toPlan(t) && confirm('Use "' + file.name + '" for "' + toPlan(t).name + '"?') ? toPlan(t) : null);
