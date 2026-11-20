@@ -666,10 +666,20 @@
     return '<span class="pill st-' + st.id + '">' + st.icon + ' ' + st.label + '</span>';
   }
 
+  /** Finished or paid jobs with no payment logged (they'd make "You made" look wrong). */
+  function noPayJobs() {
+    return jobs.filter(function (j) {
+      var st = S.statusOf(j);
+      return (st === 'completed' || st === 'paid') && !S.paidAmount(j) && P.calcJob(j, settings).total > 0;
+    });
+  }
+
   function jobCards() {
     var f = HOME_FILTERS.find(function (x) { return x[0] === homeFilter; }) || HOME_FILTERS[0];
     var q = homeSearch.trim().toLowerCase();
+    var nopay = homeFilter === 'nopay' ? noPayJobs() : null;
     var list = jobs.filter(function (j) {
+      if (nopay && nopay.indexOf(j) === -1) return false;
       if (f[2] && f[2].indexOf(S.statusOf(j)) === -1) return false;
       if (!q) return true;
       return [j.customer.name, j.customer.address, j.customer.phone, j.number].join(' ').toLowerCase().indexOf(q) !== -1;
@@ -701,6 +711,8 @@
   function renderHome() {
     var needsSetup = !settings.businessName;
     var y = S.yearStats(jobs, expenses, settings, new Date().getFullYear());
+    var noPay = noPayJobs();
+    if (homeFilter === 'nopay' && !noPay.length) homeFilter = 'all';
     var counts = {};
     HOME_FILTERS.forEach(function (f) {
       counts[f[0]] = f[2] ? jobs.filter(function (j) { return f[2].indexOf(S.statusOf(j)) !== -1; }).length : jobs.length;
@@ -716,6 +728,9 @@
       (jobs.length ? '<a class="year-card" href="#/stats"><div><div class="muted small">' + y.year + ' collected</div><div class="year-big">' + money0(y.collected) + '</div></div>' +
         '<div><div class="muted small">You made</div><div class="year-big">' + money0(y.made) + '</div></div>' +
         '<div class="year-more">Stats ›</div></a>' : '') +
+      (noPay.length ? '<button type="button" class="nopay-hint" data-action="filter" data-v="nopay">⚠️ <span><b>' + noPay.length +
+        (noPay.length === 1 ? ' finished job has' : ' finished jobs have') + ' no payment logged</b>, so ' + (noPay.length === 1 ? 'it counts' : 'they count') + ' as ' + money0(0) +
+        ' collected. Tap to see ' + (noPay.length === 1 ? 'it' : 'them') + ' and add the payment.</span></button>' : '') +
       '<button class="btn btn-primary btn-xl" data-action="new-job">＋ New Quote</button>' +
       '<h2 class="section-title">Your jobs</h2>' +
       (jobs.length ? '<input type="search" class="search" data-home-search placeholder="Search name, address, phone…" value="' + esc(homeSearch) + '">' +
@@ -945,7 +960,10 @@
             return '<option' + (p.method === m ? ' selected' : '') + '>' + m + '</option>';
           }).join('') + '</select>' +
           '<button type="button" class="icon-btn" data-action="del-payment" data-i="' + i + '" aria-label="Remove payment">✕</button></div>';
-      }).join('') : '<p class="muted small">No payments yet. Log the deposit and final payment here.</p>') +
+      }).join('') : (S.statusOf(job) === 'completed' || S.statusOf(job) === 'paid'
+        ? '<p class="nopay-note small"><b>No payments logged yet</b>, so this job counts as ' + money0(0) + ' collected and only its costs show in your stats. ' +
+          'Tap <b>Add payment</b> to log what the customer paid.</p>'
+        : '<p class="muted small">No payments yet. Log the deposit and final payment here.</p>')) +
       '<button type="button" class="btn btn-ghost" data-action="add-payment">＋ Add payment</button>' +
       '<div class="label">What the job really cost</div>' +
       '<div class="row2">' + costField('hours', 'Hours worked', 'hrs', 'e.g. 24') + costField('materials', 'Paint & materials', '$', 'from receipts') + '</div>' +
@@ -2009,8 +2027,17 @@
       case 'status': {
         var prev = S.statusOf(job);
         S.setStatus(job, el.dataset.v);
+        var logged = 0;
+        if (el.dataset.v === 'paid' && prev !== 'paid') { // Paid means the money came in: offer to log what's still owed
+          var due = S.balance(job, settings);
+          if (due > 0 && confirm('Record the remaining ' + money(due) + ' as paid today?\n\nTap Cancel if you\'ll log the payments yourself.')) {
+            job.payments.push({ id: uid(), date: today(), amount: due, method: S.paymentMethods(settings.currency)[settings.currency === 'CAD' ? 3 : 1] });
+            logged = due;
+          }
+        }
         touch(job); renderJob(job);
-        if (S.isWon(job) && ['draft', 'sent', 'lost'].indexOf(prev) !== -1) toast('🎉 Won! Log payments and real costs below');
+        if (logged) toast('💰 Paid! ' + money(logged) + ' logged. Change the method or date below if needed');
+        else if (S.isWon(job) && ['draft', 'sent', 'lost'].indexOf(prev) !== -1) toast('🎉 Won! Log payments and real costs below');
         else toast('Marked as ' + S.statusInfo(job.status).label);
         return;
       }
