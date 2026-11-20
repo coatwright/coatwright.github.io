@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/** with sign-up (Google or email code, one trial per email) and **paid plans on Stripe** (trials from Nov 15, 2026). Social: Instagram and Facebook **@coatwrightapp** done, TikTok in progress. **Next:** finish TikTok (repost the fresh explainer and pin it), YouTube, X, LinkedIn; Google Search Console; more app fixes. Claude also owes a check of the quoting defaults against published production rates.
+**Where we are now:** Live at **https://getcoatwright.com/** with sign-up, **paid plans on Stripe**, **cloud backup & sync** (live Nov 20). **Commercial blueprint takeoff (beta)** built and waiting for the owner's review (not live). **Next:** owner reviews the takeoff + demo video, then sets up the beta tester (comp access) and sends his answers, blueprint and real bid; then analytics + owner dashboard. Social: finish TikTok, YouTube, X, LinkedIn; Google Search Console.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -141,9 +141,9 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 ## Next up (approved plan, in order; each shown to the owner before going live)
 
 - 🔄 Cloud backup & sync (built, tests pass; owner ran the SQL 2026-11-20 and the check passed; `sync: true`; publishes after approval): jobs, customers, expenses, settings and logo saved to the painter's own account (Supabase, read/write own rows only), works offline, restore on a new device, safe first sync; Privacy/Terms/app wording updated. Owner runs one SQL script
-- ⬜ Commercial "takeoff totals" entry (for blueprint estimators): type measured wall/ceiling sq ft, trim LF, doors per area → hours, paint, materials, quote. Maybe import a Bluebeam/Adobe measurement export. Beta tester (commercial painter) to send a sample blueprint, his measurements and his actual bid
+- 🔄 Commercial blueprint takeoff (beta, built 2026-11-20, waiting for owner review): open PDF plans, scale (read from the sheet or a known dimension), measure walls/areas/counts by paint system, typed totals from Adobe/Bluebeam, bid by hours or unit prices, extra costs, alternates, proposal with inclusions/exclusions; computer, tablet, phone; demo office plan + 80 s demo video. Originally planned as a "takeoff totals" entry: type measured wall/ceiling sq ft, trim LF, doors per area → hours, paint, materials, quote. Maybe import a Bluebeam/Adobe measurement export. Beta tester (commercial painter) to send a sample blueprint, his measurements and his actual bid
 - ⬜ Usage analytics (actions only) + private owner dashboard (sign-ups, trials, trial→paid, founder spots, usage); website analytics (Cloudflare or Plausible); Privacy Policy updated
-- ⬜ Later: measure blueprints inside Coatwright (PDF + scale + trace); AI auto-takeoff only if commercial grows
+- ✅ Measure blueprints inside Coatwright (PDF + scale + trace), part of the takeoff above. Later: plan files stored online (Supabase Storage) so they open on every device; Commercial plan checkout (~US$59–79/mo); AI auto-takeoff only if commercial grows
 
 ## Phase 2 — Paint store partnerships (after the first painters)
 
@@ -171,6 +171,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-13 | Domain not required yet | Free github.io link is fine for testing; buy coatwright.com (~$10–20/yr) before marketing |
 | 2026-11-13 | Profit counted when money is collected (payment dates); job costs count when the job is done | Matches how a small business sees cash; simple for the owner and accountant |
 | 2026-11-13 | Data stays on the device, with backup/restore and CSV exports | Private and free now; cloud sync comes with accounts in Phase 4 |
+| 2026-11-20 | Commercial takeoff is free for everyone while in beta; a paid Commercial plan comes after the beta tester confirms its value | Win the first commercial users first; price later with real feedback |
 | 2026-11-20 | Cloud backup is automatic for signed-in painters (one private row per account; newest change wins per job; deletes remembered; device works offline) | A lost or new phone never means lost work; simplest for painters; the app keeps working with no signal |
 | 2026-11-13 | Exterior estimated from home size + stories (no measuring needed); epoxy priced as a per-sq-ft kit | Fast on site, consistent with the quick-estimate approach; epoxy is bought as kits, not gallons |
 | 2026-11-13 | Landing page lives at the site root; app keeps its `/coatwright/` address | Home-screen installs keep working; a future coatwright.com can point at the landing page |
@@ -284,3 +285,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-20** — Built cloud backup & sync (not live yet): `supabase/sync.sql` (table `user_data`, own-row rules, tested on a local copy), merge rules in `app/sync.js` (10 tests), app wiring behind `sync` switch in `app/config.js`, two-phone browser test (restore on new phone, edits both ways, deletes, offline, different-account guard, missing table). Privacy, Terms and website wording updated to go live with it. Owner steps and the Claude-in-Chrome prompt in `CLOUD_BACKUP_SETUP.md`. Cache v31.
 - **2026-11-20** — Owner saw negative "You made" after marking test jobs Completed/Paid (status alone logs no money, but job costs count). Fix: tapping Paid offers to log the remaining balance as paid today; home shows a reminder for finished jobs with no payment logged (tap to list them); the job's payments section explains it. Cache v32.
 - **2026-11-20** — Owner ran `supabase/sync.sql` with Claude in Chrome (text matched exactly, "Success. No rows returned", check: rls_on = true, policies = 3). Claude switched `sync: true`; waiting for approval to publish together with the payment fix.
+- **2026-11-20** — Built the commercial blueprint takeoff (beta, not live): `app/takeoff.js` (pricing, 9 tests), `app/plan.js` (PDF viewer with pdf.js in `app/vendor/`, plan files kept on the device), screen at `#/takeoff/<job>`, proposal with alternates and scope wording, demo office plan (`app/demo/`), demo video `marketing/videos/coatwright-blueprint-takeoff-demo.mp4`. Cache v33.
