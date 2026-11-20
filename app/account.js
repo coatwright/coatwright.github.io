@@ -54,6 +54,7 @@
     opts = opts || {};
     var headers = { apikey: cfg.supabaseKey, 'Content-Type': 'application/json', Accept: 'application/json' };
     if (opts.token) headers.Authorization = 'Bearer ' + opts.token;
+    if (opts.prefer) headers.Prefer = opts.prefer;
     return fetch(cfg.supabaseUrl + path, { method: opts.method || 'GET', headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined })
       .then(function (r) {
         return r.text().then(function (txt) {
@@ -61,7 +62,7 @@
           try { json = txt ? JSON.parse(txt) : null; } catch (e) { json = null; }
           if (!r.ok) {
             var msg = (json && (json.msg || json.error_description || json.message || json.error)) || ('Error ' + r.status);
-            var err = new Error(msg); err.status = r.status; throw err;
+            var err = new Error(msg); err.status = r.status; err.code = json && json.code; throw err;
           }
           return json;
         });
@@ -109,6 +110,25 @@
       .then(function (rows) { return rows && rows[0] ? rows[0] : null; });
   }
 
+  /** This account's cloud backup (one row), or null if none saved yet. */
+  function getUserData(cfg, session) {
+    return call(cfg, '/rest/v1/user_data?select=data,version,updated_at&limit=1', { token: session.accessToken })
+      .then(function (rows) { return rows && rows[0] ? rows[0] : null; });
+  }
+
+  /** First save for this account. */
+  function insertUserData(cfg, session, data) {
+    return call(cfg, '/rest/v1/user_data', { method: 'POST', token: session.accessToken, prefer: 'return=representation', body: { data: data, version: 1 } })
+      .then(function (rows) { return rows && rows[0] ? rows[0] : null; });
+  }
+
+  /** Save over version `version` only (returns null if another device saved first). */
+  function updateUserData(cfg, session, data, version) {
+    return call(cfg, '/rest/v1/user_data?version=eq.' + Number(version), { method: 'PATCH', token: session.accessToken, prefer: 'return=representation',
+      body: { data: data, version: Number(version) + 1, updated_at: new Date().toISOString() } })
+      .then(function (rows) { return rows && rows[0] ? rows[0] : null; });
+  }
+
   /** How many founding-member spots are left (public). */
   function founderSpotsLeft(cfg) {
     return call(cfg, '/rest/v1/rpc/founder_spots_left', { method: 'POST', body: {} }).then(function (n) { return Number(n); });
@@ -126,7 +146,7 @@
   var api = {
     normalizeEmail: normalizeEmail, validEmail: validEmail, parseAuthFragment: parseAuthFragment, sessionFrom: sessionFrom,
     needsRefresh: needsRefresh, sendCode: sendCode, verifyCode: verifyCode, refresh: refresh, getUser: getUser,
-    getProfile: getProfile, getSubscriptions: getSubscriptions, getComp: getComp, founderSpotsLeft: founderSpotsLeft, signOut: signOut, googleUrl: googleUrl
+    getProfile: getProfile, getSubscriptions: getSubscriptions, getComp: getComp, getUserData: getUserData, insertUserData: insertUserData, updateUserData: updateUserData, founderSpotsLeft: founderSpotsLeft, signOut: signOut, googleUrl: googleUrl
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.Account = api;

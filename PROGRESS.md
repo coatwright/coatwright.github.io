@@ -108,7 +108,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Claude switched billing on (startDate 2026-11-15: everyone's 14-day trial counts from today; cache v22)
 - ⬜ End-to-end purchase test: skipped by the owner for now (cash). Free option when ready: one-time 100% code OWNERTEST + set secret FOUNDER_PROMO_CODES to the FOUNDER promo ID. Until then, check Stripe → Webhooks → Event deliveries after the first real sale
 
-- ⬜ Accounts and cloud sync (quotes on any device)
+- 🔄 Accounts ✅ and cloud sync (quotes on any device): database ready, switched on, waiting for owner's approval to publish
 - ⬜ Customer "Accept quote" link with e-signature
 - ⬜ Deposit payments through Stripe
 - ⬜ Room scanning with the iPhone's LiDAR sensor (needs a native iPhone app; Pro models only) — premium feature
@@ -140,7 +140,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 
 ## Next up (approved plan, in order; each shown to the owner before going live)
 
-- ⬜ Cloud backup & sync: jobs, customers, expenses, settings and logo saved to the painter's own account (Supabase, read/write own rows only), works offline, restore on a new device, safe first sync; Privacy/Terms/app wording updated. Owner runs one SQL script
+- 🔄 Cloud backup & sync (built, tests pass; owner ran the SQL 2026-11-20 and the check passed; `sync: true`; publishes after approval): jobs, customers, expenses, settings and logo saved to the painter's own account (Supabase, read/write own rows only), works offline, restore on a new device, safe first sync; Privacy/Terms/app wording updated. Owner runs one SQL script
 - ⬜ Commercial "takeoff totals" entry (for blueprint estimators): type measured wall/ceiling sq ft, trim LF, doors per area → hours, paint, materials, quote. Maybe import a Bluebeam/Adobe measurement export. Beta tester (commercial painter) to send a sample blueprint, his measurements and his actual bid
 - ⬜ Usage analytics (actions only) + private owner dashboard (sign-ups, trials, trial→paid, founder spots, usage); website analytics (Cloudflare or Plausible); Privacy Policy updated
 - ⬜ Later: measure blueprints inside Coatwright (PDF + scale + trace); AI auto-takeoff only if commercial grows
@@ -171,6 +171,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-13 | Domain not required yet | Free github.io link is fine for testing; buy coatwright.com (~$10–20/yr) before marketing |
 | 2026-11-13 | Profit counted when money is collected (payment dates); job costs count when the job is done | Matches how a small business sees cash; simple for the owner and accountant |
 | 2026-11-13 | Data stays on the device, with backup/restore and CSV exports | Private and free now; cloud sync comes with accounts in Phase 4 |
+| 2026-11-20 | Cloud backup is automatic for signed-in painters (one private row per account; newest change wins per job; deletes remembered; device works offline) | A lost or new phone never means lost work; simplest for painters; the app keeps working with no signal |
 | 2026-11-13 | Exterior estimated from home size + stories (no measuring needed); epoxy priced as a per-sq-ft kit | Fast on site, consistent with the quick-estimate approach; epoxy is bought as kits, not gallons |
 | 2026-11-13 | Landing page lives at the site root; app keeps its `/coatwright/` address | Home-screen installs keep working; a future coatwright.com can point at the landing page |
 | 2026-11-13 | One dedicated Coatwright email and the same username on every platform | Keeps the brand separate from personal accounts and easy to find |
@@ -280,3 +281,6 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-18** — Owner approved: LICENSE (All rights reserved) and a copyright line at the bottom of Settings. Plan agreed: customers first; repository private via GitHub Team when the owner has 5 minutes; trademark after the first paying customers. Owner set up hello@getcoatwright.com forwarding (Porkbun), LinkedIn Page + Founder profile, and a Google Calendar booking page.
 - **2026-11-19** — Owner's first beta tester: a commercial painter who prices from blueprints (measures in Adobe). Plan: cloud backup first, then a takeoff-totals entry for blueprint estimators, then analytics + owner dashboard.
 - **2026-11-20** — Owner's account has complimentary Pro (comp_access, note "Owner"); SQL verified on a local copy first (runs cleanly, safe to re-run). Does not use a founding spot.
+- **2026-11-20** — Built cloud backup & sync (not live yet): `supabase/sync.sql` (table `user_data`, own-row rules, tested on a local copy), merge rules in `app/sync.js` (10 tests), app wiring behind `sync` switch in `app/config.js`, two-phone browser test (restore on new phone, edits both ways, deletes, offline, different-account guard, missing table). Privacy, Terms and website wording updated to go live with it. Owner steps and the Claude-in-Chrome prompt in `CLOUD_BACKUP_SETUP.md`. Cache v31.
+- **2026-11-20** — Owner saw negative "You made" after marking test jobs Completed/Paid (status alone logs no money, but job costs count). Fix: tapping Paid offers to log the remaining balance as paid today; home shows a reminder for finished jobs with no payment logged (tap to list them); the job's payments section explains it. Cache v32.
+- **2026-11-20** — Owner ran `supabase/sync.sql` with Claude in Chrome (text matched exactly, "Success. No rows returned", check: rls_on = true, policies = 3). Claude switched `sync: true`; waiting for approval to publish together with the payment fix.

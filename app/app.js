@@ -43,9 +43,167 @@
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installPrompt = e; });
   var homeFilter = 'all', homeSearch = '', customerSearch = '', pendingCustomer = null;
 
-  function saveSettings() { save('pq.settings', settings); }
-  function saveJobs() { save('pq.jobs', jobs); }
-  function saveExpenses() { save('pq.expenses', expenses); }
+  function saveSettings() { save('pq.settings', settings); if (syncReady()) { noteSettings(); changed(); } }
+  function saveJobs() { if (syncReady()) stampJobs(); save('pq.jobs', jobs); if (syncReady()) changed(); }
+  function saveExpenses() { save('pq.expenses', expenses); if (syncReady()) changed(); }
+
+  // ---------- Cloud backup & sync ----------
+  // Jobs, customers, expenses and settings are saved to the painter's account and merged across devices (see sync.js).
+  // The device keeps working offline; changes upload when it's back online. Off until CW_CONFIG.sync is true.
+  var CS = window.CloudSync;
+  var syncMeta = load('pq.sync', null) || {}; // { owner, ownerEmail, settingsAt, settingsHash, deleted, lastSync, declined }
+  var sync = { busy: null, timer: null, again: false, off: false, error: '', rev: 0 };
+  var jobSigs = {};
+  function syncReady() { return !!(CFG.sync && CS); }
+  function syncOn() { return syncReady() && accountsOn() && signedIn() && !sync.off && syncMeta.declined !== settings.account.id; }
+  function saveMeta() { save('pq.sync', syncMeta); }
+  function rememberJobs() { jobSigs = {}; jobs.forEach(function (j) { jobSigs[j.id] = CS.itemHash(j); }); }
+  /** Stamp jobs that changed since last time, so the newest copy wins on every device. */
+  function stampJobs() {
+    var now = Date.now();
+    jobs.forEach(function (j) {
+      var h = CS.itemHash(j);
+      if (jobSigs[j.id] !== h) { if (jobSigs[j.id] !== undefined) j.syncAt = now; jobSigs[j.id] = h; }
+    });
+  }
+  /** Remember when the synced part of settings last changed. */
+  function noteSettings() {
+    var h = CS.hash(CS.syncedSettings(settings));
+    if (syncMeta.settingsHash === h) return;
+    if (syncMeta.settingsHash) syncMeta.settingsAt = Date.now();
+    syncMeta.settingsHash = h; saveMeta();
+  }
+  function forget(kind, id) {
+    if (!syncReady()) return;
+    syncMeta.deleted = syncMeta.deleted || { jobs: {}, expenses: {} };
+    syncMeta.deleted[kind] = syncMeta.deleted[kind] || {};
+    syncMeta.deleted[kind][id] = Date.now(); saveMeta();
+  }
+  function changed() { sync.rev++; scheduleSync(); }
+  function scheduleSync(delay) {
+    if (!syncOn()) return;
+    clearTimeout(sync.timer);
+    sync.timer = setTimeout(function () { sync.timer = null; runSync(); }, delay == null ? 2500 : delay);
+  }
+  function editing() {
+    var a = document.activeElement;
+    return !!(a && app.contains(a) && (a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' ||
+      (a.tagName === 'INPUT' && !/^(checkbox|radio|button|submit|file)$/.test(a.type))));
+  }
+  function freshSession() {
+    return AC.needsRefresh(session) ? AC.refresh(CFG, session).then(function (s) { session = s; save('pq.session', session); }) : Promise.resolve();
+  }
+  function localOnlySettings() {
+    var keep = {};
+    CS.LOCAL_ONLY.forEach(function (k) { if (k in settings) keep[k] = settings[k]; });
+    return keep;
+  }
+  /** Pull the account's copy, merge, save back (version-checked), and update this device. Resolves true when in sync. */
+  function runSync(manual) {
+    if (!syncOn() || navigator.onLine === false) return Promise.resolve(false);
+    if (sync.busy) { sync.again = true; return sync.busy; }
+    if (!manual && editing()) { scheduleSync(4000); return Promise.resolve(false); } // never swap data under someone typing
+    var uid = settings.account.id;
+    sync.busy = freshSession().then(function () { return attempt(0); })
+      .then(function (ok) { sync.error = ''; return ok; }, function (e) {
+        if (e && (e.status === 404 || e.code === 'PGRST205' || e.code === '42P01')) sync.off = true; // database not set up yet
+        else sync.error = friendlyAuthError(e);
+        return false;
+      })
+      .then(function (ok) {
+        sync.busy = null;
+        if (sync.again) { sync.again = false; scheduleSync(800); }
+        showSyncNote();
+        return ok;
+      });
+    return sync.busy;
+
+    function attempt(n) {
+      var rev = sync.rev;
+      return AC.getUserData(CFG, session).then(function (row) {
+        if (!signedIn() || settings.account.id !== uid) return false;
+        var remote = row && row.data && row.data.v ? row.data : null;
+        if (syncMeta.owner && syncMeta.owner !== uid && !otherAccount(remote)) return false;
+        var firstHere = syncMeta.owner !== uid;
+        var local = { settings: settings, settingsAt: firstHere && remote ? -1 : (syncMeta.settingsAt || 0), // first sync on this device: the account's settings win
+          jobs: jobs, expenses: expenses, deleted: syncMeta.deleted };
+        var m = CS.merge(local, remote);
+        m.doc.deleted = CS.pruneTombstones(m.doc.deleted);
+        var put = !m.changedRemote ? Promise.resolve(row)
+          : row ? AC.updateUserData(CFG, session, m.doc, row.version)
+            : AC.insertUserData(CFG, session, m.doc).catch(function (e) { if (e.status === 409) return null; throw e; });
+        return put.then(function (saved) {
+          if (!saved) { // another device saved first: merge again with its copy
+            if (n >= 3) throw new Error('Another device is saving right now. We\'ll try again shortly.');
+            return attempt(n + 1);
+          }
+          if (sync.rev !== rev) { sync.again = true; return true; } // edited while saving: merge again in a moment
+          applyMerge(m, uid);
+          return true;
+        });
+      });
+    }
+  }
+  /** This device holds another account's data: ask before replacing it (that account keeps its own cloud copy). */
+  function otherAccount(remote) {
+    var hasData = jobs.length || expenses.length;
+    if (hasData && !confirm('This device has jobs from another Coatwright account' + (syncMeta.ownerEmail ? ' (' + syncMeta.ownerEmail + ')' : '') +
+      '.\n\nReplace them with the jobs saved in ' + settings.account.email + '? The other account\'s jobs stay saved in that account.')) {
+      syncMeta.declined = settings.account.id; saveMeta(); return false;
+    }
+    var keep = localOnlySettings();
+    settings = Object.assign({}, P.DEFAULT_SETTINGS, remote ? {} : { currency: settings.currency }, keep);
+    jobs = []; expenses = [];
+    syncMeta = {};
+    save('pq.settings', settings); save('pq.jobs', jobs); save('pq.expenses', expenses); saveMeta();
+    rememberJobs();
+    return true;
+  }
+  function applyMerge(m, uid) {
+    if (m.changedLocal) {
+      settings = Object.assign({}, P.DEFAULT_SETTINGS, m.settings, localOnlySettings());
+      jobs = m.jobs; expenses = m.expenses;
+      save('pq.settings', settings); save('pq.jobs', jobs); save('pq.expenses', expenses);
+      rememberJobs();
+    }
+    syncMeta.owner = uid; syncMeta.ownerEmail = settings.account.email; delete syncMeta.declined;
+    syncMeta.settingsAt = m.settingsAt; syncMeta.settingsHash = CS.hash(CS.syncedSettings(settings));
+    syncMeta.deleted = m.doc.deleted; syncMeta.lastSync = Date.now(); saveMeta();
+    if (m.changedLocal && location.hash.indexOf('#/signin') !== 0 && !editing()) {
+      if (settings.onboarded && /^#\/welcome/.test(location.hash)) location.hash = '#/';
+      else route();
+    }
+  }
+  function ago(ts) {
+    var s = Math.max(0, (Date.now() - ts) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + ' min ago';
+    if (s < 86400) return Math.floor(s / 3600) + ' hr ago';
+    return fmtDate(ts);
+  }
+  function syncNote() {
+    if (sync.off) return 'Cloud backup isn\'t available right now.';
+    if (syncMeta.declined && settings.account && syncMeta.declined === settings.account.id) return 'Paused: this device holds another account\'s jobs.';
+    if (sync.busy) return 'Saving to your account…';
+    if (navigator.onLine === false) return 'Offline. Changes are saved on this device and upload when you\'re back online.';
+    if (sync.error) return 'Couldn\'t reach your account: ' + sync.error;
+    return syncMeta.lastSync && syncMeta.owner === (settings.account && settings.account.id) ? 'Last saved to your account ' + ago(syncMeta.lastSync) + '.' : 'Not saved to your account yet.';
+  }
+  function showSyncNote() { var n = document.getElementById('sync-note'); if (n) n.textContent = syncNote(); }
+  /** One line on where data lives, for onboarding and plan screens. */
+  function dataPromise(short) {
+    if (syncReady() && accountsOn()) return short ? 'Your data is backed up privately to your account' : 'Your data is backed up privately to your account and works offline.';
+    return short ? 'Your data stays private on your device' : 'Your data stays private on this device.';
+  }
+  if (syncReady()) {
+    rememberJobs();
+    if (!syncMeta.settingsHash) { syncMeta.settingsHash = CS.hash(CS.syncedSettings(settings)); saveMeta(); }
+    window.addEventListener('online', function () { scheduleSync(500); });
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') scheduleSync(300);
+      else if (sync.timer) { clearTimeout(sync.timer); sync.timer = null; runSync(true); } // leaving the app: save now
+    });
+  }
   function today() { return S.isoDate(Date.now()); }
   function findJob(id) { return jobs.find(function (j) { return j.id === id; }); }
 
@@ -262,10 +420,10 @@
         : isIOS() ? '<p class="wz-tip">📲 <b>Tip:</b> tap the Share button, then <b>Add to Home Screen</b>, to open Coatwright like an app.</p>'
           : '<p class="wz-tip">📲 <b>Tip:</b> use your browser menu → <b>Install app</b> or <b>Add to Home screen</b> to open Coatwright like an app.</p>';
       body = welcomeSteps(3) + '<div class="wz-hero"><div class="wz-check">✓</div><h1>You\'re all set' + (settings.ownerName ? ', ' + esc(settings.ownerName.split(' ')[0]) : '') + '!</h1>' +
-        '<p class="muted">Your business details and prices are saved on this phone.' + (access().mode === 'trial' ? ' Your <b>' + BC.trialDays + '-day free trial</b> has started. No card needed.' : '') + '</p></div>' +
+        '<p class="muted">Your business details and prices are saved' + (syncOn() ? ' to your account.' : ' on this phone.') + (access().mode === 'trial' ? ' Your <b>' + BC.trialDays + '-day free trial</b> has started. No card needed.' : '') + '</p></div>' +
         '<button class="btn btn-primary btn-xl" data-action="wz-finish" data-v="quote">＋ Create my first quote</button>' +
         '<button class="btn full" data-action="wz-finish" data-v="sample">👀 Explore with a sample quote</button>' + install +
-        '<p class="center-text muted small">Your data stays private on this device. <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a></p>';
+        '<p class="center-text muted small">' + dataPromise() + ' <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a></p>';
     }
     app.innerHTML = '<div class="welcome">' + body + '</div>';
     var input = document.getElementById('logo-input');
@@ -332,8 +490,11 @@
         saveSettings();
         signin = { step: 'start', email: '', busy: false, error: '' };
         toast('Signed in as ' + user.email);
-        location.hash = settings.onboarded ? '#/' : '#/welcome';
-        route();
+        var go = function () { location.hash = settings.onboarded ? '#/' : '#/welcome'; route(); };
+        if (!syncOn()) return go();
+        app.innerHTML = '<div class="welcome"><div class="wz-hero"><img src="icon.svg" alt="" width="72" height="72"><h1>Loading your jobs…</h1></div></div>';
+        var timeout = new Promise(function (res) { setTimeout(res, 12000); });
+        return Promise.race([runSync(true), timeout]).then(go, go);
       });
   }
 
@@ -458,7 +619,7 @@
         planCard('annual', 'Yearly', BC.prices.annual, '/yr', 'Just ' + usd(deal.perMonth.toFixed(2)) + '/mo. Save ' + deal.savePct + '% vs monthly.', 'Best value', true) +
         planCard('monthly', 'Monthly', BC.prices.monthly, '/mo', 'Cancel anytime.', '', false) + '</div>' +
         '<ul class="ticks-app"><li>Unlimited quotes and invoices</li><li>Interior, exterior, cabinets, floors and commercial</li>' +
-        '<li>Job tracking, schedule, customers and profit stats</li><li>Your data stays private on your device</li></ul>' +
+        '<li>Job tracking, schedule, customers and profit stats</li><li>' + dataPromise(true) + '</li></ul>' +
         '<p class="muted small center-text">Secure checkout by Stripe. Prices in US dollars; you\'ll see your local currency and any tax at checkout.</p>' : '') +
       '<section class="card"><h2 class="card-title">' + (a.mode === 'active' ? 'Manage your subscription' : 'Already subscribed?') + '</h2>' +
       (a.mode === 'active' && a.comp
@@ -505,10 +666,20 @@
     return '<span class="pill st-' + st.id + '">' + st.icon + ' ' + st.label + '</span>';
   }
 
+  /** Finished or paid jobs with no payment logged (they'd make "You made" look wrong). */
+  function noPayJobs() {
+    return jobs.filter(function (j) {
+      var st = S.statusOf(j);
+      return (st === 'completed' || st === 'paid') && !S.paidAmount(j) && P.calcJob(j, settings).total > 0;
+    });
+  }
+
   function jobCards() {
     var f = HOME_FILTERS.find(function (x) { return x[0] === homeFilter; }) || HOME_FILTERS[0];
     var q = homeSearch.trim().toLowerCase();
+    var nopay = homeFilter === 'nopay' ? noPayJobs() : null;
     var list = jobs.filter(function (j) {
+      if (nopay && nopay.indexOf(j) === -1) return false;
       if (f[2] && f[2].indexOf(S.statusOf(j)) === -1) return false;
       if (!q) return true;
       return [j.customer.name, j.customer.address, j.customer.phone, j.number].join(' ').toLowerCase().indexOf(q) !== -1;
@@ -540,6 +711,8 @@
   function renderHome() {
     var needsSetup = !settings.businessName;
     var y = S.yearStats(jobs, expenses, settings, new Date().getFullYear());
+    var noPay = noPayJobs();
+    if (homeFilter === 'nopay' && !noPay.length) homeFilter = 'all';
     var counts = {};
     HOME_FILTERS.forEach(function (f) {
       counts[f[0]] = f[2] ? jobs.filter(function (j) { return f[2].indexOf(S.statusOf(j)) !== -1; }).length : jobs.length;
@@ -555,6 +728,9 @@
       (jobs.length ? '<a class="year-card" href="#/stats"><div><div class="muted small">' + y.year + ' collected</div><div class="year-big">' + money0(y.collected) + '</div></div>' +
         '<div><div class="muted small">You made</div><div class="year-big">' + money0(y.made) + '</div></div>' +
         '<div class="year-more">Stats ›</div></a>' : '') +
+      (noPay.length ? '<button type="button" class="nopay-hint" data-action="filter" data-v="nopay">⚠️ <span><b>' + noPay.length +
+        (noPay.length === 1 ? ' finished job has' : ' finished jobs have') + ' no payment logged</b>, so ' + (noPay.length === 1 ? 'it counts' : 'they count') + ' as ' + money0(0) +
+        ' collected. Tap to see ' + (noPay.length === 1 ? 'it' : 'them') + ' and add the payment.</span></button>' : '') +
       '<button class="btn btn-primary btn-xl" data-action="new-job">＋ New Quote</button>' +
       '<h2 class="section-title">Your jobs</h2>' +
       (jobs.length ? '<input type="search" class="search" data-home-search placeholder="Search name, address, phone…" value="' + esc(homeSearch) + '">' +
@@ -784,7 +960,10 @@
             return '<option' + (p.method === m ? ' selected' : '') + '>' + m + '</option>';
           }).join('') + '</select>' +
           '<button type="button" class="icon-btn" data-action="del-payment" data-i="' + i + '" aria-label="Remove payment">✕</button></div>';
-      }).join('') : '<p class="muted small">No payments yet. Log the deposit and final payment here.</p>') +
+      }).join('') : (S.statusOf(job) === 'completed' || S.statusOf(job) === 'paid'
+        ? '<p class="nopay-note small"><b>No payments logged yet</b>, so this job counts as ' + money0(0) + ' collected and only its costs show in your stats. ' +
+          'Tap <b>Add payment</b> to log what the customer paid.</p>'
+        : '<p class="muted small">No payments yet. Log the deposit and final payment here.</p>')) +
       '<button type="button" class="btn btn-ghost" data-action="add-payment">＋ Add payment</button>' +
       '<div class="label">What the job really cost</div>' +
       '<div class="row2">' + costField('hours', 'Hours worked', 'hrs', 'e.g. 24') + costField('materials', 'Paint & materials', '$', 'from receipts') + '</div>' +
@@ -1582,8 +1761,13 @@
             : a.mode === 'recheck' ? 'Pro · needs a quick online check' : (a.lapsed ? 'Subscription ended' : 'Free trial ended') + ' · view and export only') + '</p>';
       })() + '<a class="btn ' + (access().mode === 'active' ? '' : 'btn-primary') + ' full" href="#/upgrade">' + (access().mode === 'active' ? 'View plan' : 'See plans') + '</a></section>' : '') +
       '<section class="card"><h2 class="card-title">🔒 Your data</h2>' +
-      '<p class="muted small" style="margin-top:0">Your jobs, customers and money stay private on this device and are never uploaded' + (accountsOn() ? ' (only your account and subscription status are stored online)' : '') + '. ' +
-      'Make a backup now and then (and before switching phones) so your history is never lost.' +
+      (syncReady() && accountsOn() && signedIn() ? '<p class="muted small" style="margin-top:0">☁️ <b>Cloud backup is on.</b> Your jobs, customers, expenses and settings are saved privately to your account and ' +
+        'stay in sync on every phone, tablet or computer you sign in on. They\'re private: never sold or shared. It works offline too: changes upload when you\'re back online.</p>' +
+        '<p class="small sync-note" id="sync-note">' + esc(syncNote()) + '</p>' +
+        (syncMeta.declined === settings.account.id ? '<button class="btn full" data-action="sync-replace">Use this account\'s jobs on this device</button>'
+          : '<button class="btn full" data-action="sync-now"' + (sync.off ? ' disabled' : '') + '>🔄 Sync now</button>') +
+        '<p class="muted small">You can also download a backup file to keep your own copy.' : '<p class="muted small" style="margin-top:0">Your jobs, customers and money stay private on this device and are never uploaded' + (accountsOn() ? ' (only your account and subscription status are stored online)' : '') + '. ' +
+      'Make a backup now and then (and before switching phones) so your history is never lost.') +
       (settings.lastBackup ? ' Last backup: <b>' + esc(fmtDate(settings.lastBackup)) + '</b>.' : ' <b>No backup yet.</b>') + '</p>' +
       '<div class="actions"><button class="btn btn-primary" data-action="backup">⬇️ Back up now</button>' +
       '<label class="btn">⬆️ Restore<input type="file" accept=".json,application/json" id="restore-input" hidden></label></div>' +
@@ -1640,6 +1824,13 @@
       if (!settings.currency) settings.currency = 'USD';
       jobs = data.jobs;
       expenses = Array.isArray(data.expenses) ? data.expenses : [];
+      if (syncReady() && syncMeta.deleted) { // restored items come back even if deleted since the backup
+        var now = Date.now();
+        [['jobs', jobs], ['expenses', expenses]].forEach(function (p) {
+          p[1].forEach(function (x) { if (syncMeta.deleted[p[0]] && syncMeta.deleted[p[0]][x.id]) { delete syncMeta.deleted[p[0]][x.id]; x.syncAt = now; } });
+        });
+        saveMeta();
+      }
       saveSettings(); saveJobs(); saveExpenses();
       toast('Backup restored');
       renderSettings();
@@ -1785,10 +1976,12 @@
         signin = { step: 'start', email: '', busy: false, error: '' }; renderSignin();
         return;
       case 'si-signout':
-        if (!confirm('Sign out? Your jobs and quotes stay saved on this phone.')) return;
-        AC.signOut(CFG, session);
-        session = null; save('pq.session', null); delete settings.account; saveSettings();
-        location.hash = '#/signin';
+        if (!confirm('Sign out? Your jobs and quotes stay saved on this phone' + (syncOn() ? ' and in your account.' : '.'))) return;
+        (syncOn() ? runSync(true) : Promise.resolve()).then(function () {
+          AC.signOut(CFG, session);
+          session = null; save('pq.session', null); delete settings.account; saveSettings();
+          location.hash = '#/signin';
+        });
         return;
       case 'wz-skip':
         settings.onboarded = true; saveSettings();
@@ -1834,8 +2027,17 @@
       case 'status': {
         var prev = S.statusOf(job);
         S.setStatus(job, el.dataset.v);
+        var logged = 0;
+        if (el.dataset.v === 'paid' && prev !== 'paid') { // Paid means the money came in: offer to log what's still owed
+          var due = S.balance(job, settings);
+          if (due > 0 && confirm('Record the remaining ' + money(due) + ' as paid today?\n\nTap Cancel if you\'ll log the payments yourself.')) {
+            job.payments.push({ id: uid(), date: today(), amount: due, method: S.paymentMethods(settings.currency)[settings.currency === 'CAD' ? 3 : 1] });
+            logged = due;
+          }
+        }
         touch(job); renderJob(job);
-        if (S.isWon(job) && ['draft', 'sent', 'lost'].indexOf(prev) !== -1) toast('🎉 Won! Log payments and real costs below');
+        if (logged) toast('💰 Paid! ' + money(logged) + ' logged. Change the method or date below if needed');
+        else if (S.isWon(job) && ['draft', 'sent', 'lost'].indexOf(prev) !== -1) toast('🎉 Won! Log payments and real costs below');
         else toast('Marked as ' + S.statusInfo(job.status).label);
         return;
       }
@@ -1884,6 +2086,7 @@
         var ex = expenses.find(function (x) { return x.id === el.dataset.id; });
         if (!ex || !confirm('Delete this expense?')) return;
         expenses = expenses.filter(function (x) { return x !== ex; });
+        forget('expenses', ex.id);
         saveExpenses();
         renderStats(+ex.date.slice(0, 4));
         return;
@@ -1896,6 +2099,15 @@
         toast('Spreadsheet downloaded');
         return;
       }
+      case 'sync-now':
+        el.disabled = true;
+        runSync(true).then(function (ok) { toast(ok ? 'Saved to your account ☁️' : syncNote()); renderSettings(); });
+        showSyncNote();
+        return;
+      case 'sync-replace':
+        delete syncMeta.declined; saveMeta();
+        runSync(true).then(function () { renderSettings(); });
+        return;
       case 'backup':
         download('coatwright-backup-' + today() + '.json', backupData(), 'application/json');
         settings.lastBackup = Date.now(); saveSettings();
@@ -2053,6 +2265,7 @@
       case 'del-job':
         if (!confirm('Delete this quote? This cannot be undone.')) return;
         jobs = jobs.filter(function (j) { return j !== job; });
+        forget('jobs', job.id);
         saveJobs();
         location.hash = '#/';
         return;
@@ -2112,5 +2325,5 @@
   }
 
   if (!handleAuthReturn()) route();
-  syncAccount();
+  syncAccount().then(function () { scheduleSync(0); });
 })();
