@@ -160,6 +160,11 @@ details p { margin: 12px 0 0; color: var(--body); }
 .foot-bottom { border-top: 1px solid var(--line); padding: 20px; color: var(--muted); font-size: 14px; }
 
 .demo { display: flex; justify-content: center; margin: -16px 0 48px; }
+.demo-video.wide { max-width: 980px; aspect-ratio: 16 / 9; border-radius: 18px; }
+.demo.wide { margin-bottom: 40px; }
+.beta-tag { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 8px; background: #fff1d6; color: #9a5b00; font-size: 11px; letter-spacing: .06em; vertical-align: 1px; }
+.center-row { justify-content: center; margin-top: 36px; }
+.center-note { text-align: center; color: var(--muted); font-size: 15px; margin: 14px 0 0; }
 .demo-video { width: 100%; max-width: 340px; aspect-ratio: 9 / 16; border-radius: 28px; background: #0d1326;
   box-shadow: 0 30px 70px rgba(13, 19, 38, .25); border: 8px solid #0d1326; }
 
