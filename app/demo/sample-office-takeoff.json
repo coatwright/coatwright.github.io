@@ -1,0 +1,761 @@
+{
+ "project": "Harbour Point Offices \u2014 Level 2 fit-out (sample)",
+ "wallHeight": 9,
+ "zones": [
+  {
+   "id": "zone-l2",
+   "name": "Level 2"
+  }
+ ],
+ "scales": {
+  "1": {
+   "ftPerPt": 0.1111111111111111,
+   "label": "1/8\" = 1'-0\""
+  }
+ },
+ "systems": [
+  {
+   "id": "sys-walls",
+   "preset": "walls_eggshell",
+   "name": "Walls \u2014 eggshell, 2 coats"
+  },
+  {
+   "id": "sys-wash",
+   "preset": "walls_semigloss",
+   "name": "Washroom walls \u2014 semi-gloss, 2 coats"
+  },
+  {
+   "id": "sys-ceil",
+   "preset": "ceilings_flat",
+   "name": "Drywall ceilings \u2014 flat"
+  },
+  {
+   "id": "sys-deck",
+   "preset": "deck_dryfall",
+   "name": "Open office exposed deck \u2014 dryfall"
+  },
+  {
+   "id": "sys-doors",
+   "preset": "doors",
+   "name": "Doors \u2014 both sides"
+  },
+  {
+   "id": "sys-frames",
+   "preset": "hm_frames",
+   "name": "Hollow metal door frames"
+  }
+ ],
+ "marks": [
+  {
+   "id": "demo-1",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     330.0,
+     300.0
+    ],
+    [
+     465.0,
+     300.0
+    ],
+    [
+     465.0,
+     435.0
+    ],
+    [
+     330.0,
+     435.0
+    ]
+   ],
+   "label": "Office 201",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-2",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     465.0,
+     300.0
+    ],
+    [
+     600.0,
+     300.0
+    ],
+    [
+     600.0,
+     435.0
+    ],
+    [
+     465.0,
+     435.0
+    ]
+   ],
+   "label": "Office 202",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-3",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     600.0,
+     300.0
+    ],
+    [
+     735.0,
+     300.0
+    ],
+    [
+     735.0,
+     435.0
+    ],
+    [
+     600.0,
+     435.0
+    ]
+   ],
+   "label": "Office 203",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-4",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     735.0,
+     300.0
+    ],
+    [
+     870.0,
+     300.0
+    ],
+    [
+     870.0,
+     435.0
+    ],
+    [
+     735.0,
+     435.0
+    ]
+   ],
+   "label": "Office 204",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-5",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     870.0,
+     300.0
+    ],
+    [
+     1005.0,
+     300.0
+    ],
+    [
+     1005.0,
+     435.0
+    ],
+    [
+     870.0,
+     435.0
+    ]
+   ],
+   "label": "Office 205",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-6",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     1005.0,
+     300.0
+    ],
+    [
+     1140.0,
+     300.0
+    ],
+    [
+     1140.0,
+     435.0
+    ],
+    [
+     1005.0,
+     435.0
+    ]
+   ],
+   "label": "Office 206",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-7",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     1140.0,
+     300.0
+    ],
+    [
+     1275.0,
+     300.0
+    ],
+    [
+     1275.0,
+     435.0
+    ],
+    [
+     1140.0,
+     435.0
+    ]
+   ],
+   "label": "Office 207",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-8",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     1275.0,
+     300.0
+    ],
+    [
+     1410.0,
+     300.0
+    ],
+    [
+     1410.0,
+     435.0
+    ],
+    [
+     1275.0,
+     435.0
+    ]
+   ],
+   "label": "Office 208",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-9",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     330.0,
+     435.0
+    ],
+    [
+     1410.0,
+     435.0
+    ],
+    [
+     1410.0,
+     489.0
+    ],
+    [
+     330.0,
+     489.0
+    ]
+   ],
+   "label": "Corridor 210",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-10",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     330.0,
+     489.0
+    ],
+    [
+     555.0,
+     489.0
+    ],
+    [
+     555.0,
+     930.0
+    ],
+    [
+     330.0,
+     930.0
+    ]
+   ],
+   "label": "Reception 211",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-11",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     555.0,
+     489.0
+    ],
+    [
+     1005.0,
+     489.0
+    ],
+    [
+     1005.0,
+     930.0
+    ],
+    [
+     555.0,
+     930.0
+    ]
+   ],
+   "label": "Open Office 212",
+   "closed": true,
+   "h": 12
+  },
+  {
+   "id": "demo-12",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     1005.0,
+     489.0
+    ],
+    [
+     1230.0,
+     489.0
+    ],
+    [
+     1230.0,
+     705.0
+    ],
+    [
+     1005.0,
+     705.0
+    ]
+   ],
+   "label": "Conference 213",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-13",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     1005.0,
+     705.0
+    ],
+    [
+     1230.0,
+     705.0
+    ],
+    [
+     1230.0,
+     930.0
+    ],
+    [
+     1005.0,
+     930.0
+    ]
+   ],
+   "label": "Break Room 214",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-14",
+   "systemId": "sys-wash",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     1230.0,
+     489.0
+    ],
+    [
+     1410.0,
+     489.0
+    ],
+    [
+     1410.0,
+     597.0
+    ],
+    [
+     1230.0,
+     597.0
+    ]
+   ],
+   "label": "Men's 215",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-15",
+   "systemId": "sys-wash",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     1230.0,
+     597.0
+    ],
+    [
+     1410.0,
+     597.0
+    ],
+    [
+     1410.0,
+     705.0
+    ],
+    [
+     1230.0,
+     705.0
+    ]
+   ],
+   "label": "Women's 216",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-16",
+   "systemId": "sys-walls",
+   "zoneId": "zone-l2",
+   "kind": "line",
+   "pts": [
+    [
+     1230.0,
+     705.0
+    ],
+    [
+     1410.0,
+     705.0
+    ],
+    [
+     1410.0,
+     930.0
+    ],
+    [
+     1230.0,
+     930.0
+    ]
+   ],
+   "label": "Storage / It 217",
+   "closed": true,
+   "h": 9
+  },
+  {
+   "id": "demo-17",
+   "systemId": "sys-ceil",
+   "zoneId": "zone-l2",
+   "kind": "area",
+   "pts": [
+    [
+     330.0,
+     435.0
+    ],
+    [
+     1410.0,
+     435.0
+    ],
+    [
+     1410.0,
+     489.0
+    ],
+    [
+     330.0,
+     489.0
+    ]
+   ],
+   "label": "Corridor 210"
+  },
+  {
+   "id": "demo-18",
+   "systemId": "sys-ceil",
+   "zoneId": "zone-l2",
+   "kind": "area",
+   "pts": [
+    [
+     330.0,
+     489.0
+    ],
+    [
+     555.0,
+     489.0
+    ],
+    [
+     555.0,
+     930.0
+    ],
+    [
+     330.0,
+     930.0
+    ]
+   ],
+   "label": "Reception 211"
+  },
+  {
+   "id": "demo-19",
+   "systemId": "sys-deck",
+   "zoneId": "zone-l2",
+   "kind": "area",
+   "pts": [
+    [
+     555.0,
+     489.0
+    ],
+    [
+     1005.0,
+     489.0
+    ],
+    [
+     1005.0,
+     930.0
+    ],
+    [
+     555.0,
+     930.0
+    ]
+   ],
+   "label": "Open Office 212"
+  },
+  {
+   "id": "demo-20",
+   "systemId": "sys-ceil",
+   "zoneId": "zone-l2",
+   "kind": "area",
+   "pts": [
+    [
+     1230.0,
+     489.0
+    ],
+    [
+     1410.0,
+     489.0
+    ],
+    [
+     1410.0,
+     597.0
+    ],
+    [
+     1230.0,
+     597.0
+    ]
+   ],
+   "label": "Men's 215"
+  },
+  {
+   "id": "demo-21",
+   "systemId": "sys-ceil",
+   "zoneId": "zone-l2",
+   "kind": "area",
+   "pts": [
+    [
+     1230.0,
+     597.0
+    ],
+    [
+     1410.0,
+     597.0
+    ],
+    [
+     1410.0,
+     705.0
+    ],
+    [
+     1230.0,
+     705.0
+    ]
+   ],
+   "label": "Women's 216"
+  },
+  {
+   "id": "demo-22",
+   "systemId": "sys-doors",
+   "zoneId": "zone-l2",
+   "kind": "count",
+   "pts": [
+    [
+     433.5,
+     435.0
+    ],
+    [
+     568.5,
+     435.0
+    ],
+    [
+     703.5,
+     435.0
+    ],
+    [
+     838.5,
+     435.0
+    ],
+    [
+     973.5,
+     435.0
+    ],
+    [
+     1108.5,
+     435.0
+    ],
+    [
+     1243.5,
+     435.0
+    ],
+    [
+     1378.5,
+     435.0
+    ],
+    [
+     433.5,
+     489.0
+    ],
+    [
+     883.5,
+     489.0
+    ],
+    [
+     1108.5,
+     489.0
+    ],
+    [
+     1005.0,
+     808.5
+    ],
+    [
+     1230.0,
+     547.5
+    ],
+    [
+     1230.0,
+     655.5
+    ],
+    [
+     1230.0,
+     817.5
+    ]
+   ],
+   "label": "Interior doors"
+  },
+  {
+   "id": "demo-23",
+   "systemId": "sys-frames",
+   "zoneId": "zone-l2",
+   "kind": "count",
+   "pts": [
+    [
+     433.5,
+     435.0
+    ],
+    [
+     568.5,
+     435.0
+    ],
+    [
+     703.5,
+     435.0
+    ],
+    [
+     838.5,
+     435.0
+    ],
+    [
+     973.5,
+     435.0
+    ],
+    [
+     1108.5,
+     435.0
+    ],
+    [
+     1243.5,
+     435.0
+    ],
+    [
+     1378.5,
+     435.0
+    ],
+    [
+     433.5,
+     489.0
+    ],
+    [
+     883.5,
+     489.0
+    ],
+    [
+     1108.5,
+     489.0
+    ],
+    [
+     1005.0,
+     808.5
+    ],
+    [
+     1230.0,
+     547.5
+    ],
+    [
+     1230.0,
+     655.5
+    ],
+    [
+     1230.0,
+     817.5
+    ],
+    [
+     433.5,
+     930.0
+    ]
+   ],
+   "label": "All door frames"
+  }
+ ],
+ "adds": [
+  {
+   "label": "Scissor lift rental (1 week)",
+   "cost": 450
+  }
+ ],
+ "alternates": [
+  {
+   "label": "Paint exit stair B (walls, rails, doors)",
+   "price": 2400
+  }
+ ]
+}

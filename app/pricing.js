@@ -702,6 +702,10 @@
 
   /** Full itemized quote for a job. */
   function calcJob(job, settings) {
+    if (job.mode === 'takeoff' && job.takeoff) { // commercial blueprint takeoff (takeoff.js)
+      var T = typeof module !== 'undefined' && module.exports ? require('./takeoff.js') : global.Takeoff;
+      if (T) return T.toQuote(job, settings);
+    }
     var s = Object.assign({}, DEFAULT_SETTINGS, settings);
     var mk = 1 + num(s.markup) / 100;
     var quickMode = job.mode === 'quick';
