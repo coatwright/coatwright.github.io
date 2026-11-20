@@ -6,6 +6,6 @@ window.CW_CONFIG = {
   accounts: true,
   // Show "Continue with Google". Switch on once ACCOUNTS_SETUP.md step 4 is done.
   google: true,
-  // Cloud backup & sync of jobs/settings to the painter's account. Switch on once supabase/sync.sql has been run.
-  sync: false
+  // Cloud backup & sync of jobs/settings to the painter's account (supabase/sync.sql run by the owner on 2026-11-20).
+  sync: true
 };
