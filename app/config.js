@@ -8,6 +8,6 @@ window.CW_CONFIG = {
   google: true,
   // Cloud backup & sync of jobs/settings to the painter's account (supabase/sync.sql run by the owner on 2026-11-20).
   sync: true,
-  // Usage counts (actions only) and the owner dashboard. Switch on once supabase/analytics.sql has been run.
-  analytics: false
+  // Usage counts (actions only) and the owner dashboard (supabase/analytics.sql run by the owner on 2026-11-21).
+  analytics: true
 };
