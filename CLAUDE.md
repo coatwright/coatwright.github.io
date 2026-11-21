@@ -17,6 +17,9 @@ from `main` (anything merged into `main` goes live).
 - Commercial blueprint takeoff (beta): pricing in `app/takeoff.js` (`job.mode === 'takeoff'`, data in `job.takeoff`; `Pricing.calcJob` hands off to it),
   PDF viewer in `app/plan.js` (pdf.js 3.11 in `app/vendor/`; PDFs stay on the device in IndexedDB, only measurements sync), screen `#/takeoff/<id>` in `app/app.js`.
   Demo plan + pre-measured takeoff: `app/demo/` (regenerate with `python3 app/demo/make_demo.py`).
+- Usage counts + owner dashboard: `app/config.js` `analytics` switch, `track(name, props, merge)` in `app/app.js` (actions only: never customer
+  names, addresses, prices or job details), table `events` + `owner_stats()` in `supabase/analytics.sql` (owner = comp_access note 'Owner'),
+  dashboard at `#/owner`; owner steps in `ANALYTICS_SETUP.md`. Website stats: Cloudflare Web Analytics (`WEBSITE_ANALYTICS_SETUP.md`).
 
 **Working agreement (owner's rule):** before doing any task that changes the app, website, marketing files or settings,
 explain the plan and get the owner's approval. After building, show the result (screenshots, video, file or preview) and
