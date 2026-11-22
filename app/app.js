@@ -7,6 +7,13 @@
   var BL = window.Billing, BC = BL.BILLING;
   var AC = window.Account, CFG = window.CW_CONFIG || {};
   var CUR = window.Currency;
+  var U = window.Units;
+  /** Metres & litres on screen? (the maths always runs in feet & gallons, so prices are identical either way) */
+  function metric() { return !!(U && U.isMetric(settings)); }
+  function ud(kind, v) { return U ? U.toDisp(kind, v, metric()) : v; }
+  function ul(kind, fallback) { return U ? U.label(kind, metric()) : fallback; }
+  function ut(str) { return U ? U.text(str, metric()) : str; }
+  var UNIT_KIND = { 'ft': 'len', 'sq ft': 'area', 'linear ft': 'len', '/gal': 'perVol', '/sq ft': 'perArea', 'sq ft/hr': 'rateArea', 'ft/hr': 'rateLen', 'sq ft/gal': 'coverArea' };
   var app = document.getElementById('app');
 
   // ---------- Storage ----------
@@ -32,6 +39,7 @@
     save('pq.settings', settings);
   }
   if (!settings.trialStart) { settings.trialStart = Date.now(); save('pq.settings', settings); }
+  if (!settings.units && U) { settings.units = U.defaultUnits(settings.currency, !settings.onboarded && !jobs.length); save('pq.settings', settings); }
   var wantsInstall = /[?&]install=1/.test(location.search);
   var session = load('pq.session', null);
   var signin = { step: 'start', email: '', busy: false, error: '' };
@@ -619,7 +627,7 @@
     app.innerHTML =
       '<div class="page-head"><a href="#/" class="back">‹ Jobs</a><span class="muted small">Plans</span></div>' + head +
       (a.mode !== 'active' ? '<div class="plans-app">' +
-        (showFounder ? planCard('founder', 'Founding member', BC.prices.founder, '/mo', 'Half price for life, for the first ' + BC.founderSpots + ' paying customers.' +
+        (showFounder ? planCard('founder', 'Founding member', BC.prices.founder, '/mo', 'Half price for as long as you stay subscribed, for the first ' + BC.founderSpots + ' paying customers.' +
           (founderLeft != null && founderLeft >= 0 ? ' <b>' + founderLeft + ' of ' + BC.founderSpots + ' spots left.</b>' : ''), '🔥 Limited', false) : '') +
         planCard('annual', 'Yearly', BC.prices.annual, '/yr', 'Just ' + usd(deal.perMonth.toFixed(2)) + '/mo. Save ' + deal.savePct + '% vs monthly.', 'Best value', true) +
         planCard('monthly', 'Monthly', BC.prices.monthly, '/mo', 'Cancel anytime.', '', false) + '</div>' +
@@ -792,7 +800,7 @@
     var keys = ['S', 'M', 'L'];
     return '<div class="chips size-chips" role="group" aria-label="Room size">' + keys.map(function (k) {
       var label = P.SIZES[k].label;
-      var sub = P.SIZES[k].length + '×' + P.SIZES[k].width;
+      var sub = metric() ? ud('len', P.SIZES[k].length).toFixed(1).replace(/\.0$/, '') + '×' + ud('len', P.SIZES[k].width).toFixed(1).replace(/\.0$/, '') + ' m' : P.SIZES[k].length + '×' + P.SIZES[k].width;
       return '<button type="button" class="chip' + (room.size === k ? ' on' : '') + '" data-action="size" data-i="' + i + '" data-v="' + k + '">' +
         label + '<span>' + sub + '</span></button>';
     }).join('') + '</div>';
@@ -822,9 +830,10 @@
   }
 
   function numField(path, value, label, unit) {
+    var kind = UNIT_KIND[unit];
     return '<label class="field num"><span>' + label + '</span><div class="with-unit">' +
-      '<input type="number" inputmode="decimal" min="0" step="any" data-field="' + path + '" value="' + esc(value) + '">' +
-      (unit ? '<em>' + unit + '</em>' : '') + '</div></label>';
+      '<input type="number" inputmode="decimal" min="0" step="any" data-field="' + path + '"' + (kind ? ' data-u="' + kind + '"' : '') + ' value="' + esc(kind ? ud(kind, value) : value) + '">' +
+      (unit ? '<em>' + (kind ? ul(kind, unit) : unit) + '</em>' : '') + '</div></label>';
   }
 
   /** Colour, latex/oil and sheen for each surface being painted. `prefix` is the data-field path to the room. */
@@ -876,12 +885,12 @@
     var ro = plan && plan.rooms[i];
     if (!ro || !ro.items.length) return '';
     return '<span class="rp-title">🪣 Paint for this room</span>' + ro.items.map(function (x) {
-      return '<span class="rp-item"><b>' + esc(x.surface) + '</b> ' + esc(x.buyText) + (x.color ? ' <span class="muted">· ' + esc(x.color) + '</span>' : '') + '</span>';
+      return '<span class="rp-item"><b>' + esc(x.surface) + '</b> ' + esc(ut(x.buyText)) + (x.color ? ' <span class="muted">· ' + esc(x.color) + '</span>' : '') + '</span>';
     }).join('');
   }
 
   function roomMeta(c) {
-    return Math.round(c.wallArea).toLocaleString('en-US') + ' sq ft walls · ' + Math.round(c.hours * 10) / 10 + ' hrs';
+    return ut(Math.round(c.wallArea).toLocaleString('en-US') + ' sq ft') + ' walls · ' + Math.round(c.hours * 10) / 10 + ' hrs';
   }
 
   // Quick estimate: whole home/space from total square footage
@@ -899,11 +908,11 @@
       '<div class="room-head"><strong class="room-name">' + (commercial ? 'Whole space' : 'Whole home') + '</strong>' +
       '<div class="room-price" data-out="room-price-0">' + money0(c.price) + '</div></div>' +
       '<label class="field sqft"><span>Total square footage ' + (commercial ? 'of the space' : 'of the home') + '</span>' +
-      '<div class="with-unit"><input type="number" inputmode="numeric" min="0" step="1" data-field="quick.sqft" value="' + esc(q.sqft) +
-      '" placeholder="e.g. 2000"><em>sq ft</em></div><small class="muted">Check Zillow, the listing or ask the customer.</small></label>' +
-      '<div class="label">Ceiling height' + (commercial ? ' (ft)' : '') + '</div>' + qseg('height', q.height, commercial
+      '<div class="with-unit"><input type="number" inputmode="numeric" min="0" step="' + (metric() ? 'any' : '1') + '" data-field="quick.sqft" data-u="area" value="' + esc(ud('area', q.sqft)) +
+      '" placeholder="e.g. ' + (metric() ? '185' : '2000') + '"><em>' + ul('area', 'sq ft') + '</em></div><small class="muted">Check the listing or ask the customer.</small></label>' +
+      '<div class="label">Ceiling height' + (commercial ? ' (' + ul('len', 'ft') + ')' : '') + '</div>' + qseg('height', q.height, (commercial
         ? [[9, '9'], [10, '10'], [12, '12'], [16, '16'], [20, '20+']]
-        : [[8, '8 ft'], [9, '9 ft'], [10, '10 ft'], [12, '12+ ft']]) +
+        : [[8, '8 ft'], [9, '9 ft'], [10, '10 ft'], [12, '12+ ft']]).map(function (o) { return [o[0], ut(o[1]).replace(/^(\d+)$/, function (x) { return metric() ? String(Math.round(ud('len', +x) * 10) / 10) : x; }).replace(/^20\+$/, metric() ? Math.round(ud('len', 20) * 10) / 10 + '+' : '20+')]; })) +
       '<div class="label">What are we painting?</div><div class="chips">' + opts.map(function (o) {
         var on = q.surfaces[o[0]];
         return '<button type="button" class="chip toggle' + (on ? ' on' : '') + '" aria-pressed="' + !!on + '" data-action="q-surface" data-v="' + o[0] + '">' +
@@ -1023,7 +1032,7 @@
         break;
       case 'fence':
         body = '<div class="dims two">' + oNum(i, 'length', item.length, 'Fence length', 'ft') + '</div>' +
-          '<div class="label">Height</div>' + oSeg(i, 'height', item.height, [[4, '4 ft'], [6, '6 ft'], [8, '8 ft']]) +
+          '<div class="label">Height</div>' + oSeg(i, 'height', item.height, [[4, ut('4 ft')], [6, ut('6 ft')], [8, ut('8 ft')]]) +
           '<div class="label">Sides</div>' + oSeg(i, 'sides', item.sides, [[1, 'One side'], [2, 'Both sides']]) +
           '<div class="row2"><div><div class="label">Coats</div>' + oSeg(i, 'coats', item.coats, [[1, '1'], [2, '2']]) + '</div>' +
           '<div><div class="label">Condition</div>' + oSeg(i, 'condition', item.condition, CONDITION_3) + '</div></div>';
@@ -1064,7 +1073,7 @@
         body = (garage ? '<div class="label">Garage size</div><div class="chips">' + Object.keys(P.GARAGE_SIZES).concat('custom').map(function (k) {
             var g = P.GARAGE_SIZES[k];
             return '<button type="button" class="chip' + (item.size === k ? ' on' : '') + '" data-action="o-size" data-i="' + i + '" data-v="' + k + '">' +
-              (g ? g.label + '<span>' + g.length + '×' + g.width + '</span>' : 'Exact<span>measure</span>') + '</button>';
+              (g ? g.label + '<span>' + (metric() ? Math.round(ud('len', g.length) * 10) / 10 + '×' + Math.round(ud('len', g.width) * 10) / 10 + ' m' : g.length + '×' + g.width) + '</span>' : 'Exact<span>measure</span>') + '</button>';
           }).join('') + '</div>' : '') +
           '<div class="dims two">' + oNum(i, 'length', item.length, 'Length', 'ft') + oNum(i, 'width', item.width, 'Width', 'ft') + '</div>' +
           '<div class="label">Coating</div>' + oSeg(i, 'system', item.system, Object.keys(P.FLOOR_SYSTEMS).map(function (k) { return [k, P.FLOOR_SYSTEMS[k].label]; })) +
@@ -1087,20 +1096,20 @@
     return '<div class="label">By room</div><div class="paint-rooms">' + plan.rooms.map(function (ro) {
       return '<div class="pr-room"><strong>' + esc(ro.name) + '</strong>' + ro.items.map(function (x) {
         return '<div class="pr-line"><span>' + esc(x.surface) + ' <span class="muted small">' + esc([P.paintSpec(x), x.color].filter(Boolean).join(' · ')) + '</span></span>' +
-          '<span class="muted">' + esc(x.gallons) + ' gal</span></div>';
+          '<span class="muted">' + esc(metric() ? ud('vol', x.gallons) + ' L' : x.gallons + ' gal') + '</span></div>';
       }).join('') + '</div>';
     }).join('') + '</div>' +
       '<div class="label">What to buy (whole job)</div><ul class="paint-order">' + plan.groups.map(function (g) {
         var spec = P.paintSpec(g);
         return '<li><div class="po-main"><div><strong>' + esc(g.product) + '</strong>' + (spec ? ' <span class="muted small">' + esc(spec) + '</span>' : '') +
           '<div class="small">' + (g.color ? '🎨 ' + esc(g.color) : '<span class="muted">Colour not picked yet</span>') + '</div>' +
-          '<div class="muted small">' + esc(g.where.join(', ')) + '</div></div><div class="buy">' + esc(g.buyText) + '</div></div>' +
+          '<div class="muted small">' + esc(g.where.join(', ')) + '</div></div><div class="buy">' + esc(ut(g.buyText)) + '</div></div>' +
           (priced ? '<div class="po-price"><label class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-field="paintPrices.' + g.key +
-            '" value="' + esc(g.priceCustom ? g.price : '') + '" placeholder="' + esc(g.price) + '" aria-label="Price per gallon"><em>/gal</em></label>' +
+            '" data-u="perVol" value="' + esc(g.priceCustom ? ud('perVol', g.price) : '') + '" placeholder="' + esc(ud('perVol', g.price)) + '" aria-label="Price per ' + (metric() ? 'litre' : 'gallon') + '"><em>' + ul('perVol', '/gal') + '</em></label>' +
             '<span class="po-cost" data-out="po-cost-' + g.key + '">' + money(g.cost) + '</span></div>' : '') + '</li>';
       }).join('') + '</ul>' +
       (priced ? '<div class="po-total"><span>Paint for this job</span><b data-out="po-total">' + money(plan.cost) + '</b></div>' +
-        '<p class="muted small">Prices start from your Settings; type the real price per gallon for each paint. A quart counts as about a third of a gallon\'s price. This is what the quote charges for paint (plus your markup).</p>'
+        '<p class="muted small">Prices start from your Settings; type the real price per ' + (metric() ? 'litre' : 'gallon') + ' for each paint. A quart (0.95 L) counts as about a third of a gallon\'s price. This is what the quote charges for paint (plus your markup).</p>'
         : '<p class="muted small">This job was created before per-paint pricing, so its quote keeps your original paint prices.</p>');
   }
 
@@ -1122,7 +1131,7 @@
   function paintOrderCard(job) {
     return '<details class="card paint-card"><summary class="card-title">🧾 Paint tally &amp; order <em class="muted small">(by room, cost, send to store)</em></summary>' +
       '<div data-out="paint-order">' + paintOrderList(job) + '</div>' +
-      '<p class="muted small">Exact amounts from your measurements, rounded to what you buy (3 quarts → 1 gallon, 5+ gallons in pails). Same paint in several rooms is combined.</p>' +
+      '<p class="muted small">Exact amounts from your measurements, rounded to what you buy (3 quarts → 1 gallon, 5+ gallons in pails' + (metric() ? '; shown in litres: 3.78 L cans, 18.9 L pails' : '') + '). Same paint in several rooms is combined.</p>' +
       '<div class="row2"><label class="field"><span>Paint store</span><input data-setting="paintStoreName" value="' + esc(settings.paintStoreName || '') + '" placeholder="Store name" autocomplete="off"></label>' +
       '<label class="field"><span>Store email</span><input type="email" data-setting="paintStoreEmail" value="' + esc(settings.paintStoreEmail || '') + '" placeholder="orders@store.com" autocapitalize="off"></label></div>' +
       '<label class="field"><span>Pickup date</span><input type="date" data-field="paintPickup" value="' + esc(job.paintPickup || '') + '"></label>' +
@@ -1410,7 +1419,7 @@
     var i = q.internal;
     var g = i.gallons;
     var gal = ['wall', 'ceiling', 'trim', 'primer'].filter(function (k) { return g[k] > 0; })
-      .map(function (k) { return k + ' ' + Math.round(g[k] * 10) / 10; }).join(', ') || '—';
+      .map(function (k) { return k + ' ' + (metric() ? Math.round(ud('vol', g[k]) * 10) / 10 : Math.round(g[k] * 10) / 10); }).join(', ') || '—';
 
     app.innerHTML =
       '<div class="page-head no-print"><a href="#/' + (q.takeoff ? 'takeoff' : 'job') + '/' + job.id + '" class="back">‹ ' + (q.takeoff ? 'Takeoff' : 'Edit') + '</a><span class="muted">' + esc(job.number) + '</span></div>' +
@@ -1427,10 +1436,10 @@
       stat('Your labor', money0(i.laborCost)) + stat('Materials cost', money0(i.materialCost)) +
       stat('Profit', money0(i.profit)) + stat('Margin', i.margin + '%') +
       '</div>' + (q.takeoff ? '<table class="to-bid internal-tbl"><tbody>' + q.takeoff.systems.filter(function (r) { return r.qty > 0; }).map(function (r) {
-        return '<tr><td>' + esc(r.name) + '<div class="muted small">' + fmtN(r.qty) + ' ' + r.unit + ' · ' + fmtN(r.hours, 1) + ' hrs · buy ' + esc(r.buyText || '—') +
-          (r.primerGallons ? ' + primer ' + fmtN(r.primerGallons, 1) + ' gal' : '') + '</div></td><td class="amt">' + money0(r.price) + '<div class="muted small">cost ' + money0(r.cost) + '</div></td></tr>';
+        return '<tr><td>' + esc(r.name) + '<div class="muted small">' + tq(r.qty, r.unit) + ' · ' + fmtN(r.hours, 1) + ' hrs · buy ' + esc(ut(r.buyText) || '—') +
+          (r.primerGallons ? ' + primer ' + (metric() ? fmtN(ud('vol', r.primerGallons), 1) + ' L' : fmtN(r.primerGallons, 1) + ' gal') : '') + '</div></td><td class="amt">' + money0(r.price) + '<div class="muted small">cost ' + money0(r.cost) + '</div></td></tr>';
       }).join('') + '</tbody></table><a class="btn full" href="#/takeoff/' + job.id + '">📐 Back to the takeoff</a>'
-        : '<div class="muted small">Exact paint needed (gal): ' + esc(gal) + '</div>') + '</section>';
+        : '<div class="muted small">Exact paint needed (' + (metric() ? 'litres' : 'gal') + '): ' + esc(gal) + '</div>') + '</section>';
   }
   // ---------- Invoice ----------
   function renderInvoice(job) {
@@ -1719,10 +1728,11 @@
   // ---------- Settings ----------
   function setField(key, label, opts) {
     opts = opts || {};
-    var v = settings[key];
+    var v = settings[key], kind = UNIT_KIND[opts.unit];
+    if (kind) { v = ud(kind, v); opts = Object.assign({}, opts, { unit: ul(kind, opts.unit) }); }
     var input = opts.textarea
       ? '<textarea data-setting="' + key + '" rows="4">' + esc(v) + '</textarea>'
-      : '<input data-setting="' + key + '" type="' + (opts.type || 'text') + '"' +
+      : '<input data-setting="' + key + '" type="' + (opts.type || 'text') + '"' + (kind ? ' data-u="' + kind + '"' : '') +
         (opts.type === 'number' ? ' inputmode="decimal" min="0" step="any"' : '') +
         (opts.placeholder ? ' placeholder="' + esc(opts.placeholder) + '"' : '') + ' value="' + esc(v) + '">';
     if (opts.pre || opts.unit) {
@@ -1743,7 +1753,11 @@
       setField('ownerName', 'Your name', { placeholder: 'John Smith' }) +
       '<div class="row2">' + setField('phone', 'Phone', { type: 'tel' }) + setField('email', 'Email', { type: 'email' }) + '</div>' +
       setField('website', 'Website (optional)') +
-      '<label class="field"><span>Currency</span>' + currencySelect() + '<small class="muted">Used on your quotes, invoices and stats. When you switch, you can convert your prices once. They never change with exchange rates after that.</small></label>' + '</section>' +
+      '<label class="field"><span>Currency</span>' + currencySelect() + '<small class="muted">Used on your quotes, invoices and stats. When you switch, you can convert your prices once. They never change with exchange rates after that.</small></label>' +
+      '<div class="field"><span class="field-label">Measurements</span><div class="segmented">' +
+      '<button type="button" class="' + (metric() ? '' : 'on') + '" data-action="units" data-v="imperial">Feet & gallons</button>' +
+      '<button type="button" class="' + (metric() ? 'on' : '') + '" data-action="units" data-v="metric">Metres & litres</button></div>' +
+      '<small class="muted">Switch anytime. Prices stay exactly the same; only the units on screen and on quotes change.</small></div>' + '</section>' +
 
       '<section class="card"><h2 class="card-title">Your prices</h2>' +
       '<div class="row2">' + setField('laborRate', 'Labor rate', { type: 'number', pre: sym(), unit: '/hr', hint: 'What an hour of painting is worth' }) +
@@ -1753,11 +1767,11 @@
       '<div class="row2">' + setField('taxRate', 'Sales tax', { type: 'number', unit: '%' }) +
       setField('validDays', 'Quote valid for', { type: 'number', unit: 'days' }) + '</div></section>' +
 
-      '<section class="card"><h2 class="card-title">Paint cost <em class="muted small">(what you pay per gallon)</em></h2>' +
-      '<div class="row2">' + setField('wallPaintPrice', 'Wall paint', { type: 'number', pre: sym() }) +
-      setField('ceilingPaintPrice', 'Ceiling paint', { type: 'number', pre: sym() }) + '</div>' +
-      '<div class="row2">' + setField('trimPaintPrice', 'Trim paint', { type: 'number', pre: sym() }) +
-      setField('primerPrice', 'Primer', { type: 'number', pre: sym() }) + '</div>' +
+      '<section class="card"><h2 class="card-title">Paint cost <em class="muted small">(what you pay per ' + (metric() ? 'litre' : 'gallon') + ')</em></h2>' +
+      '<div class="row2">' + setField('wallPaintPrice', 'Wall paint', { type: 'number', pre: sym(), unit: '/gal' }) +
+      setField('ceilingPaintPrice', 'Ceiling paint', { type: 'number', pre: sym(), unit: '/gal' }) + '</div>' +
+      '<div class="row2">' + setField('trimPaintPrice', 'Trim paint', { type: 'number', pre: sym(), unit: '/gal' }) +
+      setField('primerPrice', 'Primer', { type: 'number', pre: sym(), unit: '/gal' }) + '</div>' +
       setField('suppliesPct', 'Supplies (tape, plastic, caulk…)', { type: 'number', unit: '% of paint' }) + '</section>' +
 
       '<section class="card"><h2 class="card-title">Exterior & floor products <em class="muted small">(your cost)</em></h2>' +
@@ -1892,17 +1906,18 @@
   function toSys(t, id) { return (t.systems || []).find(function (s) { return s.id === id; }); }
   function toPlan(t) { return (t.plans || []).find(function (p) { return p.id === to.planId; }); }
   function fmtN(n, d) { return (Math.round(n * Math.pow(10, d || 0)) / Math.pow(10, d || 0)).toLocaleString('en-US'); }
-  function feetText(ft) {
-    var neg = ft < 0, a = Math.abs(ft), f = Math.floor(a), inch = Math.round((a - f) * 12);
-    if (inch === 12) { f++; inch = 0; }
-    return (neg ? '−' : '') + f + '′' + (inch ? ' ' + inch + '″' : '');
+  /** 12′ 6″ (or 3.81 m in metric) */
+  function feetText(ft) { return U.lengthText(ft, metric()); }
+  /** "12", "12'6" (or "3.6", "360 cm" in metric) → feet */
+  function parseFeet(s) { return U.parseLength(s, metric()); }
+  /** A takeoff quantity with its unit: "540 sq ft" / "50.2 m²" / "12 each" */
+  function tq(qty, unit) {
+    if (unit === 'sq ft') return U.fmt('area', qty, metric());
+    if (unit === 'lin ft') return metric() ? U.fmt('len', qty, true) : fmtN(qty) + ' lin ft';
+    return fmtN(qty) + ' ' + unit;
   }
-  /** "12", "12.5", "12'6", "12' 6\"", "12 ft 6 in" → feet */
-  function parseFeet(s) {
-    var m = String(s || '').trim().replace(/ft|feet/gi, "'").replace(/in(ches)?/gi, '"').match(/^(\d+(?:\.\d+)?)\s*'?\s*(?:-?\s*(\d+(?:\.\d+)?)\s*"?)?$/);
-    if (!m) return 0;
-    return parseFloat(m[1]) + (m[2] ? parseFloat(m[2]) / 12 : 0);
-  }
+  function tUnit(unit) { return unit === 'sq ft' ? ul('area', 'sq ft') : unit === 'lin ft' ? (metric() ? 'm' : 'lin ft') : unit; }
+  function tGal(g) { return metric() ? fmtN(ud('vol', g), 1) + ' L' : fmtN(g, 1) + ' gal'; }
   function ensureTakeoff(job) {
     if (!job.takeoff) job.takeoff = T.newTakeoff(settings);
     var t = job.takeoff;
@@ -2077,9 +2092,9 @@
         var t = toJob().takeoff, f = T.scaleOf(t, to.planId, to.page), s = toSys(t, to.systemId);
         if (kind === 'calibrate') return pts.length > 1 ? 'Tap the other end' : '';
         if (!f) return 'Set the scale first';
-        if (kind === 'area') return pts.length > 2 ? fmtN(T.polygonArea(pts) * f * f) + ' sq ft' : feetText(T.pathLength(pts) * f);
+        if (kind === 'area') return pts.length > 2 ? tq(T.polygonArea(pts) * f * f, 'sq ft') : feetText(T.pathLength(pts) * f);
         var lf = T.pathLength(pts) * f;
-        return feetText(lf) + (s && s.measure === 'wall' ? ' × ' + fmtN(Number(t.wallHeight) || 10, 1) + '′ = ' + fmtN(lf * (Number(t.wallHeight) || 10)) + ' sq ft' : '');
+        return feetText(lf) + (s && s.measure === 'wall' ? ' × ' + feetText(Number(t.wallHeight) || 10) + ' = ' + tq(lf * (Number(t.wallHeight) || 10), 'sq ft') : '');
       },
       onMeasure: function (m) {
         var job = toJob(), t = job.takeoff, s = toSys(t, to.systemId);
@@ -2092,7 +2107,7 @@
         track('takeoff_measure', { kind: mark.kind }, true);
         touch(job); to.viewer.draw(); toRefresh();
         var q = T.markQty(t, mark, s);
-        toast('✓ ' + fmtN(q.qty) + ' ' + T.MEASURES[s.measure].unit + ' added to ' + s.name);
+        toast('✓ ' + tq(q.qty, T.MEASURES[s.measure].unit) + ' added to ' + s.name);
       },
       onCount: function (p) {
         var job = toJob(), t = job.takeoff, s = toSys(t, to.systemId);
@@ -2109,9 +2124,9 @@
       },
       onCalibrate: function (pts) {
         var job = toJob(), t = job.takeoff, plan = toPlan(t);
-        var ans = prompt('How long is that line in real life? (e.g. 20 or 12\'6")', '');
+        var ans = prompt(metric() ? 'How long is that line in real life, in metres? (e.g. 6 or 3.65)' : 'How long is that line in real life? (e.g. 20 or 12\'6")', '');
         var ftv = parseFeet(ans);
-        if (!ftv) { if (ans !== null) toast('Type a length in feet, like 20 or 12\'6"'); return; }
+        if (!ftv) { if (ans !== null) toast(metric() ? 'Type a length in metres, like 6 or 3.65' : 'Type a length in feet, like 20 or 12\'6"'); return; }
         var d = T.dist(pts[0], pts[1]);
         if (!(d > 0)) return;
         setScale(job, plan, { ftPerPt: ftv / d, label: 'Measured: ' + feetText(ftv) });
@@ -2196,12 +2211,13 @@
     var plan = (t.plans || []).find(function (p) { return p.id === m.planId; });
     var where = (m.label ? '<b>' + esc(m.label) + '</b> · ' : '') + (plan && (t.plans.length > 1 || plan.pages > 1) ? esc(plan.name.replace(/\.pdf$/i, '')) + (plan.pages > 1 ? ' p.' + m.page : '') + ' · ' : '');
     if (m.kind === 'count') return where + q.qty + ' counted';
-    if (s.measure === 'wall') return where + (m.label ? '' : m.closed ? 'Room ' : 'Wall run ') + feetText(q.lf) + ' × ' + fmtN(Number(m.h) || Number(t.wallHeight) || 10, 1) + '′ = <b>' + fmtN(q.qty) + ' ' + u + '</b>';
-    return where + (m.label ? '' : m.kind === 'area' ? 'Area ' : m.closed ? 'Perimeter ' : 'Run ') + '<b>' + fmtN(q.qty) + ' ' + u + '</b>';
+    if (s.measure === 'wall') return where + (m.label ? '' : m.closed ? 'Room ' : 'Wall run ') + feetText(q.lf) + ' × ' + feetText(Number(m.h) || Number(t.wallHeight) || 10) + ' = <b>' + tq(q.qty, u) + '</b>';
+    return where + (m.label ? '' : m.kind === 'area' ? 'Area ' : m.closed ? 'Perimeter ' : 'Run ') + '<b>' + tq(q.qty, u) + '</b>';
   }
 
   function systemEditor(t, s) {
     var meas = T.MEASURES[s.measure], count = s.measure === 'count';
+    var rk = s.measure === 'length' ? 'rateLen' : 'rateArea', ck = count ? 'vol' : s.measure === 'length' ? 'coverLen' : 'coverArea';
     return '<div class="to-sysedit">' +
       '<label class="field"><span>Name on the proposal</span><input data-to="sys.' + s.id + '.name" value="' + esc(s.name) + '"></label>' +
       '<div class="row2"><label class="field"><span>Measured as</span><select data-to="sys.' + s.id + '.measure">' + Object.keys(T.MEASURES).map(function (k) {
@@ -2209,11 +2225,11 @@
       }).join('') + '</select></label>' +
       (count ? '' : '<label class="field"><span>Coats</span><input type="number" inputmode="numeric" min="1" data-to="sys.' + s.id + '.coats" value="' + esc(s.coats) + '"></label>') + '</div>' +
       (count ? '' : '<label class="check"><input type="checkbox" data-to="sys.' + s.id + '.primer"' + (s.primer ? ' checked' : '') + '> Add a primer / block filler coat</label>') +
-      '<div class="row2"><label class="field"><span>Production</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + s.id + '.rate" value="' + esc(s.rate) + '"><em>' + (count ? 'hrs each' : meas.unit + '/hr') + '</em></div>' +
-      '<small class="muted">' + meas.rateUnit + '</small></label>' +
-      '<label class="field"><span>Paint use</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + s.id + '.coverage" value="' + esc(s.coverage) + '"><em>' + (count ? 'gal each' : meas.unit + '/gal') + '</em></div>' +
-      '<small class="muted">' + meas.coverUnit + '</small></label></div>' +
-      '<div class="row2"><label class="field"><span>Paint price</span><div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + s.id + '.price" value="' + esc(s.price) + '"></div><small class="muted">per gallon</small></label>' +
+      '<div class="row2"><label class="field"><span>Production</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + s.id + '.rate"' + (count ? '' : ' data-u="' + rk + '"') + ' value="' + esc(count ? s.rate : ud(rk, s.rate)) + '"><em>' + (count ? 'hrs each' : ul(rk, meas.unit + '/hr')) + '</em></div>' +
+      '<small class="muted">' + (count ? meas.rateUnit : ul(rk, '') + ' per coat') + '</small></label>' +
+      '<label class="field"><span>Paint use</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + s.id + '.coverage" data-u="' + ck + '" value="' + esc(ud(ck, s.coverage)) + '"><em>' + (count ? (metric() ? 'L each' : 'gal each') : ul(ck, meas.unit + '/gal')) + '</em></div>' +
+      '<small class="muted">' + (count ? (metric() ? 'litres each' : meas.coverUnit) : ul(ck, '') + ' per coat') + '</small></label></div>' +
+      '<div class="row2"><label class="field"><span>Paint price</span><div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + s.id + '.price" data-u="perVol" value="' + esc(ud('perVol', s.price)) + '"></div><small class="muted">per ' + (metric() ? 'litre' : 'gallon') + '</small></label>' +
       '<label class="field"><span>Sheen</span><select data-to="sys.' + s.id + '.sheen"><option value=""></option>' + P.SHEENS.map(function (x) {
         return '<option' + (s.sheen === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label></div>' +
       '<div class="row2"><label class="field"><span>Brand</span><input list="paint-brands-to" data-to="sys.' + s.id + '.brand" value="' + esc(s.brand) + '" placeholder="Sherwin-Williams"></label>' +
@@ -2238,10 +2254,11 @@
             var z = t.zones.find(function (x) { return x.id === m.zoneId; });
             var zl = '<span class="to-zone">' + esc(z ? z.name : t.zones[0].name) + '</span>';
             if (m.kind === 'typed') {
+              var qk = s.measure === 'count' ? '' : s.measure === 'length' || (s.measure === 'wall' && Number(m.h) > 0) ? 'len' : 'area';
               return '<li class="typed">' + zl + '<span class="to-typed">' +
-                '<input type="number" inputmode="decimal" step="any" data-to="mark.' + m.id + '.qty" value="' + esc(m.qty) + '" aria-label="Quantity" placeholder="0">' +
-                (s.measure === 'wall' ? '<em>' + (Number(m.h) > 0 ? 'lin ft ×' : 'sq ft') + '</em><input type="number" inputmode="decimal" step="any" class="h" data-to="mark.' + m.id + '.h" value="' + esc(m.h || '') + '" placeholder="height" aria-label="Wall height (optional)">' +
-                  (Number(m.h) > 0 ? '<em>ft</em>' : '') : '<em>' + T.MEASURES[s.measure].unit + '</em>') +
+                '<input type="number" inputmode="decimal" step="any" data-to="mark.' + m.id + '.qty"' + (qk ? ' data-u="' + qk + '"' : '') + ' value="' + esc(qk ? ud(qk, m.qty) : m.qty) + '" aria-label="Quantity" placeholder="0">' +
+                (s.measure === 'wall' ? '<em>' + (Number(m.h) > 0 ? (metric() ? 'm ×' : 'lin ft ×') : ul('area', 'sq ft')) + '</em><input type="number" inputmode="decimal" step="any" class="h" data-to="mark.' + m.id + '.h" data-u="len" value="' + esc(m.h ? ud('len', m.h) : '') + '" placeholder="height" aria-label="Wall height (optional)">' +
+                  (Number(m.h) > 0 ? '<em>' + ul('len', 'ft') + '</em>' : '') : '<em>' + tUnit(T.MEASURES[s.measure].unit) + '</em>') +
                 '<input class="note" data-to="mark.' + m.id + '.note" value="' + esc(m.note || '') + '" placeholder="note (e.g. Suite 200)" aria-label="Note"></span>' +
                 '<label class="ded" title="Subtract this amount"><input type="checkbox" data-to="mark.' + m.id + '.deduct"' + (m.deduct ? ' checked' : '') + '> −</label>' +
                 '<button type="button" class="icon-btn sm" data-action="to-del-mark" data-id="' + m.id + '" aria-label="Delete">✕</button></li>';
@@ -2255,13 +2272,13 @@
       return '<div class="to-sys' + (on ? ' on' : '') + '"><button type="button" class="to-syshead" data-action="to-sys" data-id="' + s.id + '">' +
         '<span class="dot" style="background:' + esc(s.color) + '"></span><span class="to-sysname">' + esc(s.name) +
         (r.noScale ? '<span class="warn small"> · ' + r.noScale + ' need scale</span>' : '') + '</span>' +
-        '<span class="to-sysqty" data-out="to-q-' + s.id + '">' + (r.qty ? fmtN(r.qty) + ' ' + r.unit : '—') + '</span>' +
+        '<span class="to-sysqty" data-out="to-q-' + s.id + '">' + (r.qty ? tq(r.qty, r.unit) : '—') + '</span>' +
         '<span class="to-sysprice" data-out="to-p-' + s.id + '">' + (r.price ? money0(r.price) : '') + '</span></button>' + body + '</div>';
     }).join('');
     return '<div class="to-ptop"><label class="to-inline"><span>Floor / area</span>' + zoneSel + '</label>' +
       '<button type="button" class="to-tool sm" data-action="to-zone-add" title="Add a floor or area">＋</button>' +
       '<button type="button" class="to-tool sm" data-action="to-zone-rename" title="Rename">✎</button>' +
-      '<label class="to-inline"><span>Wall height</span><div class="with-unit"><input type="number" inputmode="decimal" min="1" step="any" data-to="t.wallHeight" value="' + esc(t.wallHeight) + '"><em>ft</em></div></label></div>' +
+      '<label class="to-inline"><span>Wall height</span><div class="with-unit"><input type="number" inputmode="decimal" min="1" step="any" data-to="t.wallHeight" data-u="len" value="' + esc(ud('len', t.wallHeight)) + '"><em>' + ul('len', 'ft') + '</em></div></label></div>' +
       '<div class="to-syslist">' + rows + '</div>' +
       '<div class="to-addsys"><select data-to="add-system" aria-label="Add a paint system"><option value="">＋ Add a paint system…</option>' +
       T.SYSTEM_PRESETS.map(function (p) { return '<option value="' + p.key + '">' + esc(p.name) + '</option>'; }).join('') + '</select></div>';
@@ -2270,16 +2287,20 @@
   function bidPanel(t, c) {
     var unit = t.method === 'unit', tt = c.totals;
     var sysRows = c.systems.filter(function (r) { return r.qty > 0 || unit; }).map(function (r) {
-      return '<tr><td><span class="dot" style="background:' + esc(r.color) + '"></span>' + esc(r.name) + '<div class="muted small">' + fmtN(r.qty) + ' ' + r.unit +
-        ' · ' + fmtN(r.hours, 1) + ' hrs · ' + (r.gallons ? fmtN(r.gallons + r.primerGallons, 1) + ' gal' : '') + '</div></td>' +
-        (unit ? '<td class="amt"><div class="with-unit pre sm"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + r.id + '.unitPrice" value="' + esc(r.sys.unitPrice) + '" placeholder="' + r.perUnit + '"></div>' +
-          '<div class="muted small">per ' + (r.unit === 'each' ? 'each' : r.unit.replace('sq ft', 'sq ft').replace('lin ft', 'lin ft')) + '</div></td>' : '') +
+      return '<tr><td><span class="dot" style="background:' + esc(r.color) + '"></span>' + esc(r.name) + '<div class="muted small">' + tq(r.qty, r.unit) +
+        ' · ' + fmtN(r.hours, 1) + ' hrs · ' + (r.gallons ? tGal(r.gallons + r.primerGallons) : '') + '</div></td>' +
+        (unit ? (function () {
+          var pk = r.unit === 'sq ft' ? 'perArea' : r.unit === 'lin ft' ? 'perLen' : '';
+          return '<td class="amt"><div class="with-unit pre sm"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="sys.' + r.id + '.unitPrice"' + (pk ? ' data-u="' + pk + '"' : '') +
+            ' value="' + esc(pk ? ud(pk, r.sys.unitPrice) : r.sys.unitPrice) + '" placeholder="' + (pk ? ud(pk, r.perUnit) : r.perUnit) + '"></div>' +
+            '<div class="muted small">per ' + tUnit(r.unit) + '</div></td>';
+        })() : '') +
         '<td class="amt" data-out="to-bp-' + r.id + '"><b>' + money0(r.price) + '</b><div class="muted small">cost ' + money0(r.cost) + '</div></td></tr>';
     }).join('');
     return '<div class="label" style="margin-top:0">Price by</div><div class="segmented">' +
       '<button type="button" class="' + (unit ? '' : 'on') + '" data-action="to-method" data-v="hours">⏱ Labour hours</button>' +
       '<button type="button" class="' + (unit ? 'on' : '') + '" data-action="to-method" data-v="unit">📐 Unit prices</button></div>' +
-      '<p class="muted small">' + (unit ? 'Your price per sq ft, lin ft or each. The grey number is what your hours, paint and markup work out to.' : 'Hours from your production rates × labour rate, plus paint, supplies, overhead and profit.') + '</p>' +
+      '<p class="muted small">' + (unit ? 'Your price per ' + (metric() ? 'm², m' : 'sq ft, lin ft') + ' or each. The grey number is what your hours, paint and markup work out to.' : 'Hours from your production rates × labour rate, plus paint, supplies, overhead and profit.') + '</p>' +
       '<div class="row3"><label class="field"><span>Labour rate</span><div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="t.laborRate" value="' + esc(t.laborRate) + '" placeholder="' + esc(settings.laborRate) + '"></div><small class="muted">per hour</small></label>' +
       '<label class="field"><span>Overhead</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="t.overheadPct" value="' + esc(t.overheadPct) + '"><em>%</em></div></label>' +
       '<label class="field"><span>Profit</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="t.profitPct" value="' + esc(t.profitPct) + '"><em>%</em></div></label></div>' +
@@ -2374,7 +2395,7 @@
     else if (parts[0] === 'alt') target = t.alternates.find(function (a) { return a.id === parts[1]; });
     if (!target) return;
     var numeric = el.type === 'number';
-    target[field] = numeric ? (v === '' ? '' : Number(v)) : v;
+    target[field] = numeric ? (v === '' ? '' : el.dataset.u && U ? U.fromDisp(el.dataset.u, v, metric()) : Number(v)) : v;
     if (parts[0] === 'sys' && field === 'measure') { to.tool = 'measure'; applyTool(); touch(job); toRefresh(true); return; }
     touch(job);
     if (el.type === 'checkbox' || el.tagName === 'SELECT' || (parts[0] === 'mark' && field === 'h')) toRefresh(true); else toRefresh();
@@ -2538,7 +2559,7 @@
     var c = calc.takeoff, active = c.systems.filter(function (r) { return r.qty > 0; });
     return '<section class="card to-card"><h2 class="card-title">📄 Blueprint takeoff <span class="beta">BETA</span></h2>' +
       (active.length ? '<ul class="to-sum">' + active.map(function (r) {
-        return '<li><span class="dot" style="background:' + esc(r.color) + '"></span><span>' + esc(r.name) + '<span class="muted small"> · ' + fmtN(r.qty) + ' ' + r.unit + '</span></span><b>' + money0(r.price) + '</b></li>';
+        return '<li><span class="dot" style="background:' + esc(r.color) + '"></span><span>' + esc(r.name) + '<span class="muted small"> · ' + tq(r.qty, r.unit) + '</span></span><b>' + money0(r.price) + '</b></li>';
       }).join('') + '</ul><p class="muted small">' + fmtN(c.totals.hours, 1) + ' labour hours · ' + (job.takeoff.plans.length ? job.takeoff.plans.length + ' plan' + (job.takeoff.plans.length === 1 ? '' : 's') : 'typed totals') + '</p>'
         : '<p class="muted small" style="margin-top:0">Open your PDF blueprint and measure walls, ceilings, doors and frames right on the plan. Or type the totals you measured in Adobe.</p>') +
       '<a class="btn btn-primary full" href="#/takeoff/' + job.id + '">' + (active.length ? 'Open takeoff ›' : '📐 Start the takeoff ›') + '</a></section>';
@@ -2698,7 +2719,7 @@
         toast(convert ? 'Prices converted to ' + to + '. Check they match what you charge' : 'Currency: ' + to);
         return;
       }
-      settings[key] = el.type === 'number' ? (el.value === '' ? '' : Number(el.value)) : el.value;
+      settings[key] = el.type === 'number' ? (el.value === '' ? '' : el.dataset.u && U ? U.fromDisp(el.dataset.u, el.value, metric()) : Number(el.value)) : el.value;
       saveSettings();
       var s = document.getElementById('saved');
       if (s) s.textContent = 'Saved ✓';
@@ -2707,7 +2728,7 @@
     var job = currentJob();
     if (!job || !el.dataset.field) return;
     var path = el.dataset.field;
-    var val = el.type === 'number' ? (el.value === '' ? '' : Number(el.value)) : el.value;
+    var val = el.type === 'number' ? (el.value === '' ? '' : el.dataset.u && U ? U.fromDisp(el.dataset.u, el.value, metric()) : Number(el.value)) : el.value;
     setPath(job, path, val);
     // Picking a past customer's name fills in their details
     if (path === 'customer.name' && val) {
@@ -2762,6 +2783,12 @@
     var action = el.dataset.action;
     if (action === 'to-demo') { startDemo(); return; }
     if (action === 'owner-refresh') { renderOwner(); return; }
+    if (action === 'units') {
+      settings.units = el.dataset.v === 'metric' ? 'metric' : 'imperial';
+      saveSettings(); var yy = window.scrollY; route(); window.scrollTo(0, yy);
+      toast(metric() ? 'Measurements: metres & litres' : 'Measurements: feet & gallons');
+      return;
+    }
     if (action === 'create-takeoff') {
       var tj = newJob('commercial', el.dataset.prop || 'office');
       tj.mode = 'takeoff'; ensureTakeoff(tj); touch(tj);

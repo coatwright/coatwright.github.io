@@ -632,3 +632,5 @@ body[data-view="takeoff"] main { max-width: none; padding: 0; }
 .op-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: space-between; }
 .op-top b { word-break: break-all; }
 .op-use { margin-top: 2px; }
+
+.field-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }

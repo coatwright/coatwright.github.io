@@ -256,6 +256,29 @@
       </div>
     </section>
 
+    <section id="proof" class="section">
+      <div class="wrap">
+        <div class="row proof-row">
+          <div class="row-copy">
+            <p class="kicker">See it in numbers</p>
+            <h3>A professional quote in minutes, with your margin built in</h3>
+            <p>Tap in the rooms, and Coatwright prices the labour, paint and materials with your own rates. You see the total and your
+              margin before you send it, so every quote covers your time.</p>
+            <ul class="ticks">
+              <li>Itemized by room, with your logo and terms</li>
+              <li>Paint rounded to what you actually buy</li>
+              <li>Your profit and margin shown only to you</li>
+            </ul>
+          </div>
+          <div class="row-visual proof-visual"><div class="proof-card" id="proof-example"></div></div>
+        </div>
+        <div id="proof-say" hidden>
+          <div class="section-head"><p class="kicker">What painters say</p><h2>From painters using Coatwright</h2></div>
+          <div class="grid proof-quotes" id="proof-quotes"></div>
+        </div>
+      </div>
+    </section>
+
     <section id="pricing" class="section alt">
       <div class="wrap">
         <div class="section-head">
@@ -269,9 +292,14 @@
             <div class="plan-tag soon">🔥 First 100 customers</div>
             <h3>Founding member</h3>
             <div class="price">$12<span>/month</span></div>
-            <p class="plan-sub">Half price, locked in for life as long as you stay subscribed.</p>
-            <ul class="ticks"><li>Everything in Coatwright Pro</li><li>Price never goes up</li><li>Help shape new features</li></ul>
+            <p class="plan-sub">Half price for our first 100 customers.</p>
+            <ul class="ticks"><li>Everything in Coatwright Pro</li><li>Price never goes up while you stay subscribed</li><li>Help shape new features</li></ul>
             <a class="btn ghost full" href="app/">Start free trial</a>
+            <p class="founder-terms">Founding rate: $12/mo for as long as you stay subscribed, includes every feature in Pro. If your subscription lapses, the founding rate ends.</p>
+            <div class="founder-count" id="founder-count" hidden>
+              <div class="fc-bar"><span id="fc-fill"></span></div>
+              <p><b id="fc-claimed">0</b> of 100 founding spots claimed</p>
+            </div>
           </div>
           <div class="plan featured">
             <div class="plan-tag">Best value</div>
@@ -324,7 +352,7 @@
           <p class="kicker">FAQ</p>
           <h2>Questions painters ask</h2>
         </div>
-        <details><summary>How much does Coatwright cost?</summary><p>$24 a month, or $199 a year (just $16.58 a month). Our first 100 customers can lock in a founding-member price of $12 a month (half price) for life. Every plan includes every feature.</p></details>
+        <details><summary>How much does Coatwright cost?</summary><p>$24 a month, or $199 a year (just $16.58 a month). Our first 100 customers can get a founding-member price of $12 a month (half price) for as long as they stay subscribed; if the subscription lapses, the founding rate ends. Every plan includes every feature.</p></details>
         <details><summary>How does the free trial work?</summary><p>You get every feature free for 14 days, with no credit card needed. If you don't subscribe, your jobs, customers and quotes stay on your phone: you can still view, back up and export them, you just can't create new quotes or invoices.</p></details>
         <details><summary>Can I cancel anytime?</summary><p>Yes. Cancel in a couple of taps from your subscription page. You keep Pro until the end of the period you've paid for.</p></details>
         <details><summary>Do I need to download an app or create an account?</summary><p>There's nothing to download. You create a free account in seconds with <b>Google</b> or your <b>email</b> (no password, no credit card), and your 14-day trial starts. To use it like an app, tap Share → "Add to Home Screen" on iPhone, or "Install app" on Android.</p></details>
@@ -365,8 +393,25 @@
     </div>
     <div class="wrap foot-bottom">© <span id="yr">2026</span> Coatwright. All rights reserved.</div>
   </footer>
+  <script src="app/config.js"></script>
+  <script src="landing/social-proof.js"></script>
   <script>
     document.getElementById('yr').textContent = new Date().getFullYear();
+    // Live founding-spots counter: the same public count the app uses (founder_spots_left in supabase/billing.sql). Hidden if it can't load.
+    (function () {
+      var cfg = window.CW_CONFIG || {};
+      if (!cfg.supabaseUrl || !cfg.supabaseKey || !window.fetch) return;
+      fetch(cfg.supabaseUrl + '/rest/v1/rpc/founder_spots_left', { method: 'POST', headers: { apikey: cfg.supabaseKey, 'Content-Type': 'application/json' }, body: '{}' })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+        .then(function (left) {
+          left = Number(left);
+          if (!isFinite(left)) return;
+          var claimed = Math.max(0, Math.min(100, 100 - left));
+          document.getElementById('fc-claimed').textContent = claimed;
+          document.getElementById('fc-fill').style.width = Math.max(claimed, 2) + '%';
+          document.getElementById('founder-count').hidden = false;
+        }).catch(function () {});
+    })();
     (function () {
       var ua = navigator.userAgent, ios = /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1),
         android = /android/i.test(ua), inApp = /Instagram|FBAN|FBAV|FB_IAB|BytedanceWebview|musical_ly|TikTok|Snapchat|Line\//i.test(ua);
