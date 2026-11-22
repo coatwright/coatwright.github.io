@@ -305,7 +305,7 @@ Today I'm launching Coatwright 🎨
 
 Painters lose hours (and money) pricing jobs by hand. Coatwright lets a painter walk a house, tap in the rooms and send the customer a clean, itemized quote in minutes. Then it tracks every job, invoice, payment and the real profit, all from their phone.
 
-The first 100 subscribers get half price for life as founding members.
+The first 100 subscribers get half price as founding members, for as long as they stay subscribed.
 
 If you know a painter or contractor, I'd really appreciate a share or a tag. 🙏
 Try it free for 14 days: https://getcoatwright.com/
