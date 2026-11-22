@@ -702,6 +702,15 @@
 
   /** Full itemized quote for a job. */
   function calcJob(job, settings) {
+    var q = calcJobRaw(job, settings);
+    if (settings && settings.units === 'metric') { // same numbers, text in metres and litres (units.js)
+      var U = typeof module !== 'undefined' && module.exports ? require('./units.js') : global.Units;
+      if (U) U.metricize(q);
+    }
+    return q;
+  }
+
+  function calcJobRaw(job, settings) {
     if (job.mode === 'takeoff' && job.takeoff) { // commercial blueprint takeoff (takeoff.js)
       var T = typeof module !== 'undefined' && module.exports ? require('./takeoff.js') : global.Takeoff;
       if (T) return T.toQuote(job, settings);

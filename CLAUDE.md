@@ -18,6 +18,8 @@ from `main` (anything merged into `main` goes live).
 - Commercial blueprint takeoff (beta): pricing in `app/takeoff.js` (`job.mode === 'takeoff'`, data in `job.takeoff`; `Pricing.calcJob` hands off to it),
   PDF viewer in `app/plan.js` (pdf.js 3.11 in `app/vendor/`; PDFs stay on the device in IndexedDB, only measurements sync), screen `#/takeoff/<id>` in `app/app.js`.
   Demo plan + pre-measured takeoff: `app/demo/` (regenerate with `python3 app/demo/make_demo.py`).
+- Units: `settings.units` ('imperial' | 'metric', Settings → Measurements). All maths stays in feet & gallons; `app/units.js` converts on screen
+  (`data-u` inputs, `ud()/ul()/ut()` in app.js) and `Pricing.calcJob` metricizes quote text. New painters in CAD/GBP/AUD/NZD/EUR start in metric.
 - Usage counts + owner dashboard: `app/config.js` `analytics` switch, `track(name, props, merge)` in `app/app.js` (actions only: never customer
   names, addresses, prices or job details), table `events` + `owner_stats()` in `supabase/analytics.sql` (owner = comp_access note 'Owner'),
   dashboard at `#/owner`; owner steps in `ANALYTICS_SETUP.md`. Website stats: Cloudflare Web Analytics (`WEBSITE_ANALYTICS_SETUP.md`).
@@ -33,6 +35,6 @@ session. Whenever work is finished or a decision is made, update it in the same 
 - add any decision to "Decisions made"
 - add a dated entry to the "Log"
 
-Tests: `node --test app/tests/pricing.test.js app/tests/stats.test.js app/tests/billing.test.js app/tests/timezone.test.js app/tests/account.test.js app/tests/currency.test.js app/tests/webhook.test.js app/tests/sync.test.js app/tests/takeoff.test.js`
+Tests: `node --test app/tests/pricing.test.js app/tests/stats.test.js app/tests/billing.test.js app/tests/timezone.test.js app/tests/account.test.js app/tests/currency.test.js app/tests/webhook.test.js app/tests/sync.test.js app/tests/takeoff.test.js app/tests/units.test.js`
 
 The project started in the owner's `Nbarmash/Nbarmash` repository; that address now forwards here.
