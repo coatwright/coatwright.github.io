@@ -118,7 +118,7 @@ You tap in the rooms (or exterior, cabinets, garage floors, commercial), it buil
 logo and your rates, then tracks invoices, payments and your real profit per job.
 
 I'm looking for painters to try it and tell me what's missing. 14-day free trial, no card. The first 100 subscribers
-get half price for life. getcoatwright.com
+get half price for as long as they stay subscribed. getcoatwright.com
 
 Mods, if this isn't allowed here please delete. Thanks!
 ```
@@ -139,8 +139,8 @@ the price, making it look professional, or following up? I'm building a tool for
 **DM / reply template:**
 ```
 Thanks! Here's the link: https://getcoatwright.com/ (14-day free trial, no card). If you try it, I'd love 5 minutes of
-honest feedback: what's confusing, what's missing. Founding members (first 100) get half price for life,
-$12/month instead of $24.
+honest feedback: what's confusing, what's missing. Founding members (first 100) get half price,
+$12/month instead of $24, for as long as they stay subscribed.
 ```
 
 Follow up once after 3–4 days if they signed up ("How did your first quote go?"). Don't chase more than once.
