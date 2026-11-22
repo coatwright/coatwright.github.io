@@ -619,7 +619,7 @@
     app.innerHTML =
       '<div class="page-head"><a href="#/" class="back">‹ Jobs</a><span class="muted small">Plans</span></div>' + head +
       (a.mode !== 'active' ? '<div class="plans-app">' +
-        (showFounder ? planCard('founder', 'Founding member', BC.prices.founder, '/mo', 'Half price for life, for the first ' + BC.founderSpots + ' paying customers.' +
+        (showFounder ? planCard('founder', 'Founding member', BC.prices.founder, '/mo', 'Half price for as long as you stay subscribed, for the first ' + BC.founderSpots + ' paying customers.' +
           (founderLeft != null && founderLeft >= 0 ? ' <b>' + founderLeft + ' of ' + BC.founderSpots + ' spots left.</b>' : ''), '🔥 Limited', false) : '') +
         planCard('annual', 'Yearly', BC.prices.annual, '/yr', 'Just ' + usd(deal.perMonth.toFixed(2)) + '/mo. Save ' + deal.savePct + '% vs monthly.', 'Best value', true) +
         planCard('monthly', 'Monthly', BC.prices.monthly, '/mo', 'Cancel anytime.', '', false) + '</div>' +

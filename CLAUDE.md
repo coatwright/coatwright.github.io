@@ -4,6 +4,7 @@ This is the home of **Coatwright**, published at https://getcoatwright.com/ (cus
 from `main` (anything merged into `main` goes live).
 
 - Website: root `index.html`, `privacy.html`, `terms.html`, images and styles in `landing/`
+  (forwarding pages `pricing/`, `features/`, `signup/`, `login/`, plus `404.html`; example quote + testimonials data in `landing/social-proof.js`: real customer quotes only)
 - App: `app/` (plain HTML/CSS/JS, no build step). Keep the app at `/app/` so home-screen installs keep working.
 - Marketing: `marketing/`
 - Accounts: `app/config.js` (Supabase URL/public key, `accounts` and `google` switches), `app/account.js`, database rules in `supabase/setup.sql`, owner steps in `ACCOUNTS_SETUP.md`.
