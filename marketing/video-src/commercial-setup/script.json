@@ -1,0 +1,10 @@
+[
+ {"id":"intro","chapter":"","text":"Here's how to set up Coatwright for commercial bids. It takes about two minutes, on your computer."},
+ {"id":"open","chapter":"1 · Open Settings → Commercial","text":"Open Settings, then tap the Commercial section."},
+ {"id":"quick","chapter":"2 · Quick setup","text":"Type your commercial labour rate, your overhead and profit, and your usual wall height. Then choose how you price: by labour hours, or by unit prices."},
+ {"id":"optional","chapter":"3 · If you know them","text":"If you know them, add how fast you paint walls, and what you pay for wall and ceiling paint. That's it. Everything else already has typical commercial values."},
+ {"id":"finetune","chapter":"Optional: fine-tune","text":"Want more control? You can fine-tune each paint system here, any time."},
+ {"id":"newbid","chapter":"4 · Start a bid","text":"Now every new blueprint takeoff starts with your numbers. Here's the bid tab, already using your rates."},
+ {"id":"perjob","chapter":"5 · Every job is different","text":"Every job is different, so you can change anything on a single bid. It only affects that bid. Found a better number? Tap, Save as my default, and it's used on every bid after that."},
+ {"id":"end","chapter":"","text":"You're set up. Questions? Email hello at getcoatwright dot com."}
+]

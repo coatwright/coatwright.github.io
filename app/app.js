@@ -2689,7 +2689,15 @@
   }
 
   // ---------- Settings → Commercial (defaults for every new blueprint takeoff) ----------
-  var comOpenSys = -1, comOpenMore = false;
+  var comOpenSys = -1, comOpenMore = false, comCardOpen = false, comOpenWords = false;
+  // Keep the Commercial sections open/closed as the painter left them when the screen redraws.
+  app.addEventListener('toggle', function (e) {
+    var d = e.target;
+    if (!d.classList) return;
+    if (d.classList.contains('com-card')) comCardOpen = d.open;
+    else if (d.classList.contains('com-more')) { if (d.dataset.part === 'words') comOpenWords = d.open; else comOpenMore = d.open; }
+    else if (d.classList.contains('com-sys')) { if (d.open) comOpenSys = +d.dataset.comSys; else if (comOpenSys === +d.dataset.comSys) comOpenSys = -1; }
+  }, true);
   function comData() { return T.commercialDefaults(settings); }
   /** Make settings.commercial a real, editable copy (first edit). */
   function comEnsure() {
@@ -2736,7 +2744,7 @@
     if (!T) return '';
     var c = comData(), list = c.systems || T.defaultLibrary(settings), unit = c.method === 'unit';
     var wi = list.findIndex(function (x) { return x.measure === 'wall'; }), ci = list.findIndex(function (x) { return x.measure === 'area'; });
-    return '<details class="card com-card"' + (comOpenSys !== -1 || comOpenMore ? ' open' : '') + '><summary class="card-title">🏬 Commercial <em class="muted small">(blueprint takeoff)</em></summary>' +
+    return '<details class="card com-card"' + (comCardOpen || comOpenSys !== -1 || comOpenMore ? ' open' : '') + '><summary class="card-title">🏬 Commercial <em class="muted small">(blueprint takeoff)</em></summary>' +
       '<p class="muted small" style="margin-top:0">It works out of the box. Fill in these few numbers and every new blueprint takeoff is priced your way. ' +
       'Residential and walk-through quotes keep using your prices above.</p>' +
       '<div class="label" style="margin-top:4px">Quick setup <span class="muted small" style="text-transform:none;letter-spacing:0">(about 2 minutes)</span></div>' +
@@ -2759,7 +2767,7 @@
       }).join('') + '</div>' +
       '<select data-com="add-system" class="to-addsel com-add" aria-label="Add a paint system"><option value="">＋ Add a paint system…</option>' +
       T.SYSTEM_PRESETS.map(function (p) { return '<option value="' + p.key + '">' + esc(p.name) + '</option>'; }).join('') + '</select></details>' +
-      '<details class="com-more"><summary>Proposal wording <span class="muted">(optional, good defaults included)</span></summary>' +
+      '<details class="com-more" data-part="words"' + (comOpenWords ? ' open' : '') + '><summary>Proposal wording <span class="muted">(optional, good defaults included)</span></summary>' +
       '<label class="field"><span>Inclusions</span><textarea rows="5" data-com="inclusions">' + esc(c.inclusions) + '</textarea></label>' +
       '<label class="field"><span>Exclusions</span><textarea rows="5" data-com="exclusions">' + esc(c.exclusions) + '</textarea></label>' +
       '<label class="field"><span>Clarifications</span><textarea rows="4" data-com="clarifications">' + esc(c.clarifications) + '</textarea></label></details>' +
