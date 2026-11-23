@@ -2689,7 +2689,7 @@
   }
 
   // ---------- Settings → Commercial (defaults for every new blueprint takeoff) ----------
-  var comOpenSys = -1;
+  var comOpenSys = -1, comOpenMore = false;
   function comData() { return T.commercialDefaults(settings); }
   /** Make settings.commercial a real, editable copy (first edit). */
   function comEnsure() {
@@ -2735,28 +2735,35 @@
   function commercialCard() {
     if (!T) return '';
     var c = comData(), list = c.systems || T.defaultLibrary(settings), unit = c.method === 'unit';
-    return '<details class="card com-card"' + (comOpenSys !== -1 ? ' open' : '') + '><summary class="card-title">🏬 Commercial <em class="muted small">(blueprint takeoff defaults)</em></summary>' +
-      '<p class="muted small" style="margin-top:0">Every new blueprint takeoff starts with these numbers. Residential and walk-through quotes keep using your prices above. ' +
-      'You can still change anything on a single bid.</p>' +
+    var wi = list.findIndex(function (x) { return x.measure === 'wall'; }), ci = list.findIndex(function (x) { return x.measure === 'area'; });
+    return '<details class="card com-card"' + (comOpenSys !== -1 || comOpenMore ? ' open' : '') + '><summary class="card-title">🏬 Commercial <em class="muted small">(blueprint takeoff)</em></summary>' +
+      '<p class="muted small" style="margin-top:0">It works out of the box. Fill in these few numbers and every new blueprint takeoff is priced your way. ' +
+      'Residential and walk-through quotes keep using your prices above.</p>' +
+      '<div class="label" style="margin-top:4px">Quick setup <span class="muted small" style="text-transform:none;letter-spacing:0">(about 2 minutes)</span></div>' +
       '<div class="row3">' + comNum('laborRate', c.laborRate, 'Labour rate', { pre: sym(), unit: '/hr', placeholder: settings.laborRate, hint: 'blank = same as above' }) +
       comNum('overheadPct', c.overheadPct, 'Overhead', { unit: '%' }) + comNum('profitPct', c.profitPct, 'Profit', { unit: '%' }) + '</div>' +
       '<div class="row2">' + comNum('wallHeight', c.wallHeight, 'Usual wall height', { kind: 'len', unit: ul('len', 'ft') }) +
       '<div class="field"><span class="field-label">I price by</span><div class="segmented">' +
       '<button type="button" class="' + (unit ? '' : 'on') + '" data-action="com-method" data-v="hours">Labour hours</button>' +
       '<button type="button" class="' + (unit ? 'on' : '') + '" data-action="com-method" data-v="unit">Unit prices</button></div></div></div>' +
-      '<div class="label">Your paint systems</div>' +
+      (wi !== -1 || ci !== -1 ? '<div class="label">If you know them <span class="muted small" style="text-transform:none;letter-spacing:0">(optional)</span></div><div class="row3">' +
+        (wi !== -1 ? comNum('sys.' + wi + '.rate', list[wi].rate, 'Walls: how fast', { kind: 'rateArea', unit: ul('rateArea', 'sq ft/hr'), hint: 'per coat' }) +
+          comNum('sys.' + wi + '.price', list[wi].price, 'Wall paint', { kind: 'perVol', pre: sym(), unit: ul('perVol', '/gal') }) : '') +
+        (ci !== -1 ? comNum('sys.' + ci + '.price', list[ci].price, 'Ceiling paint', { kind: 'perVol', pre: sym(), unit: ul('perVol', '/gal') }) : '') + '</div>' : '') +
+      '<details class="com-more"' + (comOpenMore || comOpenSys !== -1 ? ' open' : '') + '><summary>Fine-tune your paint systems <span class="muted">(optional)</span></summary>' +
+      '<p class="muted small">Already set up with typical commercial values. Adjust any time here, or tap <b>⭐ Save as my default</b> while bidding a real job.</p>' +
       '<div class="com-systems">' + list.map(function (s, i) {
         return '<details class="com-sys"' + (comOpenSys === i ? ' open' : '') + ' data-com-sys="' + i + '"><summary><span class="dot" style="background:' + esc(s.color || '#1f5eff') + '"></span>' +
           '<span class="cs-name">' + esc(s.name) + '<span class="muted small">' + esc(comSystemSummary(s)) + '</span></span></summary>' +
           '<div class="com-sys-body">' + comSystemFields(s, i) + '</div></details>';
       }).join('') + '</div>' +
       '<select data-com="add-system" class="to-addsel com-add" aria-label="Add a paint system"><option value="">＋ Add a paint system…</option>' +
-      T.SYSTEM_PRESETS.map(function (p) { return '<option value="' + p.key + '">' + esc(p.name) + '</option>'; }).join('') + '</select>' +
-      '<details class="com-words"><summary>Proposal wording (inclusions, exclusions, clarifications)</summary>' +
+      T.SYSTEM_PRESETS.map(function (p) { return '<option value="' + p.key + '">' + esc(p.name) + '</option>'; }).join('') + '</select></details>' +
+      '<details class="com-more"><summary>Proposal wording <span class="muted">(optional, good defaults included)</span></summary>' +
       '<label class="field"><span>Inclusions</span><textarea rows="5" data-com="inclusions">' + esc(c.inclusions) + '</textarea></label>' +
       '<label class="field"><span>Exclusions</span><textarea rows="5" data-com="exclusions">' + esc(c.exclusions) + '</textarea></label>' +
       '<label class="field"><span>Clarifications</span><textarea rows="4" data-com="clarifications">' + esc(c.clarifications) + '</textarea></label></details>' +
-      '<p class="muted small">Tip: on any bid, tap <b>⭐ Save as my default</b> to copy a paint system or your rates back here.</p></details>';
+      '</details>';
   }
   function onComInput(el) {
     var key = el.dataset.com, c = comEnsure(), v = el.type === 'checkbox' ? el.checked : el.value;
@@ -2773,7 +2780,7 @@
     saveSettings();
     var sv = document.getElementById('saved'); if (sv) sv.textContent = 'Saved ✓';
     if (parts[0] === 'sys') {
-      comOpenSys = +parts[1];
+      if (el.closest('.com-sys')) comOpenSys = +parts[1];
       if (field === 'measure') { renderSettingsKeep(); return; }
       var sum = app.querySelector('[data-com-sys="' + parts[1] + '"] .cs-name');
       if (sum) sum.innerHTML = esc(target.name) + '<span class="muted small">' + esc(comSystemSummary(target)) + '</span>';

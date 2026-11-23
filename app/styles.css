@@ -647,6 +647,6 @@ body[data-view="takeoff"] main { max-width: none; padding: 0; }
 .com-sys-body { padding: 12px; }
 .com-sys-body .field select, .com-card .field select { width: 100%; min-height: 48px; }
 .com-add { margin: 10px 0 4px; }
-.com-words { margin: 12px 0 4px; }
-.com-words summary { font-weight: 700; cursor: pointer; padding: 6px 0; }
+.com-more { margin: 12px 0 4px; border-top: 1px solid var(--line); padding-top: 8px; }
+.com-more > summary { font-weight: 700; cursor: pointer; padding: 6px 0; }
 .to-save-rates { display: block; margin: -4px 0 6px; padding: 4px 0; font-size: 14px; }
