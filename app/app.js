@@ -1796,6 +1796,7 @@
       setField('floorRate', 'Floor paint', { type: 'number', unit: 'sq ft/hr' }) + '</div>' +
       '<div class="row2">' + setField('cabinetDoorHours', 'Each cabinet door', { type: 'number', unit: 'hrs' }) + '</div></details>' +
 
+      commercialCard() +
       '<section class="card"><h2 class="card-title">Quote fine print</h2>' +
       setField('terms', 'Terms shown on every quote', { textarea: true }) + '</section>' +
       '<section class="card"><h2 class="card-title">Invoices</h2>' +
@@ -2238,6 +2239,7 @@
       '<div class="label">Colour on the plan</div><div class="to-swatches">' + T.COLORS.map(function (c) {
         return '<button type="button" class="to-swatch' + (c === s.color ? ' on' : '') + '" style="background:' + c + '" data-action="to-sys-color" data-id="' + s.id + '" data-v="' + c + '" aria-label="Colour"></button>';
       }).join('') + '</div>' +
+      '<button type="button" class="btn btn-ghost sm full" data-action="to-sys-save" data-id="' + s.id + '">⭐ Save as my default (Settings → Commercial)</button>' +
       '<div class="to-sysedit-foot"><button type="button" class="link danger" data-action="to-sys-del" data-id="' + s.id + '">Delete system</button>' +
       '<button type="button" class="btn sm" data-action="to-sys-edit" data-id="">Done</button></div></div>';
   }
@@ -2304,6 +2306,7 @@
       '<div class="row3"><label class="field"><span>Labour rate</span><div class="with-unit pre"><em>' + sym() + '</em><input type="number" inputmode="decimal" min="0" step="any" data-to="t.laborRate" value="' + esc(t.laborRate) + '" placeholder="' + esc(settings.laborRate) + '"></div><small class="muted">per hour</small></label>' +
       '<label class="field"><span>Overhead</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="t.overheadPct" value="' + esc(t.overheadPct) + '"><em>%</em></div></label>' +
       '<label class="field"><span>Profit</span><div class="with-unit"><input type="number" inputmode="decimal" min="0" step="any" data-to="t.profitPct" value="' + esc(t.profitPct) + '"><em>%</em></div></label></div>' +
+      '<button type="button" class="link to-save-rates" data-action="to-bid-save">⭐ Save these rates and wording as my defaults</button>' +
       '<table class="to-bid"><tbody>' + (sysRows || '<tr><td class="muted">Measure something in the Takeoff list first.</td></tr>') + '</tbody></table>' +
       '<div class="label">Extra costs <span class="muted small">(lifts, mobilization… marked up like the rest)</span></div>' +
       t.adds.map(function (a) {
@@ -2467,6 +2470,19 @@
         applyTool(); if (v) v.draw(); toRefresh(true);
         return true;
       case 'to-sys-edit': to.editSys = d.id || null; toRefresh(true); return true;
+      case 'to-sys-save': {
+        var sv = toSys(t, d.id); if (!sv) return true;
+        settings.commercial = T.saveToLibrary(settings, sv); saveSettings();
+        toast('⭐ Saved "' + sv.name + '" as your default for new bids');
+        return true;
+      }
+      case 'to-bid-save': {
+        var cd = comEnsure();
+        ['laborRate', 'overheadPct', 'profitPct', 'wallHeight', 'method', 'inclusions', 'exclusions', 'clarifications'].forEach(function (k) { cd[k] = t[k]; });
+        saveSettings();
+        toast('⭐ Rates and proposal wording saved as your defaults for new bids');
+        return true;
+      }
       case 'to-sys-color': { var s1 = toSys(t, d.id); if (s1) { s1.color = d.v; touch(job); if (v) v.draw(); toRefresh(true); } return true; }
       case 'to-sys-del': {
         var s2 = toSys(t, d.id), n = t.marks.filter(function (m) { return m.systemId === d.id; }).length;
@@ -2672,10 +2688,104 @@
       '<p class="center-text muted small">Only your account can see this page. Customer names, addresses and prices are never collected.</p>';
   }
 
+  // ---------- Settings → Commercial (defaults for every new blueprint takeoff) ----------
+  var comOpenSys = -1;
+  function comData() { return T.commercialDefaults(settings); }
+  /** Make settings.commercial a real, editable copy (first edit). */
+  function comEnsure() {
+    var c = comData();
+    if (!c.systems) c.systems = T.defaultLibrary(settings);
+    settings.commercial = c;
+    return c;
+  }
+  function comNum(path, value, label, opts) {
+    opts = opts || {};
+    var kind = opts.kind, v = kind ? ud(kind, value) : value;
+    return '<label class="field"><span>' + label + '</span><div class="with-unit' + (opts.pre ? ' pre' : '') + '">' + (opts.pre ? '<em>' + opts.pre + '</em>' : '') +
+      '<input type="number" inputmode="decimal" min="0" step="any" data-com="' + path + '"' + (kind ? ' data-u="' + kind + '"' : '') + ' value="' + esc(v) + '"' +
+      (opts.placeholder != null ? ' placeholder="' + esc(opts.placeholder) + '"' : '') + '>' + (opts.unit ? '<em>' + opts.unit + '</em>' : '') + '</div>' +
+      (opts.hint ? '<small class="muted">' + opts.hint + '</small>' : '') + '</label>';
+  }
+  function comSystemSummary(s) {
+    var count = s.measure === 'count', rk = s.measure === 'length' ? 'rateLen' : 'rateArea';
+    return (count ? s.rate + (Number(s.rate) === 1 ? ' hr' : ' hrs') + ' each' : fmtN(ud(rk, s.rate), 1) + ' ' + ul(rk, 'sq ft/hr')) + ' · ' + money(ud('perVol', s.price)) + ul('perVol', '/gal') +
+      (s.unitPrice ? ' · ' + money(ud(s.measure === 'area' || s.measure === 'wall' ? 'perArea' : s.measure === 'length' ? 'perLen' : '', s.unitPrice)) + ' per ' + (count ? 'each' : s.measure === 'length' ? ul('len', 'lin ft') : ul('area', 'sq ft')) : '');
+  }
+  function comSystemFields(s, i) {
+    var count = s.measure === 'count', meas = T.MEASURES[s.measure] || T.MEASURES.wall;
+    var rk = s.measure === 'length' ? 'rateLen' : 'rateArea', ck = count ? 'vol' : s.measure === 'length' ? 'coverLen' : 'coverArea';
+    var pk = count ? '' : s.measure === 'length' ? 'perLen' : 'perArea', p = 'sys.' + i + '.';
+    return '<label class="field"><span>Name on proposals</span><input data-com="' + p + 'name" value="' + esc(s.name) + '"></label>' +
+      '<div class="row2"><label class="field"><span>Measured as</span><select data-com="' + p + 'measure">' + Object.keys(T.MEASURES).map(function (k) {
+        return '<option value="' + k + '"' + (k === s.measure ? ' selected' : '') + '>' + T.MEASURES[k].label + '</option>'; }).join('') + '</select></label>' +
+      (count ? '' : comNum(p + 'coats', s.coats, 'Coats')) + '</div>' +
+      (count ? '' : '<label class="check"><input type="checkbox" data-com="' + p + 'primer"' + (s.primer ? ' checked' : '') + '> Add a primer / block filler coat</label>') +
+      '<div class="row2">' + (count ? comNum(p + 'rate', s.rate, 'Hours each', { unit: 'hrs', hint: 'all coats, both sides' })
+        : comNum(p + 'rate', s.rate, 'How fast you work', { kind: rk, unit: ul(rk, meas.unit + '/hr'), hint: 'per coat' })) +
+      comNum(p + 'coverage', s.coverage, 'Paint use', { kind: ck, unit: count ? (metric() ? 'L each' : 'gal each') : ul(ck, 'sq ft/gal'), hint: count ? 'per item' : 'per coat' }) + '</div>' +
+      '<div class="row2">' + comNum(p + 'price', s.price, 'Paint price', { kind: 'perVol', pre: sym(), unit: ul('perVol', '/gal') }) +
+      comNum(p + 'unitPrice', s.unitPrice, 'Your unit price', { kind: pk || null, pre: sym(), unit: count ? 'each' : pk ? ul(pk, '/sq ft') : '', placeholder: 'optional',
+        hint: 'only if you bid by unit price' }) + '</div>' +
+      '<div class="row2"><label class="field"><span>Brand</span><input list="paint-brands" data-com="' + p + 'brand" value="' + esc(s.brand || '') + '" placeholder="Sherwin-Williams"></label>' +
+      '<label class="field"><span>Product</span><input data-com="' + p + 'product" value="' + esc(s.product || '') + '" placeholder="ProMar 200"></label></div>' +
+      '<label class="field"><span>Sheen</span><select data-com="' + p + 'sheen"><option value=""></option>' + P.SHEENS.map(function (x) {
+        return '<option' + (s.sheen === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label>' +
+      '<button type="button" class="link danger" data-action="com-sys-del" data-i="' + i + '">Remove this paint system</button>';
+  }
+  function commercialCard() {
+    if (!T) return '';
+    var c = comData(), list = c.systems || T.defaultLibrary(settings), unit = c.method === 'unit';
+    return '<details class="card com-card"' + (comOpenSys !== -1 ? ' open' : '') + '><summary class="card-title">🏬 Commercial <em class="muted small">(blueprint takeoff defaults)</em></summary>' +
+      '<p class="muted small" style="margin-top:0">Every new blueprint takeoff starts with these numbers. Residential and walk-through quotes keep using your prices above. ' +
+      'You can still change anything on a single bid.</p>' +
+      '<div class="row3">' + comNum('laborRate', c.laborRate, 'Labour rate', { pre: sym(), unit: '/hr', placeholder: settings.laborRate, hint: 'blank = same as above' }) +
+      comNum('overheadPct', c.overheadPct, 'Overhead', { unit: '%' }) + comNum('profitPct', c.profitPct, 'Profit', { unit: '%' }) + '</div>' +
+      '<div class="row2">' + comNum('wallHeight', c.wallHeight, 'Usual wall height', { kind: 'len', unit: ul('len', 'ft') }) +
+      '<div class="field"><span class="field-label">I price by</span><div class="segmented">' +
+      '<button type="button" class="' + (unit ? '' : 'on') + '" data-action="com-method" data-v="hours">Labour hours</button>' +
+      '<button type="button" class="' + (unit ? 'on' : '') + '" data-action="com-method" data-v="unit">Unit prices</button></div></div></div>' +
+      '<div class="label">Your paint systems</div>' +
+      '<div class="com-systems">' + list.map(function (s, i) {
+        return '<details class="com-sys"' + (comOpenSys === i ? ' open' : '') + ' data-com-sys="' + i + '"><summary><span class="dot" style="background:' + esc(s.color || '#1f5eff') + '"></span>' +
+          '<span class="cs-name">' + esc(s.name) + '<span class="muted small">' + esc(comSystemSummary(s)) + '</span></span></summary>' +
+          '<div class="com-sys-body">' + comSystemFields(s, i) + '</div></details>';
+      }).join('') + '</div>' +
+      '<select data-com="add-system" class="to-addsel com-add" aria-label="Add a paint system"><option value="">＋ Add a paint system…</option>' +
+      T.SYSTEM_PRESETS.map(function (p) { return '<option value="' + p.key + '">' + esc(p.name) + '</option>'; }).join('') + '</select>' +
+      '<details class="com-words"><summary>Proposal wording (inclusions, exclusions, clarifications)</summary>' +
+      '<label class="field"><span>Inclusions</span><textarea rows="5" data-com="inclusions">' + esc(c.inclusions) + '</textarea></label>' +
+      '<label class="field"><span>Exclusions</span><textarea rows="5" data-com="exclusions">' + esc(c.exclusions) + '</textarea></label>' +
+      '<label class="field"><span>Clarifications</span><textarea rows="4" data-com="clarifications">' + esc(c.clarifications) + '</textarea></label></details>' +
+      '<p class="muted small">Tip: on any bid, tap <b>⭐ Save as my default</b> to copy a paint system or your rates back here.</p></details>';
+  }
+  function onComInput(el) {
+    var key = el.dataset.com, c = comEnsure(), v = el.type === 'checkbox' ? el.checked : el.value;
+    if (key === 'add-system') {
+      if (!v) return;
+      var s = T.pickSystem(T.newSystem(v, settings, c.systems.length));
+      c.systems.push(s); comOpenSys = c.systems.length - 1;
+      saveSettings(); renderSettingsKeep(); toast('Added: ' + s.name);
+      return;
+    }
+    var parts = key.split('.'), target = parts[0] === 'sys' ? c.systems[+parts[1]] : c, field = parts[parts.length - 1];
+    if (!target) return;
+    target[field] = el.type === 'number' ? (v === '' ? '' : el.dataset.u && U ? U.fromDisp(el.dataset.u, v, metric()) : Number(v)) : v;
+    saveSettings();
+    var sv = document.getElementById('saved'); if (sv) sv.textContent = 'Saved ✓';
+    if (parts[0] === 'sys') {
+      comOpenSys = +parts[1];
+      if (field === 'measure') { renderSettingsKeep(); return; }
+      var sum = app.querySelector('[data-com-sys="' + parts[1] + '"] .cs-name');
+      if (sum) sum.innerHTML = esc(target.name) + '<span class="muted small">' + esc(comSystemSummary(target)) + '</span>';
+    }
+  }
+  function renderSettingsKeep() { var y = window.scrollY; renderSettings(); window.scrollTo(0, y); }
+
   // ---------- Events ----------
   app.addEventListener('input', function (e) {
     var el = e.target;
     if (el.dataset && el.dataset.to !== undefined && el.closest('.to')) { onToInput(el); return; }
+    if (el.dataset && el.dataset.com !== undefined) { onComInput(el); return; }
     if (el.hasAttribute('data-owner-search')) {
       ownerFilter = el.value;
       var tmp = document.createElement('div'); tmp.innerHTML = ownerBody();
@@ -2783,6 +2893,13 @@
     var action = el.dataset.action;
     if (action === 'to-demo') { startDemo(); return; }
     if (action === 'owner-refresh') { renderOwner(); return; }
+    if (action === 'com-method') { comEnsure().method = el.dataset.v === 'unit' ? 'unit' : 'hours'; saveSettings(); renderSettingsKeep(); return; }
+    if (action === 'com-sys-del') {
+      var cc = comEnsure(), ci = +el.dataset.i;
+      if (!cc.systems[ci] || !confirm('Remove "' + cc.systems[ci].name + '" from your commercial defaults? (Bids you already made keep it.)')) return;
+      cc.systems.splice(ci, 1); comOpenSys = -1; saveSettings(); renderSettingsKeep();
+      return;
+    }
     if (action === 'units') {
       settings.units = el.dataset.v === 'metric' ? 'metric' : 'imperial';
       saveSettings(); var yy = window.scrollY; route(); window.scrollTo(0, yy);
