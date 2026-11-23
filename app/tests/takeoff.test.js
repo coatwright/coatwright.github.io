@@ -105,3 +105,30 @@ test('residential jobs are untouched by takeoff', () => {
   assert.ok(P.calcJob(r, S).total > 0);
   assert.strictEqual(P.calcJob(r, S).takeoff, undefined);
 });
+
+test('Settings → Commercial: new takeoffs start from the painter\'s own rates, systems and wording', () => {
+  const lib = T.defaultLibrary(S);
+  lib[0].rate = 320; lib[0].price = 52; lib[0].name = 'Walls — Sherwin ProMar, 2 coats';
+  const mine = Object.assign({}, S, { commercial: { laborRate: 68, overheadPct: 12, profitPct: 18, wallHeight: 9, method: 'unit', systems: lib, exclusions: 'No wallcovering' } });
+  const t = T.newTakeoff(mine);
+  assert.strictEqual(t.laborRate, 68); assert.strictEqual(t.overheadPct, 12); assert.strictEqual(t.profitPct, 18);
+  assert.strictEqual(t.wallHeight, 9); assert.strictEqual(t.method, 'unit'); assert.strictEqual(t.exclusions, 'No wallcovering');
+  assert.strictEqual(t.systems[0].rate, 320); assert.strictEqual(t.systems[0].name, 'Walls — Sherwin ProMar, 2 coats');
+  assert.ok(t.systems[0].id && t.systems[0].id !== t.systems[1].id, 'fresh ids per job');
+  t.systems[0].rate = 1; assert.strictEqual(mine.commercial.systems[0].rate, 320, 'editing a job never changes the saved defaults');
+  // adding a preset the painter has saved uses their version
+  assert.strictEqual(T.newSystem('walls_eggshell', mine, 5).rate, 320);
+  // nothing saved → starting values, as before
+  assert.strictEqual(T.newTakeoff(S).systems.length, 4);
+  assert.strictEqual(T.newTakeoff(S).overheadPct, 10);
+});
+
+test('"Save as my default" adds or replaces a system by name', () => {
+  const sys = Object.assign(T.newSystem('doors', S, 0), { rate: 1.4 });
+  const c1 = T.saveToLibrary(S, sys);
+  assert.strictEqual(c1.systems.find(x => x.name === sys.name).rate, 1.4);
+  assert.strictEqual(c1.systems.length, 4, 'replaced the existing doors system');
+  const c2 = T.saveToLibrary(Object.assign({}, S, { commercial: c1 }), Object.assign({}, sys, { name: 'Steel stairs' }));
+  assert.strictEqual(c2.systems.length, 5, 'new name is added');
+  assert.strictEqual(c2.systems.find(x => x.name === 'Steel stairs').id, undefined, 'no job ids stored in defaults');
+});

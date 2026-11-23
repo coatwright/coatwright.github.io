@@ -69,7 +69,43 @@
       'Areas must be ready for paint (other trades finished) when we arrive. Price valid for 30 days.'
   };
 
+  var SYSTEM_FIELDS = ['preset', 'name', 'measure', 'coats', 'primer', 'rate', 'coverage', 'price', 'unitPrice', 'color', 'brand', 'product', 'sheen', 'paintColor'];
+  var DEFAULT_SYSTEMS = ['walls_eggshell', 'ceilings_flat', 'doors', 'hm_frames'];
+
+  /** The painter's saved commercial defaults (Settings → Commercial), filled in with starting values. */
+  function commercialDefaults(settings) {
+    var c = (settings && settings.commercial) || {};
+    var has = function (k) { return c[k] !== undefined && c[k] !== null; };
+    return {
+      laborRate: has('laborRate') ? c.laborRate : '', overheadPct: has('overheadPct') ? c.overheadPct : 10, profitPct: has('profitPct') ? c.profitPct : 15,
+      wallHeight: has('wallHeight') ? c.wallHeight : 10, method: c.method === 'unit' ? 'unit' : 'hours',
+      systems: Array.isArray(c.systems) ? c.systems : null,
+      inclusions: has('inclusions') ? c.inclusions : DEFAULT_TEXT.inclusions, exclusions: has('exclusions') ? c.exclusions : DEFAULT_TEXT.exclusions,
+      clarifications: has('clarifications') ? c.clarifications : DEFAULT_TEXT.clarifications
+    };
+  }
+  function pickSystem(sys) { var o = {}; SYSTEM_FIELDS.forEach(function (k) { if (sys[k] !== undefined) o[k] = sys[k]; }); return o; }
+  /** Starting paint systems for Settings → Commercial (from the painter's paint prices). */
+  function defaultLibrary(settings) {
+    return DEFAULT_SYSTEMS.map(function (k, i) { return pickSystem(presetSystem(k, settings, i)); });
+  }
+  /** Add or replace a system in the painter's saved defaults (matched by name). Returns the new settings.commercial. */
+  function saveToLibrary(settings, sys) {
+    var c = Object.assign({}, commercialDefaults(settings));
+    var list = (c.systems || defaultLibrary(settings)).slice(), item = pickSystem(sys);
+    var i = list.findIndex(function (x) { return String(x.name || '').trim().toLowerCase() === String(item.name || '').trim().toLowerCase(); });
+    if (i === -1) list.push(item); else list[i] = item;
+    c.systems = list;
+    return c;
+  }
+
   function newSystem(presetKey, settings, index) {
+    var lib = (commercialDefaults(settings).systems || []).find(function (x) { return x.preset === presetKey; });
+    if (lib) return Object.assign(presetSystem(presetKey, settings, index), pickSystem(lib), { id: uid() });
+    return presetSystem(presetKey, settings, index);
+  }
+
+  function presetSystem(presetKey, settings, index) {
     var p = SYSTEM_PRESETS.find(function (x) { return x.key === presetKey; }) || SYSTEM_PRESETS[0];
     var s = Object.assign({}, P.DEFAULT_SETTINGS, settings);
     return { id: uid(), preset: p.key, name: p.name, measure: p.measure, coats: p.coats, primer: !!p.primer,
@@ -77,11 +113,17 @@
       color: COLORS[(index || 0) % COLORS.length], brand: '', product: '', sheen: p.sheen || '', paintColor: '' };
   }
 
+  /** A new takeoff, starting from the painter's commercial defaults (Settings → Commercial). */
   function newTakeoff(settings) {
-    var t = { v: 1, method: 'hours', laborRate: '', overheadPct: 10, profitPct: 15, wallHeight: 10, breakdown: 'system',
+    var c = commercialDefaults(settings);
+    var t = { v: 1, method: c.method, laborRate: c.laborRate, overheadPct: c.overheadPct, profitPct: c.profitPct, wallHeight: c.wallHeight, breakdown: 'system',
       systems: [], zones: [{ id: uid(), name: 'Level 1' }], marks: [], plans: [], adds: [], alternates: [],
-      inclusions: DEFAULT_TEXT.inclusions, exclusions: DEFAULT_TEXT.exclusions, clarifications: DEFAULT_TEXT.clarifications };
-    ['walls_eggshell', 'ceilings_flat', 'doors', 'hm_frames'].forEach(function (k, i) { t.systems.push(newSystem(k, settings, i)); });
+      inclusions: c.inclusions, exclusions: c.exclusions, clarifications: c.clarifications };
+    if (c.systems && c.systems.length) {
+      c.systems.forEach(function (lib, i) { t.systems.push(Object.assign(presetSystem(lib.preset, settings, i), pickSystem(lib), { id: uid() })); });
+    } else {
+      DEFAULT_SYSTEMS.forEach(function (k, i) { t.systems.push(newSystem(k, settings, i)); });
+    }
     return t;
   }
 
@@ -264,7 +306,7 @@
   }
 
   var api = { MEASURES: MEASURES, COLORS: COLORS, SYSTEM_PRESETS: SYSTEM_PRESETS, ADD_PRESETS: ADD_PRESETS, SCALES: SCALES, DEFAULT_TEXT: DEFAULT_TEXT,
-    newSystem: newSystem, newTakeoff: newTakeoff, uid: uid, dist: dist, pathLength: pathLength, polygonArea: polygonArea,
+    newSystem: newSystem, newTakeoff: newTakeoff, commercialDefaults: commercialDefaults, defaultLibrary: defaultLibrary, saveToLibrary: saveToLibrary, pickSystem: pickSystem, uid: uid, dist: dist, pathLength: pathLength, polygonArea: polygonArea,
     scaleOf: scaleOf, markQty: markQty, markupFactor: markupFactor, calc: calc, toQuote: toQuote, qtyText: qtyText, specText: specText };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.Takeoff = api;

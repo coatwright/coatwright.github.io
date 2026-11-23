@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Coatwright commercial setup worksheet</title>
+<style>
+  @page { size: Letter; margin: 0.45in; }
+  body { font: 9.5pt/1.3 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #16203a; margin: 0; }
+  h1 { font-size: 17pt; margin: 0 0 2px; } h2 { font-size: 11pt; margin: 10px 0 5px; color: #1f5eff; border-bottom: 2px solid #1f5eff; padding-bottom: 3px; }
+  .sub { color: #66708a; margin: 0 0 8px; font-size: 10pt; }
+  .where { font-size: 9pt; color: #66708a; font-weight: 600; float: right; margin-top: 3px; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+  td, th { border: 1px solid #c9d1e4; padding: 3px 5px; vertical-align: top; text-align: left; }
+  th { background: #eef3ff; font-weight: 700; }
+  .blank { height: 16px; } .tall { height: 40px; } .xtall { height: 62px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .line { display: flex; gap: 6px; align-items: flex-end; margin: 6px 0; font-size: 9.5pt; }
+  .line b { white-space: nowrap; font-weight: 600; } .line span:not(.check) { flex: 1; border-bottom: 1px solid #9aa3b5; height: 15px; }
+  .line i { font-style: normal; color: #66708a; font-size: 9pt; white-space: nowrap; }
+  .box { border: 1px solid #c9d1e4; border-radius: 6px; padding: 5px 8px; margin: 4px 0; font-size: 9.5pt; }
+  .hint { color: #66708a; font-size: 8.5pt; }
+  .page { page-break-after: always; } .quick { border: 2px solid #1f5eff; border-radius: 10px; padding: 10px 12px; margin: 10px 0 4px; background: #f7f9ff; } .check { display: inline-block; width: 10px; height: 10px; border: 1px solid #66708a; margin-right: 5px; vertical-align: -1px; }
+  header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .logo { font-weight: 800; color: #1f5eff; font-size: 13pt; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header><div><h1>Commercial setup worksheet</h1><p class="sub">Coatwright works out of the box. These few numbers make every bid priced his way. Type them in on a computer: <b>Settings → 🏬 Commercial</b>.</p></div><div class="logo">Coatwright</div></header>
+  <div class="line"><b>Painter / company</b><span></span><b>Date</b><span style="flex:.5"></span></div>
+  <div class="line"><b>Email (Coatwright login)</b><span></span><b>Phone</b><span style="flex:.6"></span></div>
+
+  <div class="quick">
+    <h2 style="margin-top:0">Quick setup <span class="hint" style="font-weight:600">about 2 minutes · Settings → 🏬 Commercial → Quick setup</span></h2>
+    <div class="grid2">
+      <div class="line"><b>1. Commercial labour rate</b><span></span><i>$/hr</i></div>
+      <div class="line"><b>2. Overhead</b><span></span><i>%</i></div>
+      <div class="line"><b>3. Profit</b><span></span><i>%</i></div>
+      <div class="line"><b>4. Usual wall height</b><span></span><i>ft</i></div>
+    </div>
+    <div class="line"><b>5. Prices jobs by</b><i><span class="check"></span>Labour hours &nbsp; <span class="check"></span>Unit prices ($/sq ft, $/door)</i></div>
+    <p class="hint" style="margin:8px 0 2px"><b>If he knows them</b> (optional, they move the price the most):</p>
+    <div class="grid2">
+      <div class="line"><b>Walls: how fast, per coat</b><span></span><i>sq ft/hr</i></div>
+      <div class="line"><b>Wall paint he pays</b><span></span><i>$/gal</i></div>
+      <div class="line"><b>Ceiling paint he pays</b><span></span><i>$/gal</i></div>
+    </div>
+  </div>
+
+  <h2>Optional: fine-tune later <span class="where">Settings → 🏬 Commercial → Fine-tune your paint systems</span></h2>
+  <p class="hint">Skip this on day one. Coatwright starts with the grey values; he can adjust any system while bidding a real job and tap ⭐ Save as my default.</p>
+  <table>
+    <tr><th style="width:26%">System he bids</th><th>How fast<br><span class="hint">per coat (or hrs each)</span></th><th>Coverage<br><span class="hint">per coat (or gal each)</span></th><th>Paint $/gal</th><th>Unit price<br><span class="hint">only if he bids that way</span></th></tr>
+    <tr><td><span class="check"></span>Walls, semi-gloss (washrooms, corridors)</td><td class="hint">225 sq ft/hr</td><td class="hint">350 sq ft/gal</td><td></td><td></td></tr>
+    <tr><td><span class="check"></span>New drywall, prime + 2</td><td class="hint">275 sq ft/hr</td><td class="hint">350 sq ft/gal</td><td></td><td></td></tr>
+    <tr><td><span class="check"></span>CMU block, filler + 2</td><td class="hint">150 sq ft/hr</td><td class="hint">250 sq ft/gal</td><td></td><td></td></tr>
+    <tr><td><span class="check"></span>Exposed deck, dryfall (spray)</td><td class="hint">600 sq ft/hr</td><td class="hint">200 sq ft/gal</td><td></td><td></td></tr>
+    <tr><td><span class="check"></span>Doors, both sides</td><td class="hint">1 hr each</td><td class="hint">0.3 gal each</td><td></td><td></td></tr>
+    <tr><td><span class="check"></span>Hollow metal frames</td><td class="hint">0.5 hr each</td><td class="hint">0.15 gal each</td><td></td><td></td></tr>
+    <tr><td><span class="check"></span>Baseboard &amp; trim</td><td class="hint">80 lin ft/hr</td><td class="hint">300 lin ft/gal</td><td></td><td></td></tr>
+    <tr><td><span class="check"></span>Other: <span style="display:inline-block;width:80px;border-bottom:1px solid #9aa3b5"></span></td><td></td><td></td><td></td><td></td></tr>
+  </table>
+  <div class="line"><b>Usual extras he adds (lift rental, mobilization…) and cost</b><span></span></div>
+  <div class="line"><b>Deducts doors/windows from walls?</b><i><span class="check"></span>Yes &nbsp; <span class="check"></span>No</i><b style="margin-left:12px">Proposal wording</b><i><span class="check"></span>Ask for a copy of a recent proposal</i></div>
+</div>
+
+<div>
+  <h1 style="font-size:15pt">For you during the demo</h1>
+  <p class="sub">Not for him to fill in: your notes while you show Coatwright.</p>
+  <h2>Test job: check Coatwright against a real bid</h2>
+  <div class="line"><span class="check"></span><b>Blueprint PDF</b><span></span></div>
+  <div class="line"><span class="check"></span><b>His measurements for it</b><i>(walls sq ft, ceilings sq ft, doors, frames…)</i><span></span></div>
+  <div class="line"><span class="check"></span><b>The bid he actually sent</b><span style="flex:.5"></span><i>$ total</i><b>Won it?</b><span style="flex:.3"></span></div>
+  <div class="line"><b>Coatwright's price for the same job</b><span style="flex:.5"></span><i>$</i><b>Difference</b><span style="flex:.4"></span></div>
+
+  <h2>Questions to ask him</h2>
+  <div class="box">What's the most annoying part of bidding a job today?<div class="tall"></div></div>
+  <div class="box">How long does a typical takeoff and bid take him? <span class="hint">(hours)</span><div class="blank"></div></div>
+  <div class="box">What do general contractors ask for in a proposal that he has to add by hand?<div class="tall"></div></div>
+  <div class="box">What's missing or wrong in Coatwright after trying it?<div class="tall"></div></div>
+  <div class="box">Would he pay for it? How much per month feels fair?<div class="blank"></div></div>
+  <p class="hint" style="margin-top:12px">After the session: send the photos/answers to Claude to check the numbers against his real bid and tune the commercial starting values.</p>
+</div>
+</body>
+</html>
