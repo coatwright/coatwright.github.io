@@ -195,6 +195,10 @@
           <a class="btn lg" href="app/">Try it free for 14 days</a>
         </div>
         <p class="center-note">In the app: <b>New Quote → Commercial → See a demo</b> opens a sample office plan, already measured.</p>
+        <div class="setup-strip">
+          <div><b>Already signed up?</b> Set Coatwright up for commercial bids in about 2 minutes.</div>
+          <button type="button" class="btn ghost" data-video="marketing/videos/coatwright-commercial-setup.mp4" data-title="How to set up Coatwright for commercial bids">▶ Watch the 1-minute setup video</button>
+        </div>
       </div>
     </section>
 
@@ -360,7 +364,7 @@
         <details><summary>Does Coatwright work outside the US?</summary><p>Yes. Your quotes, invoices and numbers use your own currency (pounds, euros, Canadian or Australian dollars and more). Coatwright picks it from your phone's region the first time and never changes it on its own, even when you travel; you can change it anytime in Settings. Starting prices are converted from our US prices, so set them to what you charge. Measurements are in feet and gallons for now. Subscriptions are priced in US dollars, and checkout shows the amount in your currency.</p></details>
         <details><summary>What kinds of jobs can I quote?</summary><p>Interior rooms, whole-home ballparks, exteriors, decks, fences, doors, shutters, garage and basement floors (paint, epoxy or flake), cabinets, wallpaper and popcorn removal, drywall repair, and 15 types of commercial property.</p></details>
         <details><summary>Where is my data stored? What if I change phones?</summary><p>On your device, with an automatic backup in your Coatwright account. On a new phone, just sign in with the same email or Google account and your jobs, customers and settings are all there.</p></details>
-        <details><summary>Can I price commercial jobs from blueprints?</summary><p>Yes (in beta). Start a commercial job, choose <b>I have the drawings</b>, and open the PDF plans. Set the scale (Coatwright reads it from the sheet), then click around rooms to measure walls, outline ceilings and floors, and tap to count doors and frames. Coatwright prices it with your production rates, paint costs, overhead and profit, and makes a proposal with alternates, inclusions and exclusions. Already measured in Adobe or Bluebeam? Type your totals instead. It works best on a computer or tablet. <a href="#commercial">Watch the demo</a>.</p></details>
+        <details><summary>Can I price commercial jobs from blueprints?</summary><p>Yes (in beta). Start a commercial job, choose <b>I have the drawings</b>, and open the PDF plans. Set the scale (Coatwright reads it from the sheet), then click around rooms to measure walls, outline ceilings and floors, and tap to count doors and frames. Coatwright prices it with your production rates, paint costs, overhead and profit, and makes a proposal with alternates, inclusions and exclusions. Already measured in Adobe or Bluebeam? Type your totals instead. It works best on a computer or tablet. <a href="#commercial">Watch the demo</a>, or the <a href="marketing/videos/coatwright-commercial-setup.mp4" data-video="marketing/videos/coatwright-commercial-setup.mp4" data-title="How to set up Coatwright for commercial bids">1-minute setup video</a>.</p></details>
         <details><summary>How do I get help?</summary><p>Email us anytime at <a href="mailto:hello@getcoatwright.com">hello@getcoatwright.com</a>. We read every message, and feature requests from painters shape what we build next.</p></details>
         <details><summary>Can I send invoices and track payments?</summary><p>Yes. Turn any won job into an invoice, log deposits and payments, and see what's still owed across all your jobs.</p></details>
       </div>
@@ -397,6 +401,22 @@
   <script src="landing/social-proof.js"></script>
   <script>
     document.getElementById('yr').textContent = new Date().getFullYear();
+    // Help videos open in a pop-up player (data-video on any button or link)
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest && e.target.closest('[data-video]');
+      if (!t) return;
+      e.preventDefault();
+      var box = document.createElement('div');
+      box.className = 'vid-modal';
+      box.innerHTML = '<div class="vid-inner" role="dialog"><div class="vid-head"><b></b><button type="button" class="vid-x" aria-label="Close">✕</button></div><video controls autoplay playsinline></video></div>';
+      box.querySelector('b').textContent = t.getAttribute('data-title') || '';
+      box.querySelector('video').src = t.getAttribute('data-video');
+      var close = function () { box.querySelector('video').pause(); box.remove(); document.removeEventListener('keydown', key); };
+      var key = function (ev) { if (ev.key === 'Escape') close(); };
+      box.addEventListener('click', function (ev) { if (ev.target === box || ev.target.closest('.vid-x')) close(); });
+      document.addEventListener('keydown', key);
+      document.body.appendChild(box);
+    });
     // Live founding-spots counter: the same public count the app uses (founder_spots_left in supabase/billing.sql). Hidden if it can't load.
     (function () {
       var cfg = window.CW_CONFIG || {};
