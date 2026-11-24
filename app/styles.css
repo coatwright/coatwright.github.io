@@ -650,3 +650,10 @@ body[data-view="takeoff"] main { max-width: none; padding: 0; }
 .com-more { margin: 12px 0 4px; border-top: 1px solid var(--line); padding-top: 8px; }
 .com-more > summary { font-weight: 700; cursor: pointer; padding: 6px 0; }
 .to-save-rates { display: block; margin: -4px 0 6px; padding: 4px 0; font-size: 14px; }
+
+/* Help video pop-up */
+.setup-vid-link { padding: 4px 0; font-size: 14px; }
+.vid-modal { position: fixed; inset: 0; z-index: 100; background: rgba(10, 16, 32, .72); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.vid-inner { width: min(960px, 100%); background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, .4); }
+.vid-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 6px 6px 16px; }
+.vid-inner video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #0d1326; }

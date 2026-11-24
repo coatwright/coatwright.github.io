@@ -2024,6 +2024,7 @@
       '<button type="button" class="btn btn-primary" data-action="to-add-plan">📂 Choose PDF blueprint</button>' +
       '<p class="muted small to-drop-tip">or drag the PDF file here</p>' +
       '<p class="muted small">Measured in Adobe or Bluebeam already? Type your totals in the <b>Takeoff</b> list instead.</p>' +
+      '<p class="muted small">New to this? <button type="button" class="link setup-vid-link" data-action="setup-video">▶ 1-minute setup video</button></p>' +
       '<button type="button" class="link" data-action="to-demo">👀 Or try the demo office plan</button></div>';
   }
   function missingStage(plan) {
@@ -2631,7 +2632,7 @@
     invoice_email: 'Invoices emailed', invoice_share: 'Invoices shared', invoice_print: 'Invoice PDFs saved', invoice_copy: 'Invoices copied',
     payment_added: 'Payments logged', expense_added: 'Expenses logged', takeoff_started: 'Takeoffs started', takeoff_opened: 'Takeoff opened',
     takeoff_plan_added: 'Plans added (PDF)', takeoff_measure: 'Takeoff measurements', takeoff_typed: 'Typed totals (Adobe/Bluebeam)',
-    demo_opened: 'Demo plan opened', upgrade_viewed: 'Plans page viewed', checkout_clicked: 'Checkout clicked', sample_created: 'Sample quote opened'
+    demo_opened: 'Demo plan opened', setup_video_opened: 'Setup video watched', upgrade_viewed: 'Plans page viewed', checkout_clicked: 'Checkout clicked', sample_created: 'Sample quote opened'
   };
   function isOwnerHint() { return !!(settings.comp && /^owner$/i.test(String(settings.comp.note || '').trim())); }
 
@@ -2747,6 +2748,7 @@
     return '<details class="card com-card"' + (comCardOpen || comOpenSys !== -1 || comOpenMore ? ' open' : '') + '><summary class="card-title">🏬 Commercial <em class="muted small">(blueprint takeoff)</em></summary>' +
       '<p class="muted small" style="margin-top:0">It works out of the box. Fill in these few numbers and every new blueprint takeoff is priced your way. ' +
       'Residential and walk-through quotes keep using your prices above.</p>' +
+      '<button type="button" class="link setup-vid-link" data-action="setup-video">▶ Watch the 1-minute setup video</button>' +
       '<div class="label" style="margin-top:4px">Quick setup <span class="muted small" style="text-transform:none;letter-spacing:0">(about 2 minutes)</span></div>' +
       '<div class="row3">' + comNum('laborRate', c.laborRate, 'Labour rate', { pre: sym(), unit: '/hr', placeholder: settings.laborRate, hint: 'blank = same as above' }) +
       comNum('overheadPct', c.overheadPct, 'Overhead', { unit: '%' }) + comNum('profitPct', c.profitPct, 'Profit', { unit: '%' }) + '</div>' +
@@ -2793,6 +2795,18 @@
       var sum = app.querySelector('[data-com-sys="' + parts[1] + '"] .cs-name');
       if (sum) sum.innerHTML = esc(target.name) + '<span class="muted small">' + esc(comSystemSummary(target)) + '</span>';
     }
+  }
+  /** Play a help video in a pop-up over the app (closes with ✕, Esc or a tap outside). */
+  function showVideo(src, title) {
+    var box = document.createElement('div');
+    box.className = 'vid-modal';
+    box.innerHTML = '<div class="vid-inner" role="dialog" aria-label="' + esc(title) + '"><div class="vid-head"><b>' + esc(title) + '</b>' +
+      '<button type="button" class="icon-btn" aria-label="Close">✕</button></div><video controls autoplay playsinline src="' + esc(src) + '"></video></div>';
+    var close = function () { var v = box.querySelector('video'); if (v) v.pause(); box.remove(); document.removeEventListener('keydown', onKey); };
+    var onKey = function (e) { if (e.key === 'Escape') close(); };
+    box.addEventListener('click', function (e) { if (e.target === box || e.target.closest('.vid-head .icon-btn')) close(); });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(box);
   }
   function renderSettingsKeep() { var y = window.scrollY; renderSettings(); window.scrollTo(0, y); }
 
@@ -2908,6 +2922,7 @@
     var action = el.dataset.action;
     if (action === 'to-demo') { startDemo(); return; }
     if (action === 'owner-refresh') { renderOwner(); return; }
+    if (action === 'setup-video') { showVideo('../marketing/videos/coatwright-commercial-setup.mp4', 'How to set up Coatwright for commercial bids'); track('setup_video_opened', null, true); return; }
     if (action === 'com-method') { comEnsure().method = el.dataset.v === 'unit' ? 'unit' : 'hours'; saveSettings(); renderSettingsKeep(); return; }
     if (action === 'com-sys-del') {
       var cc = comEnsure(), ci = +el.dataset.i;
