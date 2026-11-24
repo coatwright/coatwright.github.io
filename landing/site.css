@@ -266,3 +266,13 @@ details p { margin: 12px 0 0; color: var(--body); }
 .is-computer .only-phone { display: none; }
 .qr-here { margin: 8px 0 0; font-size: 15px; }
 .qr-here a { font-weight: 700; }
+
+/* Commercial setup video strip + pop-up player */
+.setup-strip { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px; margin: 26px auto 0; max-width: 760px;
+  padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: #fff; font-size: 15px; text-align: center; }
+.vid-modal { position: fixed; inset: 0; z-index: 100; background: rgba(10, 16, 32, .75); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.vid-inner { width: min(960px, 100%); background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, .4); }
+.vid-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 8px 8px 16px; font-size: 15px; }
+.vid-x { border: 0; background: none; font-size: 20px; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; }
+.vid-x:hover { background: #eef1f7; }
+.vid-inner video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #0d1326; }
