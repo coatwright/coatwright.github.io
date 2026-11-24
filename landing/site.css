@@ -259,3 +259,10 @@ details p { margin: 12px 0 0; color: var(--body); }
 .tq figcaption { font-size: 14px; color: var(--muted); }
 #proof-say { margin-top: 72px; }
 @media (max-width: 960px) { .proof-quotes { grid-template-columns: 1fr; } }
+
+/* Install section: phones get "Open Coatwright", computers get trial + sign in */
+.only-computer { display: none; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.is-computer .only-computer { display: inline-flex; }
+.is-computer .only-phone { display: none; }
+.qr-here { margin: 8px 0 0; font-size: 15px; }
+.qr-here a { font-weight: 700; }
