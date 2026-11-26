@@ -3,7 +3,16 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now:** Live at **https://getcoatwright.com/** with sign-up, **paid plans on Stripe**, **cloud backup & sync** (live Nov 20). **Commercial blueprint takeoff (beta)** built and waiting for the owner's review (not live). **Next:** owner reviews the takeoff + demo video, then sets up the beta tester (comp access) and sends his answers, blueprint and real bid; then analytics + owner dashboard. Social: finish TikTok, YouTube, X, LinkedIn; Google Search Console.
+**Where we are now (2026-11-26):** Live at **https://getcoatwright.com/**: sign-up (Google or email code), paid plans on Stripe (founding $12/mo for the first 100, then $24/mo or $199/yr), cloud backup & sync, metric units, the payment-logging fix, and **commercial blueprint takeoff (beta, free for everyone)** with Settings → Commercial quick setup, a demo office plan, a demo video and a setup video. Owner dashboard + usage counts and Cloudflare website stats are live; Google Search Console verified (sitemap submitted). All six social accounts exist (@coatwrightapp on Instagram, Facebook, TikTok, X, YouTube; LinkedIn page). Beta tester (commercial painter) has complimentary Pro; his demo moved to next week.
+
+**Next steps:**
+1. Beta tester demo (next week): setup worksheet (`marketing/commercial-setup-worksheet.pdf`), Settings → Commercial with his numbers, his real blueprint. Bring back his answers (recording/transcript OK with his consent), his actual bid and Coatwright's proposal PDF → compare and tune the commercial starting values.
+2. Owner: register the business name "Coatwright" (Ontario Business Registry, sole proprietorship, ~$60) → business bank account → move Stripe payouts. GST/HST only near $30K in sales. (Personal admin like EI, taxes and expenses is handled in a separate regular Claude chat, not in this repo.)
+3. Social media: upload the commercial demo + setup video to YouTube, turn on two-step verification everywhere (Prompt 7), then post ~3×/week (Claude can write two weeks of captions + a Meta Business Suite scheduling prompt). Join painter Facebook groups (`marketing/COMMUNITIES.md`).
+4. Ads: "The 11pm quote" (AI problem scenes + real app recordings); owner to test Google Flow (Veo) for free first; never fake customers, label AI clips.
+5. Later: Commercial plan (~$59–79/mo) with blueprint takeoff + cloud blueprint storage (Supabase Pro then), 30 days' notice and a reward for beta testers; invoices list / one-tap PDF download; UK/AU paint can sizes in metric; make the repository private (GitHub Team); trademark after first paying customers.
+
+**Starting a new conversation:** say "Coatwright: read PROGRESS.md" plus the task. One conversation per bigger task keeps things sharp.
 
 Legend: ✅ done · 🔄 in progress · ⬜ not started
 
@@ -108,7 +117,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Claude switched billing on (startDate 2026-11-15: everyone's 14-day trial counts from today; cache v22)
 - ⬜ End-to-end purchase test: skipped by the owner for now (cash). Free option when ready: one-time 100% code OWNERTEST + set secret FOUNDER_PROMO_CODES to the FOUNDER promo ID. Until then, check Stripe → Webhooks → Event deliveries after the first real sale
 
-- 🔄 Accounts ✅ and cloud sync (quotes on any device): database ready, switched on, waiting for owner's approval to publish
+- ✅ Accounts and cloud sync (quotes on any device), live 2026-11-20
 - ⬜ Customer "Accept quote" link with e-signature
 - ⬜ Deposit payments through Stripe
 - ⬜ Room scanning with the iPhone's LiDAR sensor (needs a native iPhone app; Pro models only) — premium feature
@@ -122,7 +131,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 ## Phase 5 — Grow 🔄
 
 - ✅ Social media kit: profile picture, Facebook cover, YouTube banner, X header, first-post image, bios for each platform, step-by-step setup and first 3 posts (`marketing/SOCIAL_SETUP.md`, `marketing/social/`)
-- ⬜ Owner creates the accounts (Instagram, Facebook Page, TikTok, YouTube, X) using the kit; Claude can't sign up for accounts
+- ✅ Owner created all accounts: Instagram, Facebook Page, TikTok, YouTube, X (@coatwrightapp) and the LinkedIn page (2026-11-16 to 11-26)
 - ⬜ Post in painter Facebook groups and subreddits
 - ✅ Video plan: 25 scripts with hooks, captions, hashtags, AI prompts and a 30-day schedule (`marketing/VIDEO_PLAN.md`)
 - ✅ First 2 real app demo videos recorded (`marketing/videos/`: quick quote, business stats); more on request
@@ -140,9 +149,9 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 
 ## Next up (approved plan, in order; each shown to the owner before going live)
 
-- 🔄 Cloud backup & sync (built, tests pass; owner ran the SQL 2026-11-20 and the check passed; `sync: true`; publishes after approval): jobs, customers, expenses, settings and logo saved to the painter's own account (Supabase, read/write own rows only), works offline, restore on a new device, safe first sync; Privacy/Terms/app wording updated. Owner runs one SQL script
-- 🔄 Commercial blueprint takeoff (beta, built 2026-11-20, waiting for owner review): open PDF plans, scale (read from the sheet or a known dimension), measure walls/areas/counts by paint system, typed totals from Adobe/Bluebeam, bid by hours or unit prices, extra costs, alternates, proposal with inclusions/exclusions; computer, tablet, phone; demo office plan + 80 s demo video. Originally planned as a "takeoff totals" entry: type measured wall/ceiling sq ft, trim LF, doors per area → hours, paint, materials, quote. Maybe import a Bluebeam/Adobe measurement export. Beta tester (commercial painter) to send a sample blueprint, his measurements and his actual bid
-- 🔄 Usage analytics (actions only) + private owner dashboard + Cloudflare website stats (built; owner ran `supabase/analytics.sql` 2026-11-21, check passed; `analytics: true`; publishes after approval) (sign-ups, trials, trial→paid, founder spots, usage); website analytics (Cloudflare or Plausible); Privacy Policy updated
+- ✅ Cloud backup & sync (live 2026-11-20): jobs, customers, expenses, settings and logo saved to the painter's own account (Supabase, read/write own rows only), works offline, restore on a new device, safe first sync; Privacy/Terms/app wording updated. Owner runs one SQL script
+- ✅ Commercial blueprint takeoff (beta, live 2026-11-20; Settings → Commercial live 2026-11-23): open PDF plans, scale (read from the sheet or a known dimension), measure walls/areas/counts by paint system, typed totals from Adobe/Bluebeam, bid by hours or unit prices, extra costs, alternates, proposal with inclusions/exclusions; computer, tablet, phone; demo office plan + 80 s demo video. Originally planned as a "takeoff totals" entry: type measured wall/ceiling sq ft, trim LF, doors per area → hours, paint, materials, quote. Maybe import a Bluebeam/Adobe measurement export. Beta tester (commercial painter) to send a sample blueprint, his measurements and his actual bid
+- ✅ Usage analytics (actions only) + private owner dashboard + Cloudflare website stats (live 2026-11-21) (sign-ups, trials, trial→paid, founder spots, usage); website analytics (Cloudflare or Plausible); Privacy Policy updated
 - ✅ Measure blueprints inside Coatwright (PDF + scale + trace), part of the takeoff above. Later: plan files stored online (Supabase Storage) so they open on every device; Commercial plan checkout (~US$59–79/mo); AI auto-takeoff only if commercial grows
 
 ## Phase 2 — Paint store partnerships (after the first painters)
@@ -305,3 +314,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-24** — Website: "Already signed up? ▶ Watch the 1-minute setup video" strip under the commercial section, and a link in the commercial FAQ answer; plays in a pop-up (owner asked to add it to the site).
 - **2026-11-26** — Owner created YouTube **@coatwrightapp** and X **@coatwrightapp**. Both added to the website footer (with Instagram, Facebook, TikTok, LinkedIn). All six social accounts now exist.
 - **2026-11-26** — Google Search Console: owner added the property https://getcoatwright.com/ (URL prefix, coatwrightapp@gmail.com) and got the HTML tag; Claude added the verification tag to the homepage plus `sitemap.xml` and `robots.txt`. Next: owner clicks Verify and submits the sitemap.
+- **2026-11-26** — Refreshed "Where we are now" with a next-steps list so new conversations start with the full picture (owner will use one conversation per bigger task).
