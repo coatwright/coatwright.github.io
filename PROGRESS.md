@@ -3,7 +3,7 @@
 **Goal:** The go-to quoting app for up-and-coming painters. Enter the job details, get an
 itemized price, send it to the customer. Free to start, paid plan later.
 
-**Where we are now (2026-11-26):** Live at **https://getcoatwright.com/**: sign-up (Google or email code), paid plans on Stripe (founding $12/mo for the first 100, then $24/mo or $199/yr), cloud backup & sync, metric units, the payment-logging fix, and **commercial blueprint takeoff (beta, free for everyone)** with Settings → Commercial quick setup, a demo office plan, a demo video and a setup video. Owner dashboard + usage counts and Cloudflare website stats are live; Google Search Console verified (sitemap submitted). All six social accounts exist (@coatwrightapp on Instagram, Facebook, TikTok, X, YouTube; LinkedIn page). Beta tester (commercial painter) has complimentary Pro; his demo moved to next week.
+**Where we are now (2026-11-27):** First paint store partner in progress: Thornhill Paint Supplies agreed in principle to a 60-day trial (deck + agreement ready; store ordering to be built after his yes). Live at **https://getcoatwright.com/**: sign-up (Google or email code), paid plans on Stripe (founding $12/mo for the first 100, then $24/mo or $199/yr), cloud backup & sync, metric units, the payment-logging fix, and **commercial blueprint takeoff (beta, free for everyone)** with Settings → Commercial quick setup, a demo office plan, a demo video and a setup video. Owner dashboard + usage counts and Cloudflare website stats are live; Google Search Console verified (sitemap submitted). All six social accounts exist (@coatwrightapp on Instagram, Facebook, TikTok, X, YouTube; LinkedIn page). Beta tester (commercial painter) has complimentary Pro; his demo moved to next week.
 
 **Next steps:**
 1. Beta tester demo (next week): setup worksheet (`marketing/commercial-setup-worksheet.pdf`), Settings → Commercial with his numbers, his real blueprint. Bring back his answers (recording/transcript OK with his consent), his actual bid and Coatwright's proposal PDF → compare and tune the commercial starting values.
@@ -161,7 +161,11 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - ✅ Paint per room shown live on each room card; **Paint tally**: by room (surface, brand, type, sheen, colour, exact gallons) and what to buy for the whole job; **brand** field (suggestions); **price per gallon per paint** (defaults from Settings) costs the paint into the quote for new jobs (older jobs keep their totals); brand + colour now appear on the customer's quote
 - ⬜ Later: slower labour for oil-based paint; store price lists (a partner store's real prices loaded automatically)
 - ⬜ 20–50 painters using Coatwright (proof for stores)
-- ⬜ First free pilot with a local independent paint store (Benjamin Moore dealers and other independents; Sherwin-Williams stores are company-owned)
+- 🔄 First free pilot: **Thornhill Paint Supplies** (Edwin, 7707 Yonge St). Edwin is open to a 60-day trial if it brings more business. Owner presenting `Coatwright-Thornhill-Partnership.pptx` (8 slides, kept outside the repo) + a one-page trial agreement (Claude Doc). Building waits for Edwin's yes and the owner's go-ahead
+- ⬜ Store ordering build (approved design, not built): store code at sign-up + QR/link → painter tagged to the store once (server-checked); **Review your order** screen (change amounts, edit product/sheen/colour, remove, add paint + supplies, note, pickup time; the customer's quote never changes); Send order → store email with **Price this order** page (no login: total with the painter's own discount, full payment or 50% deposit, store's payment link: Edwin's Shopify draft order → Send invoice; Mark paid / Mark picked up); painter sees price + **Pay now**; every order recorded; owner dashboard **Partners** section + monthly statement PDF for the 10% invoice. Builds on the existing Paint order card
+- ⬜ Store painters' access (server-side): tagged painters get 60 days free (instead of 14); after that, free in any month after ≥ $500 of paid + picked-up app orders at the store, else the normal price. Everyday users unchanged. Monthly automatic check on the 1st
+- ⬜ Later: store directory so any painter can connect to a nearby partner store (by city/postal code), many stores per region; Shopify connection that creates draft orders in the store's Shopify automatically; Stripe Connect so painters pay in the app and the 10% is taken automatically
+- ⬜ Day ~45 of the Thornhill trial: Claude prepares the continue-and-grow plan (results, Edwin's terms, next stores). Owner to tell Claude the start date so a reminder can be scheduled
 - ⬜ Paid store plans ($299/store/month or $12/contractor/month as starting points), then dealer groups, then brand partnerships (brand names and colour libraries only with permission)
 
 ## Decisions made
@@ -207,6 +211,9 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 | 2026-11-16 | Register the business name and GST/HST together at about $30K in sales | Keep early costs down; platform verification can wait |
 | 2026-11-16 | Phase 2: partner with independent paint stores ("Coatwright for [Store]"), free pilot first | Each store reaches many contractors; stores gain earlier, bigger, loyal orders. Store names only, no brand names without a licence |
 | 2026-11-17 | Run every task by the owner first; publish only after the owner approves the result | Owner wants to review before anything changes or goes live |
+| 2026-11-27 | Store partnerships: store prices every order (app sends the list only); no paint mixed until paid (full or 50% deposit); Coatwright never handles money in the trial | Answers Edwin's concerns: per-painter discounts, no-shows, and keeps it simple |
+| 2026-11-27 | Store deal: 60-day free trial, then 10% of paid + picked-up app orders, monthly statement, not exclusive, 30 days' notice, review after 3 months | Edwin offered 10–15%; simple 10% keeps the first partner happy |
+| 2026-11-27 | Store painters: 60 days free, then free each month after ≥ $500 of app orders at the store (paid from the commission) | Gives painters a money reason to keep using the app and order from the partner store |
 
 ## Log
 
@@ -315,3 +322,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - **2026-11-26** — Owner created YouTube **@coatwrightapp** and X **@coatwrightapp**. Both added to the website footer (with Instagram, Facebook, TikTok, LinkedIn). All six social accounts now exist.
 - **2026-11-26** — Google Search Console: owner added the property https://getcoatwright.com/ (URL prefix, coatwrightapp@gmail.com) and got the HTML tag; Claude added the verification tag to the homepage plus `sitemap.xml` and `robots.txt`. Next: owner clicks Verify and submits the sitemap.
 - **2026-11-26** — Refreshed "Where we are now" with a next-steps list so new conversations start with the full picture (owner will use one conversation per bigger task).
+- **2026-11-27** — First paint store pitch: Thornhill Paint Supplies (Edwin) is open to a 60-day trial. Planned the partnership (ordering flow, payment before mixing via his Shopify, 10% commission, $500/month painter offer, store-tagged accounts), wrote the trial agreement and an 8-slide deck, and a clickable preview of the order flow. Nothing built yet: waiting for Edwin's yes.
